@@ -40,11 +40,14 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
   data-theme="light"
   class="site-header fixed inset-x-0 top-0 z-50 border-b border-border bg-surface/95 text-fg backdrop-blur-md"
 >
-  <div class="mx-auto flex h-16 max-w-page items-center justify-between gap-6 px-gutter lg:h-18">
-    <a href={brand.href} class="flex min-h-11 shrink-0 items-center gap-3" aria-label={homeLabel}>
-      <Logo width="138" height="26" />
+  <div class="mx-auto flex h-16 max-w-page items-center justify-between gap-3 px-gutter sm:gap-6 lg:h-18">
+    <a href={brand.href} class="flex min-h-11 min-w-0 shrink items-center gap-3" aria-label={homeLabel}>
+      <Logo width="138" height="26" class="h-auto min-w-0 shrink" />
       {brand.programLabel && (
-        <span class="border-l border-border pl-3 text-sm font-semibold text-action-strong" aria-hidden="true">
+        <span
+          class="hidden border-l border-border pl-3 text-sm font-semibold text-action-strong xs:inline"
+          aria-hidden="true"
+        >
           {brand.programLabel}
         </span>
       )}
@@ -98,7 +101,7 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       </ul>
     </nav>
 
-    <div class="flex items-center gap-3">
+    <div class="flex shrink-0 items-center gap-3">
       {cta && (
         <a
           href={cta.href}
@@ -112,6 +115,7 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
         class="site-header__toggle inline-flex min-h-11 items-center gap-2 rounded-button border border-border px-3 text-sm font-semibold text-fg transition-colors hover:bg-surface-inset lg:hidden"
         aria-expanded="false"
         aria-controls="site-mobile-menu"
+        aria-label="Menu"
       >
         <span class="icon-open">
           <Icon name="menu" class="h-5 w-5" strokeWidth={2} />
@@ -119,7 +123,7 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
         <span class="icon-close hidden">
           <Icon name="x" class="h-5 w-5" strokeWidth={2} />
         </span>
-        <span class="toggle-label">Menu</span>
+        <span class="toggle-label max-2xs:hidden">Menu</span>
       </button>
     </div>
   </div>
@@ -309,6 +313,8 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
     toggle.setAttribute('aria-expanded', String(open));
     const label = toggle.querySelector('.toggle-label');
     if (label) label.textContent = open ? 'Close' : 'Menu';
+    // The label word hides below 17rem; the accessible name stays Menu / Close.
+    toggle.setAttribute('aria-label', open ? 'Close' : 'Menu');
     menu.classList.toggle('hidden', !open);
     document.documentElement.classList.toggle('menu-open', open);
     toggle.querySelector('.icon-open')?.classList.toggle('hidden', open);

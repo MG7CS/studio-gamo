@@ -4,8 +4,7 @@
  * list pre-filtered for that age group.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
+import MediaCardGrid from '@studio-gamo/ui/components/content/MediaCardGrid.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 import type { Age } from '../../data/lessons';
 
@@ -44,18 +43,13 @@ const groups: {
   <Fragment slot="title">
     Lessons for Every <span class="text-action">Age &amp; Stage</span>
   </Fragment>
-  <FeatureGrid as="ul" max={3}>
-    {groups.map((g) => (
-      <MediaCard
-        as="li"
-        href={`/lessons?ages=${g.age}`}
-        title={g.title}
-        image={{ name: g.photo, alt: '', ratio: 'square' }}
-      >
-        <p slot="meta" class="text-small text-fg-muted">
-          {g.label} · {g.points.join(' · ')}
-        </p>
-      </MediaCard>
-    ))}
-  </FeatureGrid>
+  <MediaCardGrid
+    max={3}
+    items={groups.map((g) => ({
+      href: `/lessons?ages=${g.age}`,
+      title: g.title,
+      image: { name: g.photo, alt: '' },
+      meta: `${g.label} · ${g.points.join(' · ')}`,
+    }))}
+  />
 </Section>

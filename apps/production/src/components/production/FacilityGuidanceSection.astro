@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /** Equipment & facility guidance: stewardship decision cards beside a church photo. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
@@ -14,7 +15,9 @@ const choices = [
 ---
 
 <SplitHero as="section" spacing="section" mediaSide="start">
-  <h2 class="section-heading text-balance text-fg">Steward what you have before buying what you don’t.</h2>
+  <h2 class="section-heading text-balance text-fg">
+    <TitleCase>Steward what you have before buying what you don’t.</TitleCase>
+  </h2>
   <FeatureGrid as="ul" min="sm" max={2} class="mt-4 w-full">
     {choices.map((c, i) => (
       <Card as="li" tone={i === 1 ? 'dark' : 'raised'}>

@@ -4,6 +4,7 @@
  * `tone="dark"` sets data-surface="dark" for use on a dark band.
  */
 import Icon from './Icon.astro';
+import TitleCase from './TitleCase.astro';
 interface Props {
   items: { q: string; a: string }[];
   tone?: 'light' | 'dark';
@@ -19,7 +20,7 @@ const { items, tone = 'light', class: className } = Astro.props;
   {items.map((item) => (
     <details class="group py-1">
       <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-xl py-5 text-left text-lg font-semibold [&::-webkit-details-marker]:hidden">
-        {item.q}
+        <TitleCase>{item.q}</TitleCase>
         <span class="flex size-9 shrink-0 items-center justify-center rounded-button bg-surface-raised transition-transform group-open:rotate-45">
           <Icon name="plus" class="h-4 w-4" strokeWidth={2} />
         </span>

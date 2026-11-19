@@ -16,29 +16,22 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
 ---
 
 <Layout description="Friendly, patient music lessons for students and families: private or small group, online or near home, with church-hosted and sponsored options in preparation.">
-  <div data-heading-case="as-written">
-    <AcademyHero />
-    <InstrumentDiscovery />
-    <LearningPaths />
-    <InstructionFormats />
-    <InstructorsPreview />
-    <HowLessonsWork />
-    <SponsoredPrograms />
-    <ChurchHosted />
-    <FamilyJourney />
-    <AcademyFaq />
-    <CtaInvitation
-      title="Your First Song Is Closer than You Think."
-      photo="girlGuitar"
-      photoRatio="portrait"
-      mediaFirstStacked
-    >
-      <ButtonLink href="/instruments" size="lg" arrow>
-        Choose an instrument
-      </ButtonLink>
-      <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" variant="secondary">
-        Register now
-      </ButtonLink>
-    </CtaInvitation>
-  </div>
+  <AcademyHero />
+  <InstrumentDiscovery />
+  <LearningPaths />
+  <InstructionFormats />
+  <InstructorsPreview />
+  <HowLessonsWork />
+  <SponsoredPrograms />
+  <ChurchHosted />
+  <FamilyJourney />
+  <AcademyFaq />
+  <CtaInvitation title="Your First Song Is Closer than You Think." photo="girlGuitar">
+    <ButtonLink href="/instruments" size="lg" arrow>
+      Choose an instrument
+    </ButtonLink>
+    <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" variant="secondary">
+      Register now
+    </ButtonLink>
+  </CtaInvitation>
 </Layout>

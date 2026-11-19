@@ -1,12 +1,15 @@
 ---
 /**
  * Closing invitation used at the end of pages: a heading, an optional sentence, the actions (the default slot) and a photo.
- * A plain band, not a boxed card, with no label above the heading (DESIGN.md section 11). The photo is a landscape
- * `Frame` (one radius, catalog focal point). `photoAlt`: omit for the catalog description, '' when the photo is purely
+ * A plain band, not a boxed card, with no label above the heading (DESIGN.md section 11). The photo is a `Frame`
+ * (one radius, catalog focal point) whose shape follows the photo's own shape (`ratio="auto"`); stacked on phone and
+ * iPad the photo comes first, then the heading, text and buttons. The heading is title-cased automatically. `photoAlt`: omit for the catalog description, '' when the photo is purely
  * decorative.
  */
 import Frame from './media/Frame.astro';
 import Container from './layout/Container.astro';
+import TitleCase from './TitleCase.astro';
+import type { FrameRatio } from './media/frame';
 import { photos, type PhotoKey } from '../lib/images';
 interface Props {
   title: string;
@@ -16,21 +19,10 @@ interface Props {
   photoAlt?: string;
   tone?: 'light' | 'dark';
   id?: string;
-  /** When the copy and the photo stack (below lg), put the photo first and the copy and buttons below it. */
-  mediaFirstStacked?: boolean;
-  /** Frame shape of the photo. Default landscape; pick the ratio closest to the photo's own shape so it crops least. */
-  photoRatio?: 'portrait' | 'landscape' | 'square';
+  /** Override of the frame shape. Default: the allowed shape that crops the photo least. */
+  photoRatio?: Exclude<FrameRatio, 'wide'>;
 }
-const {
-  title,
-  body,
-  photo,
-  photoAlt,
-  tone = 'light',
-  id,
-  mediaFirstStacked = false,
-  photoRatio = 'landscape',
-} = Astro.props;
+const { title, body, photo, photoAlt, tone = 'light', id, photoRatio } = Astro.props;
 const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 const dark = tone === 'dark';
 ---
@@ -42,13 +34,15 @@ const dark = tone === 'dark';
 >
   <Container class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
     <div>
-      <h2 class="section-heading text-balance">{title}</h2>
+      <h2 class="section-heading text-balance">
+        <TitleCase>{title}</TitleCase>
+      </h2>
       {body && <p class="mt-5 max-w-xl text-lg leading-relaxed text-fg-muted">{body}</p>}
       <div class="mt-8 flex flex-wrap gap-3">
         <slot />
       </div>
     </div>
-    <div class:list={[mediaFirstStacked && 'max-lg:order-first']}>
+    <div class="min-w-0 max-lg:order-first">
       <Frame photo={photo} ratio={photoRatio} sizes="half" {...frameAlt} />
     </div>
   </Container>

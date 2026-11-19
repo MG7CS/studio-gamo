@@ -3,8 +3,9 @@
  * Shared rounded-edge editorial feature card section with a photo in a shared `Frame` (one radius,
  * catalog focal point, inset in the panel so corners stay concentric), structured icon highlights,
  * and action buttons. `photoAlt`: omit for the catalog description, '' when decorative.
- * `photoRatio`: landscape (default), portrait or square; the build fails when the photo cannot take it.
- * `caption` renders below the photo.
+ * The photo's frame shape follows the photo's own shape (`ratio="auto"`); `photoRatio` overrides it (the build fails
+ * when the photo cannot take it). Stacked on phone and iPad the photo comes first. The title is title-cased
+ * automatically. `caption` renders below the photo only when one is passed.
  *
  * Used across Academy, Worship, and the global Gamo Studios pages for visual continuity.
  *
@@ -17,6 +18,7 @@
 import Frame from './media/Frame.astro';
 import StatusPill from './StatusPill.astro';
 import Icon from './Icon.astro';
+import TitleCase from './TitleCase.astro';
 import { photos, type PhotoKey } from '../lib/images';
 import type { FrameRatio } from './media/frame';
 import type { IconName } from '../lib/icons';
@@ -46,12 +48,11 @@ interface Props {
   points?: EditorialFeaturePoint[];
   photo: PhotoKey;
   photoAlt?: string;
+  /** Override of the frame shape. Default: the allowed shape that crops the photo least. */
   photoRatio?: Exclude<FrameRatio, 'wide'>;
   caption?: string;
   tone?: EditorialFeatureTone | DeprecatedEditorialFeatureTone;
   reverse?: boolean;
-  /** When the copy and the photo stack (below lg), put the photo first and the copy and buttons below it. */
-  mediaFirstStacked?: boolean;
   sectionClass?: string;
 }
 
@@ -65,11 +66,10 @@ const {
   points = [],
   photo,
   photoAlt,
-  photoRatio = 'landscape',
+  photoRatio,
   caption,
   tone: toneProp = 'inset',
   reverse = false,
-  mediaFirstStacked = false,
   sectionClass = '',
 } = Astro.props;
 
@@ -116,7 +116,9 @@ const iconBadgeSurface = {
       </div>
 
       <h2 class="section-heading mt-4 text-balance">
-        {title} {accent && <span class="text-accent">{accent}</span>}
+        <TitleCase>
+          {title} {accent && <span class="text-accent">{accent}</span>}
+        </TitleCase>
       </h2>
 
       {body && <p class="mt-4 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">{body}</p>}
@@ -143,11 +145,7 @@ const iconBadgeSurface = {
     </div>
 
     <div
-      class:list={[
-        'flex items-center p-5 lg:col-span-5',
-        reverse && 'lg:order-1',
-        mediaFirstStacked && 'max-lg:order-first',
-      ]}
+      class:list={['flex min-w-0 items-center p-5 max-lg:order-first lg:col-span-5', reverse && 'lg:order-1']}
     >
       <div class="w-full">
         <Frame photo={photo} ratio={photoRatio} sizes="half" caption={caption} {...frameAlt} />

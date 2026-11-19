@@ -4,6 +4,7 @@
  * Semantic tokens only: `tone="dark"` sets data-surface="dark" on the wrapper (cream title, tan
  * accent, muted lede) for use on a dark band; light keeps the parent's roles.
  */
+import TitleCase from './TitleCase.astro';
 interface Props {
   title: string;
   /** Optional second line rendered in the accent colour. */
@@ -36,8 +37,10 @@ const dark = tone === 'dark';
   class:list={[align === 'center' ? 'mx-auto text-center' : '', 'max-w-3xl', className]}
 >
   <Tag id={id} class:list={[sizeClass, 'text-fg text-balance']}>
-    {title}
-    {accent && <span class="block text-accent">{accent}</span>}
+    <TitleCase>
+      {title}
+      {accent && <span class="block text-accent">{accent}</span>}
+    </TitleCase>
   </Tag>
   {lede && (
     <p class:list={['mt-5 max-w-2xl text-lg leading-relaxed text-fg-muted', align === 'center' && 'mx-auto']}>

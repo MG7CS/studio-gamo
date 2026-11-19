@@ -14,6 +14,7 @@ import type { HTMLAttributes } from 'astro/types';
  * Slots: title (overrides the `title` prop), body (or the default slot), meta.
  */
 import Icon from '../Icon.astro';
+import TitleCase from '../TitleCase.astro';
 import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
@@ -53,14 +54,16 @@ const hasBody = Astro.slots.has('body');
   data-tone={tone}
   data-surface={cardSurface(tone)}
 >
-  <Heading class="link-card__title text-xl font-black tracking-tight text-balance uppercase">
+  <Heading class="link-card__title text-xl font-black tracking-tight text-balance">
     <a
       href={href}
       class="link-card__link decoration-2 underline-offset-4 group-hover:underline"
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener' : undefined}
     >
-      <slot name="title">{title}</slot>
+      <TitleCase>
+        <slot name="title">{title}</slot>
+      </TitleCase>
       {external && <span class="sr-only"> (opens in a new tab)</span>}
     </a>
   </Heading>

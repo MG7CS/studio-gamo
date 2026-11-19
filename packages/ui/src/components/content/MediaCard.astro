@@ -20,13 +20,14 @@ import type { HTMLAttributes } from 'astro/types';
  *   </MediaCard>
  *
  * `image`: { name (catalog id), alt (omit for the catalog description, '' for decorative), ratio
- * (default landscape; portrait for overlay), sizes (Frame preset, default third), priority }. A photo that
+ * (default: the one that crops the photo least; MediaCardGrid gives a whole grid one shared shape), sizes (Frame preset, default third), priority }. A photo that
  * cannot take the ratio fails the build: pick another ratio or photo.
  *
  * Slots: on-media, title (overrides `title`), default (body), meta.
  */
 import Frame from '../media/Frame.astro';
-import { photos, type PhotoKey } from '../../lib/images';
+import TitleCase from '../TitleCase.astro';
+import { closestRatio, photos, type PhotoKey } from '../../lib/images';
 import type { FrameRatio, FrameSizes } from '../media/frame';
 import { cardSurface, cardToneClass, type CardTone } from './card-tone';
 
@@ -35,7 +36,7 @@ export interface MediaCardImage {
   name: PhotoKey;
   /** Omit for the catalog description; alt="" only when the photo is purely decorative. */
   alt?: string;
-  /** Frame ratio. Default landscape (adaptive) or portrait (overlay). */
+  /** Frame ratio. Default: the allowed shape that crops the photo least (inside a MediaCardGrid, the one shape for the set). */
   ratio?: FrameRatio;
   /** Frame `sizes` preset. Default third. */
   sizes?: FrameSizes;
@@ -70,7 +71,7 @@ const overlay = variant === 'overlay';
 const hasTitle = Boolean(title) || Astro.slots.has('title');
 const frameAlt =
   image.alt === '' ? { decorative: true as const } : { alt: image.alt ?? photos[image.name].alt };
-const ratio = image.ratio ?? (overlay ? 'portrait' : 'landscape');
+const ratio = image.ratio ?? closestRatio(image.name);
 const Wrap = overlay && href ? 'a' : 'div';
 const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link' } : {};
 ---
@@ -104,14 +105,16 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
           {hasTitle && (
             <Heading
               class:list={[
-                'media-card__title text-xl font-black tracking-tight text-balance text-fg uppercase',
+                'media-card__title text-xl font-black tracking-tight text-balance text-fg',
                 href && 'decoration-2 underline-offset-4 group-hover:underline',
               ]}
             >
-              <slot name="title">{title}</slot>
+              <TitleCase>
+                <slot name="title">{title}</slot>
+              </TitleCase>
             </Heading>
           )}
-          <div class="text-body-sm text-fg">
+          <div class="text-base font-semibold text-fg">
             <slot />
           </div>
           {Astro.slots.has('meta') && (
@@ -140,13 +143,17 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
           </div>
         )}
         {hasTitle && (
-          <Heading class="media-card__title text-xl font-black tracking-tight text-balance text-fg uppercase">
+          <Heading class="media-card__title text-xl font-black tracking-tight text-balance text-fg">
             {href ? (
               <a href={href} class="media-card__link decoration-2 underline-offset-4 group-hover:underline">
-                <slot name="title">{title}</slot>
+                <TitleCase>
+                  <slot name="title">{title}</slot>
+                </TitleCase>
               </a>
             ) : (
-              <slot name="title">{title}</slot>
+              <TitleCase>
+                <slot name="title">{title}</slot>
+              </TitleCase>
             )}
           </Heading>
         )}

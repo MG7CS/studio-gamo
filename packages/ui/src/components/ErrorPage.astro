@@ -5,6 +5,7 @@
  * site. Never shows error details.
  */
 import ButtonLink from './ButtonLink.astro';
+import TitleCase from './TitleCase.astro';
 import type { ShellConfig } from '../shell/types';
 
 interface Props {
@@ -29,7 +30,9 @@ const copy =
 ---
 
 <section class="page-intro-space mx-auto flex min-h-[70vh] max-w-3xl flex-col justify-center px-5 md:px-8">
-  <h1 class="display-lg text-charcoal">{copy.title}</h1>
+  <h1 class="display-lg text-charcoal">
+    <TitleCase>{copy.title}</TitleCase>
+  </h1>
   <p class="mt-6 max-w-xl text-lg text-ink-soft">{copy.body}</p>
   <div class="mt-10 flex flex-wrap gap-3">
     <ButtonLink href={homeHref} arrow>

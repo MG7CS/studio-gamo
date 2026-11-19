@@ -1,32 +1,21 @@
 ---
 /**
- * Photo for the shared PageHero `media` slot on Academy interior pages: one shared Frame (rounded
- * rectangle, catalog focal point) and the page's priority image.
+ * Photo for the shared PageHero `media` slot on Academy interior pages: one shared Frame (rounded rectangle, catalog
+ * focal point, and the page's priority image). The frame shape follows the photo's own shape (the Frame default), and
+ * the alt text is the catalog description unless one is passed.
  *
  * Usage:
  *   <HeroPhoto slot="media" photo="youngPianist" />
- *   <HeroPhoto slot="media" photo="guitarMentor" alt="Guitar instructor with a student" ratio="portrait" />
  */
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
-import { photos, PHOTO_RATIOS, type PhotoKey } from '@studio-gamo/ui/lib/images';
+import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface Props {
   photo: PhotoKey;
   /** Omit for the catalog description. */
   alt?: string;
-  ratio?: 'landscape' | 'portrait' | 'square';
 }
-const { photo, alt, ratio } = Astro.props;
-// The allowed ratio closest to the photo's own shape, so it crops least and the photo is at least as tall
-// as the text beside it: landscape for 3:2 and wide photos, portrait or square for tall ones.
-const entry = photos[photo];
-const source = entry.width / entry.height;
-const fits = (['landscape', 'portrait', 'square'] as const).filter((r) => entry.ratios.includes(r));
-const shape =
-  ratio ??
-  fits.reduce((best, r) =>
-    Math.abs(Math.log(source / PHOTO_RATIOS[r])) < Math.abs(Math.log(source / PHOTO_RATIOS[best])) ? r : best,
-  );
+const { photo, alt } = Astro.props;
 ---
 
-<Frame photo={photo} ratio={shape} sizes="half" alt={alt ?? photos[photo].alt} priority />
+<Frame photo={photo} sizes="half" alt={alt ?? photos[photo].alt} priority />

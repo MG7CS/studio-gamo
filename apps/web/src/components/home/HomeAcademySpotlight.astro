@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * Home page Gamo Academy section (restored 2026-11-18 without the label above the heading and the sentence under
  * it, DESIGN.md section 11): heading, the instruments as flat linked rows, the scholarship note (plain text, no
@@ -31,13 +32,14 @@ const instruments: { name: string; age: string; path: string; icon: IconName }[]
   as="section"
   spacing="section"
   mediaSide="start"
-  mediaFirstStacked
   tone="raised"
   id="academy"
   aria-labelledby="home-academy-title"
 >
   <h2 id="home-academy-title" class="section-heading text-balance text-fg">
-    Learn to Play the <span class="text-accent">Instrument You Love.</span>
+    <TitleCase>
+      Learn to Play the <span class="text-accent">Instrument You Love.</span>
+    </TitleCase>
   </h2>
 
   <ul class="mt-8 grid gap-x-6 sm:grid-cols-2">
@@ -69,7 +71,6 @@ const instruments: { name: string; age: string; path: string; icon: IconName }[]
   <Frame
     slot="media"
     photo="youngPianist"
-    ratio="portrait"
     sizes="half"
     alt="Young pianist smiling while playing a keyboard in a bright classroom"
   />

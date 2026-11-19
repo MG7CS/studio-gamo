@@ -25,34 +25,31 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   title={instrument.name}
   description={`${instrument.name} lessons at Gamo Academy. ${instrument.blurb} ${instrument.ages}.`}
 >
-  <div data-heading-case="as-written">
-    <PageHero
-      title={instrument.name}
-      mediaFirstStacked
-      breadcrumbs={[
-        { label: 'Academy', href: '/' },
-        { label: 'Instruments', href: '/instruments' },
-        { label: instrument.short },
-      ]}
-    >
-      <p slot="intro">{instrument.blurb}</p>
-      <Fragment slot="actions">
-        <ButtonLink href={`/lessons?instrument=${instrument.slug}`} size="lg" arrow>
-          Find {instrument.short.toLowerCase()} lessons
-        </ButtonLink>
-      </Fragment>
-      {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} />}
-    </PageHero>
-    <InstrumentOverview instrument={instrument} />
-    <Section title={`Ways to Learn ${instrument.short}`}>
-      <FeatureGrid as="ul" max={3}>
-        {related.map((l) => (
-          <LessonCard lesson={l} />
-        ))}
-        {teachers.map((t) => (
-          <InstructorCard instructor={t} as="li" />
-        ))}
-      </FeatureGrid>
-    </Section>
-  </div>
+  <PageHero
+    title={instrument.name}
+    breadcrumbs={[
+      { label: 'Academy', href: '/' },
+      { label: 'Instruments', href: '/instruments' },
+      { label: instrument.short },
+    ]}
+  >
+    <p slot="intro">{instrument.blurb}</p>
+    <Fragment slot="actions">
+      <ButtonLink href={`/lessons?instrument=${instrument.slug}`} size="lg" arrow>
+        Find {instrument.short.toLowerCase()} lessons
+      </ButtonLink>
+    </Fragment>
+    {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} />}
+  </PageHero>
+  <InstrumentOverview instrument={instrument} />
+  <Section title={`Ways to Learn ${instrument.short}`}>
+    <FeatureGrid as="ul" max={3}>
+      {related.map((l) => (
+        <LessonCard lesson={l} />
+      ))}
+      {teachers.map((t) => (
+        <InstructorCard instructor={t} as="li" />
+      ))}
+    </FeatureGrid>
+  </Section>
 </Layout>

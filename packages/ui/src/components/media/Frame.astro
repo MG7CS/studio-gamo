@@ -13,8 +13,10 @@ import type { HTMLAttributes } from 'astro/types';
  *
  * Props
  * - photo: catalog id (PhotoKey from lib/images.ts).
- * - ratio: portrait 4/5 | landscape 3/2 | wide 21/8 | square 1/1 (required). `wide` shows as landscape
- *   inside containers narrower than 30rem. Build fails when the photo cannot be cropped to the ratio
+ * - ratio: `auto` (default) | portrait 4/5 | landscape 3/2 | wide 21/8 | square 1/1. `auto` picks, from
+ *   portrait, landscape and square, the shape that crops the photo least (`closestRatio` in lib/images.ts), so a
+ *   page never names a ratio; pass one only to override. `wide` (explicit only) shows as landscape inside
+ *   containers narrower than 30rem. Build fails when the photo cannot be cropped to an explicit ratio
  *   (the catalog lists each photo's allowed ratios).
  * - alt: description, OR decorative: true for alt="" (exactly one; enforced by the TypeScript union).
  * - sizes: full | half | third | tile | grid-tall (default full): presets from media/frame.ts.
@@ -41,7 +43,7 @@ import type { HTMLAttributes } from 'astro/types';
  * ratio. Apps must not pass it.
  */
 import ResponsivePicture from '../ResponsivePicture.astro';
-import { photos, type PhotoKey } from '../../lib/images';
+import { closestRatio, photos, type PhotoKey } from '../../lib/images';
 import {
   FRAME_RATIOS,
   FRAME_SIZES,
@@ -54,7 +56,8 @@ import {
 
 interface FrameBase extends Omit<HTMLAttributes<'div'>, 'class' | 'class:list' | 'style' | 'children'> {
   photo: PhotoKey;
-  ratio: FrameRatio;
+  /** A fixed ratio, or 'auto' (default): the allowed shape that crops the photo least. */
+  ratio?: FrameRatio | 'auto';
   sizes?: FrameSizes;
   priority?: boolean;
   caption?: string;
@@ -66,7 +69,7 @@ type Props = FrameBase & FrameAlt;
 
 const {
   photo,
-  ratio,
+  ratio: ratioProp = 'auto',
   alt,
   decorative,
   sizes = 'full',
@@ -83,6 +86,7 @@ for (const forbidden of ['class', 'class:list', 'style']) {
   }
 }
 assertAlt(`Frame "${photo}"`, { alt, decorative });
+const ratio: FrameRatio = ratioProp === 'auto' ? closestRatio(photo) : ratioProp;
 assertFrameRatio(photo, ratio);
 if (!(sizes in FRAME_SIZES)) {
   throw new Error(`Frame "${photo}": unknown sizes preset "${String(sizes)}".`);

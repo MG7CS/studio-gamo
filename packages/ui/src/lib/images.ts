@@ -35,6 +35,12 @@ export function cropKept(source: number, target: number): number {
  */
 export const MIN_CROP_KEPT = 0.5;
 
+/**
+ * Ratios the `auto` frame shape chooses from (listed in tie-break order). `wide` is a banner shape and is only
+ * used when a caller asks for it explicitly or passes it as a candidate.
+ */
+export const AUTO_RATIOS: readonly PhotoRatio[] = ['landscape', 'portrait', 'square'];
+
 export interface PhotoEntry {
   stem: string;
   widths: number[];
@@ -388,3 +394,42 @@ export const photos = Object.fromEntries(
     ];
   }),
 ) as Record<PhotoKey, PhotoEntry>;
+
+/**
+ * The allowed ratio (from `candidates`) that crops `photo` least: the frame shape that follows the photo's own
+ * shape. Always one of `photos[photo].ratios`, so `Frame` never throws for it. Ties go to the earlier candidate.
+ */
+export function closestRatio(photo: PhotoKey, candidates: readonly PhotoRatio[] = AUTO_RATIOS): PhotoRatio {
+  return commonRatio([photo], candidates);
+}
+
+/**
+ * The one ratio that crops a whole set of photos least: the highest worst-case share kept, then the highest average.
+ * Use it so the cards of a grid share one shape without a page naming it. Only ratios every photo allows count.
+ */
+export function commonRatio(
+  keys: readonly PhotoKey[],
+  candidates: readonly PhotoRatio[] = AUTO_RATIOS,
+): PhotoRatio {
+  if (keys.length === 0) throw new Error('commonRatio: no photos given.');
+  let best: PhotoRatio | undefined;
+  let bestWorst = -1;
+  let bestMean = -1;
+  for (const ratio of candidates) {
+    if (!keys.every((k) => photos[k].ratios.includes(ratio))) continue;
+    const kept = keys.map((k) => cropKept(photos[k].width / photos[k].height, PHOTO_RATIOS[ratio]));
+    const worst = Math.min(...kept);
+    const mean = kept.reduce((a, b) => a + b, 0) / kept.length;
+    if (worst > bestWorst + 1e-9 || (Math.abs(worst - bestWorst) <= 1e-9 && mean > bestMean + 1e-9)) {
+      best = ratio;
+      bestWorst = worst;
+      bestMean = mean;
+    }
+  }
+  if (!best) {
+    throw new Error(
+      `No ratio of ${candidates.join(', ')} fits every photo (${keys.join(', ')}); pass one explicitly.`,
+    );
+  }
+  return best;
+}

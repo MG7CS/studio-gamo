@@ -13,33 +13,26 @@ import { instruments, plannedInstruments } from '../../data/instruments';
   title="Browse Instruments"
   description="Explore piano, guitar, bass, drums and vocals at Gamo Academy. Each instrument page shows who it suits, what first lessons cover and available lessons."
 >
-  <div data-heading-case="as-written">
-    <PageHero mediaFirstStacked breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Instruments' }]}>
-      <Fragment slot="title">
-        Find the Sound <span class="block text-action">That Moves You.</span>
-      </Fragment>
-      <HeroPhoto slot="media" photo="youngPianist" />
-    </PageHero>
-    <Container class="pb-16 lg:pb-24">
-      <LinkRows
-        headingLevel="h2"
-        items={instruments.map((i) => ({
-          href: `/instruments/${i.slug}`,
-          title: i.name,
-          meta: i.ages,
-        }))}
-      />
-      <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>
-    </Container>
-    <CtaInvitation
-      title="Find a Lesson Path That Fits."
-      photo="guitarMentor"
-      photoRatio="landscape"
-      mediaFirstStacked
-    >
-      <ButtonLink href="/lessons" size="lg" arrow>
-        Browse lessons
-      </ButtonLink>
-    </CtaInvitation>
-  </div>
+  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Instruments' }]}>
+    <Fragment slot="title">
+      Find the Sound <span class="block text-action">That Moves You.</span>
+    </Fragment>
+    <HeroPhoto slot="media" photo="youngPianist" />
+  </PageHero>
+  <Container class="pb-16 lg:pb-24">
+    <LinkRows
+      headingLevel="h2"
+      items={instruments.map((i) => ({
+        href: `/instruments/${i.slug}`,
+        title: i.name,
+        meta: i.ages,
+      }))}
+    />
+    <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>
+  </Container>
+  <CtaInvitation title="Find a Lesson Path That Fits." photo="guitarMentor">
+    <ButtonLink href="/lessons" size="lg" arrow>
+      Browse lessons
+    </ButtonLink>
+  </CtaInvitation>
 </Layout>

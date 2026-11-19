@@ -1,0 +1,18 @@
+---
+/**
+ * TitleCase: renders its content with the text in title case (small words such as "and", "to", "of" stay lower
+ * case; the first word is always capitalised). Only text nodes change: tags, attributes and entities such as
+ * `&amp;` are never touched, and a word that already has capitals inside ("FAQ", "iPad") is kept.
+ *
+ * Every shared component that renders a heading wraps its content in this, so authors type headings normally and
+ * no page sets anything. App-owned heading markup that bypasses the shared components wraps its content too:
+ *   <h1 class="display-xl"><TitleCase>Learn to play the <span>instrument you love.</span></TitleCase></h1>
+ *
+ * No wrapper element is rendered. The rule lives in `lib/title-case.ts`.
+ */
+import { titleCaseHtml } from '../lib/title-case';
+
+const html = await Astro.slots.render('default');
+---
+
+<Fragment set:html={titleCaseHtml(html)} />

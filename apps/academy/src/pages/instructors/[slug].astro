@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
@@ -28,7 +29,7 @@ const details = [
   title={t.name}
   description={clampDescription(`Gamo Academy ${t.name.toLowerCase()} profile: ${t.teaches}. ${t.bio}`)}
 >
-  <Container class="page-intro-space" data-heading-case="as-written">
+  <Container class="page-intro-space">
     <div class="grid gap-10 lg:grid-cols-3">
       <Card as="aside" padding="lg" class="lg:sticky lg:top-28 lg:self-start">
         <span
@@ -80,14 +81,18 @@ const details = [
           </ol>
         </nav>
         <h2 class="section-heading mt-4 text-balance">{t.bio}</h2>
-        <h3 class="section-subheading mt-12">Teaching Approach</h3>
+        <h3 class="section-subheading mt-12">
+          <TitleCase>Teaching Approach</TitleCase>
+        </h3>
         <NumberedSteps
           items={t.approach.map((title) => ({ title }))}
           headingLevel="h4"
           tone="inset"
           class="mt-6"
         />
-        <h3 class="section-subheading mt-12">Available Lessons</h3>
+        <h3 class="section-subheading mt-12">
+          <TitleCase>Available Lessons</TitleCase>
+        </h3>
         <FeatureGrid as="ul" max={2} class="mt-6">
           {taught.map((l) => (
             <LessonCard lesson={l} headingLevel="h4" />

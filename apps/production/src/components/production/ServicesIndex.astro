@@ -1,21 +1,20 @@
 ---
 /** Support-area index: one MediaCard per area in the shared FeatureGrid. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
+import MediaCardGrid from '@studio-gamo/ui/components/content/MediaCardGrid.astro';
 import { supportAreas } from '../../data/production';
 ---
 
 <Section tone="raised">
-  <FeatureGrid as="ul" min="md" max={3} gap="lg">
-    {supportAreas.map((a) => (
-      <MediaCard
-        as="li"
-        href={`/services/${a.slug}`}
-        title={a.title}
-        headingLevel="h2"
-        image={{ name: a.photo, sizes: 'third', ratio: 'square' }}
-      />
-    ))}
-  </FeatureGrid>
+  <MediaCardGrid
+    min="md"
+    max={3}
+    gap="lg"
+    headingLevel="h2"
+    items={supportAreas.map((a) => ({
+      href: `/services/${a.slug}`,
+      title: a.title,
+      image: { name: a.photo, sizes: 'third' },
+    }))}
+  />
 </Section>

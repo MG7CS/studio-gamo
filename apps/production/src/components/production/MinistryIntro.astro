@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /** Introduction to technical ministry support: statement, photo and three principles. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
@@ -17,7 +18,7 @@ const principles = [
   <div class="grid gap-12 lg:grid-cols-12">
     <div class="lg:col-span-7">
       <h2 class="section-heading mt-4 text-balance text-fg">
-        The quiet work that helps a whole church worship.
+        <TitleCase>The quiet work that helps a whole church worship.</TitleCase>
       </h2>
     </div>
     <div class="hidden lg:col-span-5 lg:block">

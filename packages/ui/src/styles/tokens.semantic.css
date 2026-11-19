@@ -129,6 +129,10 @@
 }
 
 @theme {
+  /* Extra-small breakpoints (xs:, 2xs:, max-2xs:) for the very narrow screens a zoomed browser or a small phone reaches. */
+  --breakpoint-xs: 24rem;
+  --breakpoint-2xs: 17rem;
+
   /* Containers (max-w-page, max-w-narrow, max-w-prose). */
   --container-page: 82.5rem;
   --container-narrow: 56rem;

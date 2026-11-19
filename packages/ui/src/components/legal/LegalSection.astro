@@ -3,6 +3,7 @@
  * One section of a legal document: heading, paragraphs and an optional bullet list. Props:
  * - section: { id, heading, paragraphs?, items? } (see content/types.ts).
  */
+import TitleCase from '../TitleCase.astro';
 import type { LegalSectionContent } from './content/types.ts';
 
 interface Props {
@@ -15,7 +16,7 @@ const items = section.items ?? [];
 
 <section class="border-t border-sand pt-7" aria-labelledby={`legal-${section.id}`}>
   <h2 id={`legal-${section.id}`} class="text-xl font-semibold text-ink sm:text-2xl">
-    {section.heading}
+    <TitleCase>{section.heading}</TitleCase>
   </h2>
   {paragraphs.map((p) => (
     <p class="mt-4 max-w-3xl leading-relaxed text-muted">{p}</p>

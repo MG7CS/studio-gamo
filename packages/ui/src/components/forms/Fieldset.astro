@@ -18,6 +18,7 @@
  */
 import FieldError from './FieldError.astro';
 import RequiredMark from './RequiredMark.astro';
+import TitleCase from '../TitleCase.astro';
 import { fieldIds } from './field';
 
 interface Props {
@@ -63,10 +64,16 @@ const radiogroup = role === 'radiogroup';
     id={legendId}
     class:list={[
       'p-0 text-fg',
-      variant === 'section' ? 'text-xl font-black tracking-tight uppercase' : 'text-body-sm font-semibold',
+      variant === 'section' ? 'text-xl font-black tracking-tight' : 'text-body-sm font-semibold',
     ]}
   >
-    <slot name="legend">{legend}</slot>
+    {variant === 'section' ? (
+      <TitleCase>
+        <slot name="legend">{legend}</slot>
+      </TitleCase>
+    ) : (
+      <slot name="legend">{legend}</slot>
+    )}
     {required && <RequiredMark />}
   </legend>
   {hint && (

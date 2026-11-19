@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /** Honest empty state for project stories (no real projects exist yet). */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
@@ -8,7 +9,7 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
   <div class="grid gap-10 lg:grid-cols-12 lg:items-center">
     <div class="lg:col-span-5">
       <h2 class="section-heading mt-4 text-balance text-fg">
-        Stories will be told honestly — once they happen.
+        <TitleCase>Stories will be told honestly — once they happen.</TitleCase>
       </h2>
       <p class="mt-5 text-lg text-fg-muted">
         Gamo Production has not completed any church projects yet. We will not show invented case studies or

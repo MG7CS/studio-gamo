@@ -2,8 +2,8 @@
 import type { HTMLAttributes } from 'astro/types';
 /**
  * FloatingPreviewCard: frame for a small floating product-UI preview laid over photography
- * (a booking summary, a lesson slot, a schedule). Previews show fictional data, so the badge slot
- * falls back to a "Sample" Badge; replace it only with another honest label.
+ * (a booking summary, a lesson slot, a schedule). It shows no status badge or tag unless one is put in the `badge`
+ * slot (owner direction 2026-11-19: no Sample, Proposal or planned tags on public sections).
  * The title is a plain label, not a heading, so previews do not enter the page outline.
  *
  * Usage:
@@ -11,20 +11,16 @@ import type { HTMLAttributes } from 'astro/types';
  *     <p class="text-small">Piano · Thursday 4:30 pm</p>
  *   </FloatingPreviewCard>
  *
- * Slots: title (overrides `title`), badge (defaults to a Sample badge), default (preview body).
+ * Slots: title (overrides `title`), badge (empty by default), default (preview body).
  */
-import Badge from './Badge.astro';
-
 interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
   title?: string;
   /** light (default) uses the raised surface; dark switches to dark colour roles. */
   tone?: 'light' | 'dark';
   as?: 'div' | 'aside' | 'figure';
-  /** Show the default Sample badge. Set false for real (non-sample) content. Default true. */
-  badge?: boolean;
   class?: string;
 }
-const { title, tone = 'light', as: Tag = 'div', badge = true, class: className, ...rest } = Astro.props;
+const { title, tone = 'light', as: Tag = 'div', class: className, ...rest } = Astro.props;
 const hasTitle = Boolean(title) || Astro.slots.has('title');
 ---
 
@@ -39,13 +35,15 @@ const hasTitle = Boolean(title) || Astro.slots.has('title');
 >
   <div class="flex min-w-0 items-center justify-between gap-3">
     {hasTitle && (
-      <p class="min-w-0 truncate text-small font-semibold">
+      <p class="min-w-0 text-small font-semibold">
         <slot name="title">{title}</slot>
       </p>
     )}
-    <div class="ms-auto flex shrink-0 gap-2">
-      <slot name="badge">{badge && <Badge tone="sample" size="sm" />}</slot>
-    </div>
+    {Astro.slots.has('badge') && (
+      <div class="ms-auto flex shrink-0 gap-2">
+        <slot name="badge" />
+      </div>
+    )}
   </div>
   <slot />
 </Tag>

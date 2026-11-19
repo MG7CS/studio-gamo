@@ -17,51 +17,80 @@
 
 @source "../components";
 
-/* Editorial type scale: heavy (900), tight leading, first letter of every word capitalised (owner direction
-   2026-11-19; previously all caps). */
+/* Editorial type scale: heavy (900), tight leading. Headings are title-cased by the shared heading components
+   (TitleCase.astro, lib/title-case.ts), not by CSS; there is no text-transform here. Sizes are fluid with a minimum that
+   shrinks on very narrow screens, and long words wrap, so a heading never overflows its column. */
 @utility display-xl {
   font-size: var(--text-hero);
   line-height: 1;
   letter-spacing: -0.02em;
   font-weight: 900;
-  text-transform: capitalize;
+  overflow-wrap: anywhere;
 }
 @utility display-lg {
   font-size: var(--text-page-title);
   line-height: 1.04;
   letter-spacing: -0.02em;
   font-weight: 900;
-  text-transform: capitalize;
+  overflow-wrap: anywhere;
 }
 @utility section-heading {
   font-size: var(--text-section-title);
   line-height: 1.08;
   letter-spacing: -0.01em;
   font-weight: 900;
-  text-transform: capitalize;
+  overflow-wrap: anywhere;
 }
 @utility section-subheading {
-  font-size: clamp(1.75rem, 2.8vw, 2.75rem);
+  font-size: var(--text-section-subtitle);
   line-height: 1.08;
   letter-spacing: -0.01em;
   font-weight: 900;
-  text-transform: capitalize;
+  overflow-wrap: anywhere;
 }
 
-/* Page-by-page migration (owner direction 2026-11-19): a page that has its headings typed in title case (small words
-   such as "and", "to", "of", "is" kept lowercase) sets data-heading-case="as-written" on its content, so the heading
-   styles stop capitalising every word. When every page is done, make this the default and remove the attribute. */
-[data-heading-case='as-written']
-  :is(
-    .display-xl,
-    .display-lg,
-    .section-heading,
-    .section-subheading,
-    .media-card__title,
-    .numbered-steps__title,
-    .link-card__title
-  ) {
-  text-transform: none;
+/* Narrow screens never overflow, at any browser zoom (owner direction 2026-11-19). Base layer, so any utility wins. */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Children of a grid or flex container may shrink below their content: a long word or a wide child can no longer
+     push a column past the viewport. Icons, images and form controls keep their own size rules. */
+  :where(.grid, .inline-grid, .flex, .inline-flex)
+    > :where(:not(svg, img, picture, input, select, textarea, button)) {
+    min-width: 0;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  li,
+  dt,
+  dd,
+  blockquote,
+  figcaption,
+  summary,
+  label {
+    overflow-wrap: anywhere;
+  }
+  img,
+  picture,
+  video,
+  canvas,
+  svg,
+  figure,
+  iframe,
+  table {
+    max-width: 100%;
+  }
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
 }
 
 /* Opt-in rhythm: compositions can retain their own sizes and natural height. */

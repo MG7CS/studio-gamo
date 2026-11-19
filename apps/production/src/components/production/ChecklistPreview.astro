@@ -14,13 +14,7 @@ const items = [
 ];
 ---
 
-<FloatingPreviewCard
-  title="Pre-service stream checklist"
-  badge={false}
-  tone={tone}
-  as="figure"
-  class={className}
->
+<FloatingPreviewCard title="Pre-service stream checklist" tone={tone} as="figure" class={className}>
   <ol class="space-y-2.5 text-small">
     {items.map((item, i) => {
       const done = i < items.length - 1;

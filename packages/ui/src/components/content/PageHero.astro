@@ -3,7 +3,8 @@
  * PageHero: the top of an inner page. Owns the page's single <h1> (`titleAs`, default h1; pass
  * titleAs="h2" for a second hero on a page that already has its <h1>), an optional breadcrumb trail,
  * intro, actions and an optional media slot that moves beside the copy once the hero's
- * container is ≥ 56rem (stacked below it in narrower containers).
+ * container is ≥ 56rem. When stacked (phone and iPad) the media comes first, then the heading, intro and actions.
+ * The title is title-cased automatically (TitleCase).
  *
  * Usage:
  *   <PageHero title="Piano lessons"
@@ -17,6 +18,7 @@
  * The last breadcrumb item is the current page (no href; aria-current="page").
  */
 import Container from '../layout/Container.astro';
+import TitleCase from '../TitleCase.astro';
 
 export interface BreadcrumbItem {
   label: string;
@@ -32,8 +34,6 @@ interface Props {
   tone?: Tone;
   width?: 'page' | 'narrow';
   align?: 'start' | 'center';
-  /** When the copy and media stack (narrow containers), put the media first and the copy below it. */
-  mediaFirstStacked?: boolean;
   class?: string;
 }
 const {
@@ -43,7 +43,6 @@ const {
   tone = 'default',
   width = 'page',
   align = 'start',
-  mediaFirstStacked = false,
   class: className,
 } = Astro.props;
 const hasMedia = Astro.slots.has('media');
@@ -95,7 +94,9 @@ const centered = align === 'center' && !hasMedia;
           </nav>
         )}
         <TitleTag class="display-lg max-w-narrow text-balance text-fg">
-          <slot name="title">{title}</slot>
+          <TitleCase>
+            <slot name="title">{title}</slot>
+          </TitleCase>
         </TitleTag>
         {Astro.slots.has('intro') && (
           <div class="max-w-prose text-lg leading-relaxed text-fg-muted">
@@ -109,7 +110,7 @@ const centered = align === 'center' && !hasMedia;
         )}
       </div>
       {hasMedia && (
-        <div class:list={['min-w-0', mediaFirstStacked && 'order-first @4xl:order-none']}>
+        <div class="order-first min-w-0 @4xl:order-none">
           <slot name="media" />
         </div>
       )}

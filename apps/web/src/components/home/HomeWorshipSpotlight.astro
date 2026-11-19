@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * Home page Gamo Worship section (restored 2026-11-18 without the label above the heading and the sentence under
  * it, DESIGN.md section 11): heading with its accent line, three commitments, two actions, and the photo with a
@@ -31,9 +32,9 @@ const pillars: { icon: IconName; title: string; body: string }[] = [
 ];
 ---
 
-<SplitHero as="section" spacing="section" mediaFirstStacked id="worship" aria-labelledby="home-worship-title">
+<SplitHero as="section" spacing="section" id="worship" aria-labelledby="home-worship-title">
   <h2 id="home-worship-title" class="section-heading text-balance text-fg">
-    Musicians We Trust
+    <TitleCase>Musicians We Trust</TitleCase>
   </h2>
 
   <ul class="mt-8 grid gap-6">
@@ -60,7 +61,6 @@ const pillars: { icon: IconName; title: string; body: string }[] = [
   <Frame
     slot="media"
     photo="acousticLeader"
-    ratio="portrait"
     sizes="half"
     alt="Worship leader singing and playing acoustic guitar on stage"
   />

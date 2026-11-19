@@ -12,10 +12,12 @@ import type { HTMLAttributes } from 'astro/types';
  *     <NumberedSteps items={steps} />
  *   </Section>
  *
+ * The title is title-cased automatically (TitleCase); type it normally.
  * Slots: title (overrides the `title` prop; text only, it is wrapped in the heading),
  * intro, actions, default (body).
  */
 import Container from './Container.astro';
+import TitleCase from '../TitleCase.astro';
 
 type Tone = 'default' | 'raised' | 'inset' | 'dark';
 type Spacing = 'default' | 'tight' | 'none';
@@ -78,7 +80,9 @@ const spacingClass: Record<Spacing, string> = { default: 'section-space', tight:
       >
         {hasTitle && (
           <Heading id={headingId} class="section-heading max-w-narrow text-balance text-fg">
-            <slot name="title">{title}</slot>
+            <TitleCase>
+              <slot name="title">{title}</slot>
+            </TitleCase>
           </Heading>
         )}
         {Astro.slots.has('intro') && (

@@ -9,6 +9,7 @@
  */
 import LegalDraftBanner from './LegalDraftBanner.astro';
 import LegalSection from './LegalSection.astro';
+import TitleCase from '../TitleCase.astro';
 import type { LegalDocumentContent } from './content/types.ts';
 
 interface Props {
@@ -27,8 +28,8 @@ const { content, version, effectiveDate, indexHref = '/legal' } = Astro.props;
   >
     <span aria-hidden="true">←</span> All legal documents
   </a>
-  <h1 class="mt-4 text-[length:var(--text-page-title)] font-black uppercase leading-[0.95] break-words text-balance text-ink">
-    {content.title}
+  <h1 class="mt-4 text-[length:var(--text-page-title)] font-black leading-[0.95] break-words text-balance text-ink">
+    <TitleCase>{content.title}</TitleCase>
   </h1>
   <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{content.intro}</p>
   <LegalDraftBanner class="mt-8" version={version} effectiveDate={effectiveDate} />

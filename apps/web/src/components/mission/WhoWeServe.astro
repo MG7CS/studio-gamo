@@ -1,8 +1,8 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
- * Who we serve: audience list beside a photo (SplitHero used as a section band). The 4:3 congregation photo sits in a
- * square frame (a landscape frame would be shorter than the text, a portrait one cropped too much), and the list keeps
- * three audiences so it stays no taller than the photo (2026-11-19); church volunteers are named with their churches.
+ * Who we serve: audience list beside a photo (SplitHero used as a section band). The photo's frame shape follows its own
+ * shape; the list keeps three audiences (2026-11-19); church volunteers are named with their churches.
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -21,7 +21,9 @@ const audiences = [
 ---
 
 <SplitHero as="div" spacing="section" tone="inset" mediaSide="start">
-  <h2 class="section-heading text-balance">Built for the whole worshiping community.</h2>
+  <h2 class="section-heading text-balance">
+    <TitleCase>Built for the whole worshiping community.</TitleCase>
+  </h2>
   <dl class="mt-4 flex flex-col gap-6">
     {audiences.map((a) => (
       <div data-reveal class="border-s-2 border-action ps-5">
@@ -33,7 +35,6 @@ const audiences = [
   <Frame
     slot="media"
     photo="sanctuaryCongregation"
-    ratio="square"
     sizes="half"
     alt="Congregation worshipping together in a sunlit sanctuary"
   />

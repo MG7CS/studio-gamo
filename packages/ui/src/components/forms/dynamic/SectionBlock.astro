@@ -13,6 +13,7 @@
  * - class?: string.
  */
 import QuestionField from './QuestionField.astro';
+import TitleCase from '../../TitleCase.astro';
 import { buildFieldId, linkAlternativeFor, sectionDomId, showIfAttributes } from '../../../lib/dynamic-form';
 import type { DynSection } from '../../../lib/dynamic-form';
 import type { DynamicFormContext, DynLinkAlternative } from './index';
@@ -52,9 +53,9 @@ function alternativeFor(q: (typeof section.questions)[number]): DynLinkAlternati
     )}
     <Heading
       id={`${domId}-title`}
-      class:list={['text-xl font-black tracking-tight text-fg uppercase', !titleVisible && 'sr-only']}
+      class:list={['text-xl font-black tracking-tight text-fg', !titleVisible && 'sr-only']}
     >
-      {section.title}
+      <TitleCase>{section.title}</TitleCase>
     </Heading>
     {section.description && <p class="mt-2 text-body-sm text-fg-muted">{section.description}</p>}
   </div>

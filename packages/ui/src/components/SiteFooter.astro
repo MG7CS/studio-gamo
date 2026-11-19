@@ -5,6 +5,7 @@
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
+import TitleCase from './TitleCase.astro';
 import type { ShellConfig } from '../shell/types';
 
 interface Props {
@@ -61,7 +62,9 @@ const socials = (footer.social ?? []).filter((s) => s.key && SOCIAL_ICONS[s.key]
       </div>
       {footer.groups.map((col) => (
         <nav aria-label={col.title}>
-          <h2 class="mb-5 text-base font-semibold text-white">{col.title}</h2>
+          <h2 class="mb-5 text-base font-semibold text-white">
+            <TitleCase>{col.title}</TitleCase>
+          </h2>
           <ul class="space-y-1">
             {col.links.map((l) => (
               <li>
@@ -78,7 +81,9 @@ const socials = (footer.social ?? []).filter((s) => s.key && SOCIAL_ICONS[s.key]
       ))}
       {footer.updates && (
         <div class="col-span-2 lg:col-span-1">
-          <h2 class="mb-5 text-base font-semibold text-white">{footer.updates.title}</h2>
+          <h2 class="mb-5 text-base font-semibold text-white">
+            <TitleCase>{footer.updates.title}</TitleCase>
+          </h2>
           <p class="max-w-xs text-sm leading-relaxed text-cream/80">{footer.updates.body}</p>
           <a
             href={footer.updates.link.href}

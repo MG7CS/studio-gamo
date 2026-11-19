@@ -1,0 +1,89 @@
+---
+/**
+ * MediaCardGrid: a `FeatureGrid` of `MediaCard`s that all share ONE photo shape. The shape is picked here, from the
+ * photos themselves (`commonRatio`: the allowed ratio that crops the whole set least), so a page never names a ratio and
+ * the cards always match in size. Pass `ratio` only to override.
+ *
+ * Usage:
+ *   <MediaCardGrid
+ *     variant="overlay"
+ *     max={3}
+ *     items={programs.map((p) => ({ image: { name: p.photo }, title: p.name, href: p.href, body: p.lead }))}
+ *   />
+ *
+ * Items are plain data: `image` ({ name, alt?, sizes?, priority? }), `title`, `href?`, `body?` (one line of text),
+ * `meta?` (small line under the card text). A card that needs richer content (a badge, links) uses `MediaCard` inside
+ * a `FeatureGrid` directly and gives every card the same `image.ratio`.
+ */
+import FeatureGrid from './FeatureGrid.astro';
+import MediaCard, { type MediaCardImage } from './MediaCard.astro';
+import { commonRatio } from '../../lib/images';
+import type { FrameRatio } from '../media/frame';
+import type { CardTone } from './card-tone';
+
+export interface MediaCardGridItem {
+  image: Omit<MediaCardImage, 'ratio'>;
+  title: string;
+  href?: string;
+  body?: string;
+  meta?: string;
+}
+interface Props {
+  items: MediaCardGridItem[];
+  variant?: 'adaptive' | 'overlay';
+  tone?: Exclude<CardTone, 'outline'>;
+  /** Heading level of the card titles. Default h3. */
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  /** Override the shared photo shape (default: the one that crops the whole set least). */
+  ratio?: FrameRatio;
+  min?: 'sm' | 'md' | 'lg';
+  max?: 2 | 3 | 4;
+  lastRow?: 'stretch' | 'center';
+  gap?: 'md' | 'lg';
+  class?: string;
+}
+const {
+  items,
+  variant = 'adaptive',
+  tone,
+  headingLevel,
+  ratio,
+  min,
+  max,
+  lastRow,
+  gap,
+  class: className,
+} = Astro.props;
+const shared = ratio ?? commonRatio(items.map((i) => i.image.name));
+---
+
+<FeatureGrid as="ul" min={min} max={max} lastRow={lastRow} gap={gap} class={className}>
+  {items.map((item) =>
+    item.meta ? (
+      <MediaCard
+        as="li"
+        variant={variant}
+        tone={tone}
+        headingLevel={headingLevel}
+        href={item.href}
+        title={item.title}
+        image={{ ...item.image, ratio: shared }}
+      >
+        {item.body && <p>{item.body}</p>}
+        <Fragment slot="meta">{item.meta}</Fragment>
+      </MediaCard>
+    ) : (
+      <MediaCard
+        as="li"
+        variant={variant}
+        tone={tone}
+        headingLevel={headingLevel}
+        href={item.href}
+        title={item.title}
+        image={{ ...item.image, ratio: shared }}
+      >
+        {item.body && <p>{item.body}</p>}
+      </MediaCard>
+    ),
+  )}
+</FeatureGrid>

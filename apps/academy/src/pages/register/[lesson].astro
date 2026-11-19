@@ -168,60 +168,55 @@ if (Astro.request.method === 'POST') {
   description={`Register a student for ${lesson.title} at Gamo Academy. No account needed.`}
   noindex
 >
-  <div data-heading-case="as-written">
-    <PageHero
-      title={`Register for ${lesson.title}`}
-      breadcrumbs={[
-        { label: 'Academy', href: '/' },
-        { label: 'Lessons', href: '/lessons' },
-        { label: lesson.title, href: `/lessons/${lesson.slug}` },
-        { label: 'Register' },
-      ]}
-    />
-    <Container class="pb-16 lg:pb-24">
-      <div class="grid gap-8 lg:grid-cols-3">
-        <Card padding="lg" class="space-y-6 lg:col-span-2">
-          {pageProblem && (
-            <RegistrationNotice tone="problem" title="We couldn't send the form">
-              <p>{pageProblem}</p>
-            </RegistrationNotice>
-          )}
-          {sampleRefused ? (
-            <RegistrationNotice title="Registration is not open for this lesson yet">
-              <p>
-                This lesson is an example of what we plan to offer; registration opens when lessons are
-                published.
-              </p>
-              <p>
-                <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
-                  Browse lessons
-                </a>
-              </p>
-            </RegistrationNotice>
-          ) : (
-            <RegistrationForm
-              idempotencyKey={idempotencyKey}
-              values={values}
-              errors={errors}
-              summary={summary}
-              documents={registrationConsentDocuments()}
-              payAvailable={payAvailable}
-              amountLabel={amountLabel}
-              turnstileError={turnstileError}
-            />
-          )}
-          <p class="text-small text-fg-muted">
-            Already registered?{' '}
-            <a
-              href="/registrations/find"
-              class="font-semibold text-action-strong underline underline-offset-4"
-            >
-              Find your registration
-            </a>
-          </p>
-        </Card>
-        <RegistrationLessonSummary lesson={lesson} class="lg:sticky lg:top-32 lg:self-start" />
-      </div>
-    </Container>
-  </div>
+  <PageHero
+    title={`Register for ${lesson.title}`}
+    breadcrumbs={[
+      { label: 'Academy', href: '/' },
+      { label: 'Lessons', href: '/lessons' },
+      { label: lesson.title, href: `/lessons/${lesson.slug}` },
+      { label: 'Register' },
+    ]}
+  />
+  <Container class="pb-16 lg:pb-24">
+    <div class="grid gap-8 lg:grid-cols-3">
+      <Card padding="lg" class="space-y-6 lg:col-span-2">
+        {pageProblem && (
+          <RegistrationNotice tone="problem" title="We couldn't send the form">
+            <p>{pageProblem}</p>
+          </RegistrationNotice>
+        )}
+        {sampleRefused ? (
+          <RegistrationNotice title="Registration is not open for this lesson yet">
+            <p>
+              This lesson is an example of what we plan to offer; registration opens when lessons are
+              published.
+            </p>
+            <p>
+              <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
+                Browse lessons
+              </a>
+            </p>
+          </RegistrationNotice>
+        ) : (
+          <RegistrationForm
+            idempotencyKey={idempotencyKey}
+            values={values}
+            errors={errors}
+            summary={summary}
+            documents={registrationConsentDocuments()}
+            payAvailable={payAvailable}
+            amountLabel={amountLabel}
+            turnstileError={turnstileError}
+          />
+        )}
+        <p class="text-small text-fg-muted">
+          Already registered?{' '}
+          <a href="/registrations/find" class="font-semibold text-action-strong underline underline-offset-4">
+            Find your registration
+          </a>
+        </p>
+      </Card>
+      <RegistrationLessonSummary lesson={lesson} class="lg:sticky lg:top-32 lg:self-start" />
+    </div>
+  </Container>
 </Layout>

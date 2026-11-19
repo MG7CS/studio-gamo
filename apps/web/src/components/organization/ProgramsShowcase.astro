@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * The three programs in owner order.
  * - `featured` layout (default, /mission): Gamo Academy as the full-width leading card, Worship and Production side by
@@ -6,7 +7,7 @@
  * - `row` layout (the homepage, owner direction 2026-11-19): three cards of equal size next to each other, all in the
  *   same square frame, under a centred heading that stays on one line on wide screens with its second part in the
  *   accent colour.
- * Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible. Photo-led
+ * The cards of a row share one photo shape, chosen by `MediaCardGrid` so the set crops least. Photo-led
  * (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it, and there is no label,
  * badge or paragraph.
  */
@@ -14,7 +15,7 @@ import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
 import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import MediaCardGrid from '@studio-gamo/ui/components/content/MediaCardGrid.astro';
 import { programs } from '../../data/programs';
 
 interface Props {
@@ -43,21 +44,23 @@ const headingId = `${id ?? 'programs'}-title`;
   >
     <Container>
       <h2 id={headingId} class="section-heading mb-10 text-center text-balance text-fg">
-        {title} {accent && <span class="text-accent">{accent}</span>}
+        <TitleCase>
+          {accent ? `${title} ` : title}
+          {accent && <span class="text-accent">{accent}</span>}
+        </TitleCase>
       </h2>
-      <FeatureGrid max={3} min="md" gap="lg" as="ul">
-        {programs.map((p) => (
-          <MediaCard
-            as="li"
-            variant="overlay"
-            image={{ name: p.photo, ratio: 'square', sizes: 'third' }}
-            title={p.name}
-            href={p.href}
-          >
-            {lead && <p class="text-base font-semibold">{p.lead}</p>}
-          </MediaCard>
-        ))}
-      </FeatureGrid>
+      <MediaCardGrid
+        variant="overlay"
+        max={3}
+        min="md"
+        gap="lg"
+        items={programs.map((p) => ({
+          image: { name: p.photo, sizes: 'third' },
+          title: p.name,
+          href: p.href,
+          body: lead ? p.lead : undefined,
+        }))}
+      />
     </Container>
   </section>
 ) : (
@@ -70,30 +73,25 @@ const headingId = `${id ?? 'programs'}-title`;
       {featured && (
         <MediaCard
           variant="overlay"
-          image={{
-            name: featured.bannerPhoto ?? featured.photo,
-            ratio: featured.bannerPhoto ? (featured.bannerRatio ?? 'landscape') : featured.photoRatio,
-            sizes: 'full',
-          }}
+          image={{ name: featured.bannerPhoto ?? featured.photo, sizes: 'full' }}
           title={featured.name}
           href={featured.href}
         >
           {lead && <p class="text-base font-semibold">{featured.lead}</p>}
         </MediaCard>
       )}
-      <FeatureGrid max={2} min="lg" gap="lg" as="ul">
-        {others.map((p) => (
-          <MediaCard
-            as="li"
-            variant="overlay"
-            image={{ name: p.photo, ratio: p.photoRatio, sizes: 'half' }}
-            title={p.name}
-            href={p.href}
-          >
-            {lead && <p class="text-base font-semibold">{p.lead}</p>}
-          </MediaCard>
-        ))}
-      </FeatureGrid>
+      <MediaCardGrid
+        variant="overlay"
+        max={2}
+        min="lg"
+        gap="lg"
+        items={others.map((p) => ({
+          image: { name: p.photo, sizes: 'half' },
+          title: p.name,
+          href: p.href,
+          body: lead ? p.lead : undefined,
+        }))}
+      />
     </Stack>
   </Section>
 )}

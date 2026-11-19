@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * One support area on the landing page: the shared SplitHero (as a section) with a photo,
  * an optional floating `preview` (a FloatingPreviewCard recipe) and the area's copy. Tone and side vary per
@@ -30,7 +31,7 @@ const id = `area-${area.slug}`;
   class={tone === 'raised' ? 'bg-surface-raised' : undefined}
 >
   <h2 id={id} class="section-heading text-balance text-fg">
-    {area.title}
+    <TitleCase>{area.title}</TitleCase>
   </h2>
   <ul class="mt-3 grid w-full gap-3 sm:grid-cols-2">
     {area.covers.map((c) => (

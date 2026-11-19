@@ -13,6 +13,8 @@
  *     { title: 'Keep playing', body: 'Weekly lessons and recitals.' },
  *   ]} />
  */
+import TitleCase from '../TitleCase.astro';
+
 export interface Step {
   title: string;
   body?: string;
@@ -47,8 +49,8 @@ const pad = (i: number) => String(start + i).padStart(2, '0');
           {pad(i)}
         </span>
         <div class="min-w-0">
-          <Heading class="numbered-steps__title text-lg font-black tracking-tight text-balance uppercase">
-            {item.title}
+          <Heading class="numbered-steps__title text-lg font-black tracking-tight text-balance">
+            <TitleCase>{item.title}</TitleCase>
           </Heading>
           {item.body && <p class="mt-2 text-body-sm text-fg-muted">{item.body}</p>}
         </div>
@@ -63,6 +65,7 @@ const pad = (i: number) => String(start + i).padStart(2, '0');
   }
   .numbered-steps {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
     margin: 0;
     padding: 0;
@@ -70,6 +73,7 @@ const pad = (i: number) => String(start + i).padStart(2, '0');
   }
   .numbered-steps__item {
     display: grid;
+    min-width: 0;
     grid-template-columns: 3.25rem minmax(0, 1fr);
     align-items: start;
     gap: 1rem;
@@ -80,6 +84,10 @@ const pad = (i: number) => String(start + i).padStart(2, '0');
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+  }
+  .numbered-steps__title,
+  .numbered-steps__item p {
+    overflow-wrap: anywhere;
   }
   @container (min-width: 48rem) {
     .numbered-steps {

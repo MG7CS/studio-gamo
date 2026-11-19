@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * Academy landing hero: SplitHero with the approved headline (the page's <h1>), the photo cluster (shared PhotoGrid trio)
  * (no widget over the photos, no row of tiles below).
@@ -9,9 +10,11 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
 <header class="page-intro-space relative overflow-hidden">
-  <SplitHero as="div" spacing="none" mediaWidth="wide" mediaFirstStacked>
+  <SplitHero as="div" spacing="none" mediaWidth="wide">
     <h1 class="display-xl text-balance">
-      Learn to Play the <span class="text-action">Instrument You Love.</span>
+      <TitleCase>
+        Learn to Play the <span class="text-action">Instrument You Love.</span>
+      </TitleCase>
     </h1>
     <div class="flex flex-wrap gap-3">
       <ButtonLink href="/instruments" size="lg" arrow>

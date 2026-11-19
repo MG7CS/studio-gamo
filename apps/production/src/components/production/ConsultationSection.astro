@@ -1,4 +1,5 @@
 ---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /** Consultation band on the landing page: invitation copy beside the consultation request card. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -6,7 +7,9 @@ import ConsultationRequest from './ConsultationRequest.astro';
 ---
 
 <SplitHero as="section" spacing="section" class="bg-surface-raised">
-  <h2 class="section-heading text-balance text-fg">Tell us what your team is facing.</h2>
+  <h2 class="section-heading text-balance text-fg">
+    <TitleCase>Tell us what your team is facing.</TitleCase>
+  </h2>
   <div class="mt-5 hidden w-full max-w-sm lg:block">
     <Frame
       photo="chapelSpring"

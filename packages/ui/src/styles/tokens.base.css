@@ -36,8 +36,11 @@
 
   --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Display scale (used by the display-xl / display-lg / section-heading utilities). */
-  --text-hero: clamp(2.5rem, 5.2vw, 4.75rem);
-  --text-page-title: clamp(2.25rem, 4.7vw, 4.25rem);
-  --text-section-title: clamp(2rem, 3.6vw, 3.25rem);
+  /* Display scale (display-xl / display-lg / section-heading / section-subheading). Each is a clamp whose minimum
+     also shrinks with the viewport (min(rem, vw)) so a heading stays inside a 195 px wide screen; from 360 px up the
+     minimum is the rem value. */
+  --text-hero: clamp(min(2.5rem, 12vw), 5.2vw, 4.75rem);
+  --text-page-title: clamp(min(2.25rem, 11vw), 4.7vw, 4.25rem);
+  --text-section-title: clamp(min(2rem, 10vw), 3.6vw, 3.25rem);
+  --text-section-subtitle: clamp(min(1.75rem, 9vw), 2.8vw, 2.75rem);
 }
