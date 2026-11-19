@@ -32,6 +32,15 @@ pages, so it is applied when we reach them. Order: home (main site), then Academ
    and its closing band crop portrait photos).
 6. **Header menu tiles are pictures without links** (ddb2b62d): the side links and "All of …" still work. Applies to
    every page already, because the header is shared.
+7. **Turning the menu pictures into links, later.** In `packages/config/menus.ts` a picture tile has no `href`. When a
+   page behind a tile has been reviewed (an instrument page, a service page), add its `href` to that tile: on desktop
+   the tile becomes a link, and on phone and iPad the picture list on the program's second screen (the Tesla layout)
+   appears automatically, listing only the tiles that have a link. Until then the phone shows the working text links only.
+8. **Photo first when stacked.** On phone and iPad a section that pairs a photo with text starts with the photo, then
+   the heading, text and buttons (home done, 4007e3e9). The shared `SplitHero`, `EditorialFeatureCard` and
+   `CtaInvitation` take `mediaFirstStacked`; set it on each page as we reach it.
+9. **Phone menu** is a full-screen list with a labelled "Menu" button and a drill-down second screen (2a5b1c11,
+   804f2d5b); it is shared, so it already applies to every page.
 
 ## Decisions waiting for the owner (ask when we reach the page)
 
