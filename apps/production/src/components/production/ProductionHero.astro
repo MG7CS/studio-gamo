@@ -1,39 +1,27 @@
 ---
-import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 import { REQUEST_HREF } from '../../site.config';
-/**
- * Production landing hero: the shared SplitHero with the page's <h1> beside an engineer photo (nothing over it).
- */
-import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+/** Production landing hero: only the content (heading, buttons, photos); the layout is the shared PhotoTrioHero. */
+import PhotoTrioHero from '@studio-gamo/ui/components/content/PhotoTrioHero.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
-<SplitHero class="flex min-h-dvh flex-col justify-center overflow-hidden">
-  <h1 class="display-lg text-balance text-fg">
-    <TitleCase>
-      Better Tools.
-      <br />
-      <span class="text-action">Stronger Worship.</span>
-    </TitleCase>
-  </h1>
-  <div class="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-    <ButtonLink href={REQUEST_HREF} arrow>
+<PhotoTrioHero
+  id="production-hero-title"
+  measure="narrow"
+  title="Better Tools."
+  accent="Stronger Worship."
+  photos={[
+    { photo: 'techAudio', alt: 'Sound engineer at a large live mixing console', priority: true },
+    { photo: 'techVideoCamera', alt: 'Camcorder filming a church service' },
+    { photo: 'techLighting', alt: 'Stage lighting fixtures on a rig' },
+  ]}
+>
+  <Fragment slot="actions">
+    <ButtonLink href={REQUEST_HREF} size="lg" arrow>
       Start a needs assessment
     </ButtonLink>
-    <ButtonLink href="/services" variant="secondary">
+    <ButtonLink href="/services" size="lg" variant="secondary">
       Explore support areas
     </ButtonLink>
-  </div>
-  <div slot="media" class="relative">
-    <div class="ms-auto w-full max-w-lg">
-      <Frame
-        photo="techAudio"
-        ratio="portrait"
-        priority
-        sizes="half"
-        alt="Sound engineer at a large live mixing console"
-      />
-    </div>
-  </div>
-</SplitHero>
+  </Fragment>
+</PhotoTrioHero>

@@ -1,47 +1,32 @@
 ---
-import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
-/**
- * Academy landing hero: SplitHero with the approved headline (the page's <h1>), the photo cluster (shared PhotoGrid trio)
- * (no widget over the photos, no row of tiles below).
- */
-import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
+/** Academy landing hero: only the content (heading, buttons, photos); the layout is the shared PhotoTrioHero. */
+import PhotoTrioHero from '@studio-gamo/ui/components/content/PhotoTrioHero.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
-<header class="page-intro-space relative overflow-hidden" data-band data-tone="default">
-  <SplitHero as="div" spacing="none" mediaWidth="wide">
-    <h1 class="display-xl text-balance">
-      <TitleCase>
-        Learn to Play the <span class="text-action">Instrument You Love.</span>
-      </TitleCase>
-    </h1>
-    <div class="flex flex-wrap gap-3">
-      <ButtonLink href="/instruments" size="lg" arrow>
-        Choose an instrument
-      </ButtonLink>
-      <ButtonLink href="/lessons" size="lg" variant="secondary">
-        Browse lessons
-      </ButtonLink>
-    </div>
-
-    <div slot="media" class="relative w-full">
-      <PhotoGrid
-        layout="trio"
-        tall
-        photos={[
-          {
-            photo: 'boyGuitar',
-            alt: 'Smiling boy learning to play acoustic guitar in a sunlit room',
-            priority: true,
-          },
-          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar beside a music stand' },
-          {
-            photo: 'youngPianist',
-            alt: 'Young pianist smiling while playing a keyboard in a bright classroom',
-          },
-        ]}
-      />
-    </div>
-  </SplitHero>
-</header>
+<PhotoTrioHero
+  id="academy-hero-title"
+  title="Learn to Play the"
+  accent="Instrument You Love."
+  photos={[
+    {
+      photo: 'boyGuitar',
+      alt: 'Smiling boy learning to play acoustic guitar in a sunlit room',
+      priority: true,
+    },
+    { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar beside a music stand' },
+    {
+      photo: 'youngPianist',
+      alt: 'Young pianist smiling while playing a keyboard in a bright classroom',
+    },
+  ]}
+>
+  <Fragment slot="actions">
+    <ButtonLink href="/instruments" size="lg" arrow>
+      Choose an instrument
+    </ButtonLink>
+    <ButtonLink href="/lessons" size="lg" variant="secondary">
+      Browse lessons
+    </ButtonLink>
+  </Fragment>
+</PhotoTrioHero>

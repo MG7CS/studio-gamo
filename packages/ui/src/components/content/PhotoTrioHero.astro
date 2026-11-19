@@ -1,0 +1,70 @@
+---
+/**
+ * PhotoTrioHero: the landing hero of the main site and every program. A full-height band with the shared tall
+ * photo trio (one tall photo, two stacked) beside a narrow heading on four or more lines, then the buttons. When
+ * stacked (phone and iPad) the photos come first, then the heading, then the buttons. Nothing sits over the photos:
+ * no label, sentence, pill or card (DESIGN.md section 11).
+ *
+ * Usage:
+ *   <PhotoTrioHero
+ *     id="worship-hero-title"
+ *     title="Stronger Worship"
+ *     accent="Starts Together."
+ *     photos={[
+ *       { photo: 'worshipLeaderGolden', alt: '…', priority: true },
+ *       { photo: 'worshipBand', alt: '…' },
+ *       { photo: 'churchModernDay', alt: '…' },
+ *     ]}
+ *   >
+ *     <ButtonLink slot="actions" href="/request" size="lg" arrow>Request musicians</ButtonLink>
+ *   </PhotoTrioHero>
+ *
+ * Props: `title` (first lines), `accent` (own line in the accent colour), `photos` (exactly three PhotoGrid entries;
+ * each photo must allow the trio cell ratios), `id` (the h1 id that labels the band), `measure` default | narrow
+ * (heading width from lg; narrow is for headings whose longest word is short, such as "Better Tools.").
+ * Slots: `actions` (the buttons).
+ */
+import TitleCase from '../TitleCase.astro';
+import Container from '../layout/Container.astro';
+import PhotoGrid from '../media/PhotoGrid.astro';
+import type { GridPhoto } from '../media/frame';
+
+interface Props {
+  title: string;
+  accent?: string;
+  photos: [GridPhoto, GridPhoto, GridPhoto];
+  id?: string;
+  /** Heading measure from lg: default fits the longest word of a long heading; narrow splits two short words too. */
+  measure?: 'default' | 'narrow';
+}
+const { title, accent, photos, id = 'landing-hero-title', measure = 'default' } = Astro.props;
+const measureClass = {
+  default: 'lg:max-w-landing-heading',
+  narrow: 'lg:max-w-landing-heading-narrow',
+};
+---
+
+<section
+  class="relative flex min-h-dvh flex-col justify-center overflow-hidden bg-surface page-intro-space text-fg"
+  aria-labelledby={id}
+  data-band
+  data-tone="default"
+>
+  <Container class="relative grid items-center gap-10 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <h1 id={id} class:list={['display-lg text-balance text-fg', measureClass[measure]]}>
+        <TitleCase>
+          {title}
+          {accent && <span class="block text-action">{accent}</span>}
+        </TitleCase>
+      </h1>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <slot name="actions" />
+      </div>
+    </div>
+
+    <div class="order-first lg:order-none lg:col-span-7">
+      <PhotoGrid layout="trio" tall photos={photos} />
+    </div>
+  </Container>
+</section>

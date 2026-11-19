@@ -139,10 +139,14 @@
   --breakpoint-xs: 24rem;
   --breakpoint-2xs: 17rem;
 
-  /* Containers (max-w-page, max-w-narrow, max-w-prose). */
+  /* Containers (max-w-page, max-w-narrow, max-w-prose, max-w-landing-heading). */
   --container-page: 82.5rem;
   --container-narrow: 56rem;
   --container-prose: 42rem;
+  /* Measure of a landing hero heading beside the photos, in heading widths (em): just wider than the longest word
+     "Communities" (6.5em) by default; the narrow one also splits two short words such as "Better Tools.". */
+  --container-landing-heading: 6.6em;
+  --container-landing-heading-narrow: 6em;
 
   /* Page side gutter (px-gutter, gap-gutter): 20px at 360px wide, 32px from ~800px. */
   --spacing-gutter: clamp(1.25rem, 4vw, 2rem);

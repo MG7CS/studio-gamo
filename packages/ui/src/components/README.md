@@ -30,6 +30,7 @@ the same page takes `titleAs="h2"`.
 | `MediaCard`           | `image` {name, alt?, ratio?, sizes?, priority?} (shown in a `Frame`), `title`, `headingLevel`, `href`, `variant` adaptive \| overlay, `tone`, `as`           | `on-media`, `eyebrow`, `title`, default, `meta`            |
 | `PageHero`            | `title`, `titleAs` h1 \| h2 (h1), `eyebrow`, `breadcrumbs` {label, href?}[], `tone` default \| inset \| dark, `width`, `align` | `eyebrow`, `title`, `intro`, `actions`, `media` |
 | `SplitHero`           | `mediaSide` start \| end, `tone`, `width`, `spacing` hero \| section \| none, `as`                            | default (copy), `media`                                    |
+| `PhotoTrioHero`       | Landing hero: `title`, `accent`, `photos` (three `PhotoGrid` entries), `id`, `measure` default \| narrow          | `actions` (buttons)                                        |
 | `FeatureGrid`         | `min` sm \| md \| lg, `max` 2 \| 3 \| 4, `lastRow` stretch \| center, `gap` md \| lg, `as` div \| ul \| ol    | default (items)                                            |
 | `NumberedSteps`       | `items` {title, body?}[], `headingLevel` h3 \| h4, `tone` plain \| raised \| inset, `start`                   | none                                                       |
 | `FloatingPreviewCard` | `title`, `tone` light \| dark, `as` div \| aside \| figure                                                    | `title`, `badge` (empty by default), default               |

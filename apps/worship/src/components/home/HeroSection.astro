@@ -1,45 +1,33 @@
 ---
-import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 import { APPLY_HREF, REQUEST_HREF } from '../../site.config';
-/** Worship landing hero: shared SplitHero with the editorial headline and the photo mosaic (nothing over the photos). */
-import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
+/** Worship landing hero: only the content (heading, buttons, photos); the layout is the shared PhotoTrioHero. */
+import PhotoTrioHero from '@studio-gamo/ui/components/content/PhotoTrioHero.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
-<SplitHero class="flex min-h-dvh flex-col justify-center overflow-hidden">
-  <h1 class="display-lg text-balance">
-    <TitleCase>
-      Stronger Worship <span class="block text-action">Starts Together.</span>
-    </TitleCase>
-  </h1>
-  <div class="mt-1 flex flex-wrap gap-3">
+<PhotoTrioHero
+  id="worship-hero-title"
+  title="Stronger Worship"
+  accent="Starts Together."
+  photos={[
+    {
+      photo: 'worshipLeaderGolden',
+      alt: 'Gospel worship leader singing with eyes closed in warm golden light',
+      priority: true,
+    },
+    {
+      photo: 'worshipBand',
+      alt: 'Worship team with guitar, drums and keys leading in a bright sanctuary',
+    },
+    { photo: 'churchModernDay', alt: 'Modern church building with a cross on a sunny day' },
+  ]}
+>
+  <Fragment slot="actions">
     <ButtonLink href={REQUEST_HREF} size="lg" arrow>
       Request musicians
     </ButtonLink>
     <ButtonLink href={APPLY_HREF} size="lg" variant="secondary">
       Apply as a musician
     </ButtonLink>
-  </div>
-
-  <div slot="media" class="relative">
-    <div class="ms-auto">
-      <PhotoGrid
-        layout="trio"
-        tall
-        photos={[
-          {
-            photo: 'worshipLeaderGolden',
-            alt: 'Gospel worship leader singing with eyes closed in warm golden light',
-            priority: true,
-          },
-          {
-            photo: 'worshipBand',
-            alt: 'Worship team with guitar, drums and keys leading in a bright sanctuary',
-          },
-          { photo: 'churchModernDay', alt: 'Modern church building with a cross on a sunny day' },
-        ]}
-      />
-    </div>
-  </div>
-</SplitHero>
+  </Fragment>
+</PhotoTrioHero>

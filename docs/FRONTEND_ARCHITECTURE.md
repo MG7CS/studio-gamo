@@ -111,6 +111,8 @@ import { shell } from '../site.config';
 
 **`PhotoGrid` layouts (2–4 photos, container-query collapse, apps pass ordered ids, never positions):** `pair`, `trio` (one tall), `quad` (mosaic), `hero-pair`. Five or more photos means two clusters in different sections.
 
+**Landing hero (2026-11-19):** `PhotoTrioHero` (`packages/ui/src/components/content/`) is the one landing hero for the main-site home and the Academy, Worship and Production landing pages. It is a full-height band with the shared `PhotoGrid layout="trio" tall` in seven twelfths and the heading plus buttons in five twelfths; stacked (phone, iPad) the photos come first. The h1 has a narrow measure from `lg` (`--container-landing-heading`, in em so it follows the fluid heading size) so it wraps to four lines or more. Apps pass `title`, `accent`, `photos` and the `actions` slot only; each photo must allow the trio cell ratios.
+
 ## Clean style migration (2026-11-18)
 
 The owner's clean layout rules (`DESIGN.md` §11) are permanent. Done (2026-11-18, home page approved by the owner): home page, `ButtonLink`, `SubmitButton`, `SiteHeader`, `CtaInvitation`, all eyebrow slots and props, pill controls, `LinkRows` for list pages, program hero widgets, and the guard test. Historical list of what carried the old pattern before: the `eyebrow` slot of `Section`, `PageHero`, `LinkCard` and `MediaCard`; `Badge` used as a card label; pill controls elsewhere (admin, program apps); identical card grids on other pages. Next: get sign-off on the home page, migrate the remaining shared components and the other pages, then add a ratcheting guard (eyebrow slots and pill radii) to `scripts/audit/ui-boundaries.test.ts`. Record the research and decision in `docs/DECISIONS.md` as each step lands.
