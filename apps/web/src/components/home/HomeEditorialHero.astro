@@ -2,8 +2,8 @@
 /**
  * Global homepage hero ("Worship, Learning & Community"). Clean layout rules (DESIGN.md section 11): the
  * heading comes first, then one action; no sentence under it, no label above, no glow behind, no card over the
- * photos. Two photos (the worship leader and the young guitarist) stand side by side as the shared PhotoGrid `pair`,
- * each about the size of the tall photo the three-photo grid used to have (owner direction 2026-11-19).
+ * photos. The three photos are one shared PhotoGrid in its `tall` shape so they fill the screen height on large
+ * displays instead of leaving empty bands above and below.
  */
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -28,7 +28,8 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
 
     <div class="order-first lg:order-none lg:col-span-7">
       <PhotoGrid
-        layout="pair"
+        layout="trio"
+        tall
         photos={[
           {
             photo: 'worshipLeaderGolden',
@@ -36,6 +37,7 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
             priority: true,
           },
           { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
+          { photo: 'sanctuaryCongregation', alt: 'Congregation worshipping together in a sunlit sanctuary' },
         ]}
       />
     </div>
