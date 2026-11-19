@@ -51,7 +51,14 @@ export const CHURCH_EMAIL_ILLUSTRATION = '/illustrations/church-email.svg';
 export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
   return {
     academy: {
-      tiles: ACADEMY_MENU_INSTRUMENTS.map(([label, photo]) => ({ label, photo })),
+      // The instrument pages are reviewed (2026-11-19), so these tiles link to them: on desktop the picture is a link, on
+      // phone and iPad the picture list appears on the second screen. Worship and Production tiles stay pictures only
+      // until their pages are reviewed.
+      tiles: ACADEMY_MENU_INSTRUMENTS.map(([label, photo, slug]) => ({
+        label,
+        photo,
+        href: site('academy', `/instruments/${slug}`),
+      })),
       links: [
         { label: 'Browse lessons', href: site('academy', '/lessons') },
         { label: 'Instructors', href: site('academy', '/#instructors') },
