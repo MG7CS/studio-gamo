@@ -104,7 +104,7 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
           {hasTitle && (
             <Heading
               class:list={[
-                'text-xl font-black tracking-tight text-balance text-fg uppercase',
+                'media-card__title text-xl font-black tracking-tight text-balance text-fg uppercase',
                 href && 'decoration-2 underline-offset-4 group-hover:underline',
               ]}
             >
@@ -140,7 +140,7 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
           </div>
         )}
         {hasTitle && (
-          <Heading class="text-xl font-black tracking-tight text-balance text-fg uppercase">
+          <Heading class="media-card__title text-xl font-black tracking-tight text-balance text-fg uppercase">
             {href ? (
               <a href={href} class="media-card__link decoration-2 underline-offset-4 group-hover:underline">
                 <slot name="title">{title}</slot>

@@ -48,6 +48,14 @@
   text-transform: capitalize;
 }
 
+/* Page-by-page migration (owner direction 2026-11-19): a page that has its headings typed in title case (small words
+   such as "and", "to", "of", "is" kept lowercase) sets data-heading-case="as-written" on its content, so the heading
+   styles stop capitalising every word. When every page is done, make this the default and remove the attribute. */
+[data-heading-case='as-written']
+  :is(.display-xl, .display-lg, .section-heading, .section-subheading, .media-card__title) {
+  text-transform: none;
+}
+
 /* Opt-in rhythm: compositions can retain their own sizes and natural height. */
 @utility section-space {
   padding-block: clamp(3rem, 5.5vw, 5rem);
