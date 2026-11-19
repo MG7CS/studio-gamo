@@ -149,6 +149,7 @@ Existing code that predates these rules (app knowledge in `SiteHeader`/`SiteFoot
 Full rules, reference examples and review test: `DESIGN.md` §11. In short, for every page, in every app and in `packages/ui`:
 
 - **No eyebrow labels and no pills above headings or card titles.** Start with the heading.
+- **Short headings, title case (owner direction 2026-11-19):** a heading fits on one line where possible and never runs past two lines; the first letter of every word is capitalised (the shared heading styles use `text-transform: capitalize`; they are no longer all caps).
 - **A heading, and a subheading only where the heading alone is unclear** (one short line at most). Not the default label, heading, intro, button stack.
 - **Buttons, links, tabs and chips are small-radius rectangles**, never `rounded-full` or `rounded-pill`. One main action per block.
 - **Cards are photo-led and vary in size**, with the whole card as the link and no category tag. Do not build a wall of identical rounded tiles.
