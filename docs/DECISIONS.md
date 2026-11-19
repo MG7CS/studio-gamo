@@ -304,3 +304,7 @@ Owner direction: "We don't use the page-by-page thing. We use a shared platform 
 5. **No overflow on narrow screens.** Base-layer `min-width: 0` on grid and flex children, `overflow-wrap: anywhere` on text, `max-width: 100%` on media and tables, `text-size-adjust: 100%`, fluid heading minimums that shrink with the viewport, `NumberedSteps` single column `minmax(0, 1fr)`, a shrinking header brand block with the program label hidden below 24rem and the "Menu" word hidden below 17rem (accessible name stays Menu / Close), wrapping `ButtonLink`. Root cause of the Academy sign-up overflow at 308 px: a grid item (and the `NumberedSteps` list) without `min-width: 0` held its min-content width.
 
 Where each lives and how to extend it: `docs/FRONTEND_ARCHITECTURE.md` ("Shared defaults, no page-by-page flags") and `packages/ui/src/components/README.md`.
+
+## 2026-11-19 — No choirs, vocalists or singers
+
+The owner decided that Gamo Studios does not work with choirs, vocalists or singers. There is no offering, copy, role, lesson, instructor or photo for them anywhere: apps, menus, seed data, form role lists, the photo catalog and the docs. Photos of singers are not used as site photos. Sound-engineering wording about vocal mixes in production copy is fine, because it describes audio work, not singers. The rule is also recorded in `AGENTS.md` ("Clean visual style").

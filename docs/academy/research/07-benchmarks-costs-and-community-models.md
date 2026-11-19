@@ -82,7 +82,7 @@ Research date: 2026-11-16. Author: research agent (no git actions taken). Audien
 - The one district study I could open found $187 per student, with salaries as the main cost (the 10-district NAMM-funded study reported by search summary said 85.4% of music spending went to educator salaries and $251 per student [S55\*]). Copy: the lesson that the teacher is 80%+ of the cost; **do not underfund teachers**.
 
 **Retention evidence (general)**
-- A 2024 study (Tucker) cited in a 2026 Frontiers paper found **over half of students left school music classes after one year** (band, chorus, orchestra, guitar) [S56\*]. I found no source that compares group and private retention. Gamo should set a retention target and measure it. (A commonly repeated "90% of new guitar students quit in the first year" figure traces to blogs, not a study; do not use it.)
+- A 2024 study (Tucker) cited in a 2026 Frontiers paper found **over half of students left school music classes after one year** (band, orchestra, guitar) [S56\*]. I found no source that compares group and private retention. Gamo should set a retention target and measure it. (A commonly repeated "90% of new guitar students quit in the first year" figure traces to blogs, not a study; do not use it.)
 
 ---
 
@@ -233,7 +233,7 @@ All numbers below are **proposals and assumptions**, not approved fees or pay. T
 
 - Weekly **45-minute instrument class** in groups of **6** (one lead teacher per group), plus a weekly **60-minute supervised practice session** with up to **12 students per mentor** (a second adult is always present; the coordinator counts). That is **1.75 student-hours a week**, **63 hours** over a **36-week year** (3 terms of 12 weeks).
 - Students rotate in "waves" so instruments are shared: 0.5 instrument seats per enrolled student (SEAT_RATIO).
-- Instrument mix: 40% keys, 40% guitar, 20% drums and percussion (voice needs none).
+- Instrument mix: 40% keys, 40% guitar, 20% drums and percussion.
 - Every family decision about tuition below is a proposal; tuition is billed in **9 monthly payments**.
 
 ### 4.2 Variables (defaults are proposals)

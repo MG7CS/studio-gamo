@@ -31,7 +31,7 @@ This document classifies every finding by severity (P0, P1, P2, P3) and outlines
 | Application | Port | Workspace / Domain | Roles Inspected |
 | --- | --- | --- | --- |
 | `apps/web` | `4321` | Global Brand Hub & Identity | Personal Account holder, Onboarding, Church Partner contact |
-| `apps/worship` | `4322` | Gamo Worship | Musician (Keys/Vocals), Church Administrator (Grace Fellowship) |
+| `apps/worship` | `4322` | Gamo Worship | Musician (Keys), Church Administrator (Grace Fellowship) |
 | `apps/academy` | `4323` | Gamo Academy | Student / Family (Guardian), Instructor (Piano), Church Host / Sponsor |
 | `apps/live` | `4324` | Gamo Live | Event Organizer (Grace Fellowship), Event Attendee |
 | `apps/production` | `4325` | Gamo Production | Church Client (Grace Fellowship), Volunteer / Technician |

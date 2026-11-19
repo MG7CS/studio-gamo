@@ -2,7 +2,7 @@
 
 Research brief 02. Scope: how classes should be designed for ages 4-5 (if at all), 6-8, 9-12 and 13-17. Adult-specific design is covered elsewhere. Date: 2026-11-16. Owner direction: describe the ideal setup first with no compromise; constraints appear only in the short "Trade-offs when constrained" section near the end.
 
-Gamo Academy model assumed throughout: classes at church, school or partner venues; the student arrives with a family member who drives; a class of 30-60 minutes is followed by a supervised practice session of about an hour. Instruments: piano/keyboard (6+), acoustic and electric guitar (7+), bass (9+), drums and percussion (7+), voice (8+, worship vocals and general).
+Gamo Academy model assumed throughout: classes at church, school or partner venues; the student arrives with a family member who drives; a class of 30-60 minutes is followed by a supervised practice session of about an hour. Instruments: piano/keyboard (6+), acoustic and electric guitar (7+), bass (9+), drums and percussion (7+).
 
 ## Evidence labels
 
@@ -29,15 +29,14 @@ Important honesty note: there is no single authoritative standard for "ideal cla
 
 | Age | What the sources say | Design consequence |
 |---|---|---|
-| 5 | CDC (milestones most children, 75%+, reach by this age): pays attention for 5 to 10 minutes during activities like story time; counts to 10; writes some letters of their name; follows rules and takes turns in games; sings, dances or acts for others [S] | Segments of 5-8 minutes; singing and movement are natural; turn-taking games work; no reading of staff notation expected |
+| 5 | CDC (milestones most children, 75%+, reach by this age): pays attention for 5 to 10 minutes during activities like story time; counts to 10; writes some letters of their name; follows rules and takes turns in games; dances or acts for others [S] | Segments of 5-8 minutes; movement is natural; turn-taking games work; no reading of staff notation expected |
 | 6 | MedlinePlus: a 6-year-old should focus on a task for about 15 minutes; can follow 3 commands in a row; fine motor skills vary widely; peer acceptance grows in importance [S] | Segments of 8-12 minutes; give one instruction at a time, three at most |
 | 9 | MedlinePlus: by 9 a child should focus for about an hour; by 10 can follow 5 commands; reading shifts from decoding to understanding content by third grade [S] | Class up to 45-60 minutes is feasible; multi-step assignments possible; written chord charts and notation become practical |
-| 11-15 | Voice change research on boys aged 11.5-15.9 found later-stage changing voices were judged more agile than earlier-stage ones [S*] | Check vocal range every few weeks for boys and some girls; adjust parts and keys [K for girls] |
 | 13-17 | Self-determination study: peer relatedness had comparatively high effect sizes in adolescence; music is closely tied to adolescents' social identity [S] | Cohorts by age; peer ensembles; choice of repertoire |
 
 Caveat: MedlinePlus attention figures are general health-education numbers, not music-specific, and they are higher than some teacher estimates (a teacher-blog source gives 12-18 minutes at ages 5-6 and 16-24 at 7-8 [S*], unverified). I therefore plan for the lower end: a segment lasts 8-12 minutes at 6-8, and a long class is made of many segments.
 
-Orff (imitate, explore, improvise, compose [S*]) and Kodály (singing as the base, sequence set by child development [S*]) both argue for play-based, singing-first early instruction. Neither source gave age-specific minute counts in what I could retrieve.
+Orff (imitate, explore, improvise, compose [S*]) and Kodály (sequence set by child development [S*]) both argue for play-based early instruction. Neither source gave age-specific minute counts in what I could retrieve.
 
 ---
 
@@ -45,7 +44,7 @@ Orff (imitate, explore, improvise, compose [S*]) and Kodály (singing as the bas
 
 ### 2.1 Ages 4-5 (optional "Foundations", not instrument lessons)
 
-**Recommendation:** do not offer piano, guitar, bass, drums or voice lessons below the owner's minimum ages. If the owner wants a 4-5 entry point, offer a 30-minute parent-and-child group class (singing, movement, rhythm, simple percussion, listening) and call it Foundations. Offer it only after the core 6+ program is stable. This is an owner decision (see Open questions).
+**Recommendation:** do not offer piano, guitar, bass or drums lessons below the owner's minimum ages. If the owner wants a 4-5 entry point, offer a 30-minute parent-and-child group class (movement, rhythm, simple percussion, listening) and call it Foundations. Offer it only after the core 6+ program is stable. This is an owner decision (see Open questions).
 
 Why:
 - Attention: 5-10 minutes of sustained attention at age 5 [S]; a 4-year-old is lower [K].
@@ -59,16 +58,16 @@ Why:
 |---|---|
 | 0-3 | Hello song, name song, caregiver and child sit together |
 | 3-8 | Steady-beat movement with a rhythm stick or egg shaker; echo patterns |
-| 8-14 | Singing: two or three short songs, matching pitch in a comfortable range, a hymn or children's worship song learned by rote |
+| 8-14 | Listening: two or three short pieces, including a hymn or children's worship song |
 | 14-20 | Instrument exploration: tuned percussion, drum, keyboard "high and low" game, no formal technique |
 | 20-26 | Story or game with music (freeze dance, listening to a short recorded piece) |
 | 26-30 | Goodbye song and one 2-minute home listening or movement task |
 
-Parent involvement: in the room, participating. Home: daily 5-minute listening or singing, not practice [K]. Frequency: once a week. Assessment: none; a "Level 0 readiness" observation (can keep the beat for 8 bars, echo a 3-note pattern, follow two instructions) [K]. Recital: informal sharing at the end of a term, 10 minutes, parents only [K].
+Parent involvement: in the room, participating. Home: daily 5-minute listening, not practice [K]. Frequency: once a week. Assessment: none; a "Level 0 readiness" observation (can keep the beat for 8 bars, echo a 3-note pattern, follow two instructions) [K]. Recital: informal sharing at the end of a term, 10 minutes, parents only [K].
 
 ### 2.2 Ages 6-8
 
-**Starting ages (ideal):** piano 6 (a hand position of five fingers is fine, but expect small spans: the youngest child in one pianist hand-span database, a 6-year-old girl, had a thumb-to-little-finger span of 5.8 inches [S]); guitar 7 on a 1/4 or 1/2 nylon guitar [S for sizes]; drums 7 on pads, then a junior kit [K]; voice starts at 8 (so for 6-7, only class singing in Foundations or piano classes) [K]; bass starts at 9 per owner (6-8s can do general keyboard or percussion first).
+**Starting ages (ideal):** piano 6 (a hand position of five fingers is fine, but expect small spans: the youngest child in one pianist hand-span database, a 6-year-old girl, had a thumb-to-little-finger span of 5.8 inches [S]); guitar 7 on a 1/4 or 1/2 nylon guitar [S for sizes]; drums 7 on pads, then a junior kit [K]; bass starts at 9 per owner (6-8s can do general keyboard or percussion first).
 
 **Ideal class length and shape:** 45 minutes, group of 4-6 same-instrument children (or, for piano and keyboard, a lab with headphones), plus a teaching assistant, a second adult in the room at all times. Short individual contact is built in because the one controlled study suggests 6-7-year-olds may do better with individual attention than younger children [S].
 
@@ -102,7 +101,7 @@ Parent involvement: in the room, participating. Home: daily 5-minute listening o
 
 ### 2.3 Ages 9-12
 
-**Starting ages:** bass 9+ (short-scale; see section 3); electric guitar from 9 is fine (thin, low-tension strings are easy to press, though heavier [S]); voice 8+ continues; all other instruments also take beginners here, with a compressed ladder (about 20-30% faster, unverified [K]).
+**Starting ages:** bass 9+ (short-scale; see section 3); electric guitar from 9 is fine (thin, low-tension strings are easy to press, though heavier [S]); all other instruments also take beginners here, with a compressed ladder (about 20-30% faster, unverified [K]).
 
 **Ideal class length and shape:** 45 minutes (Level 0-2) to 60 minutes (Level 3+ and ensemble classes), group of 4-8. MedlinePlus: focus extends toward an hour by age 9 [S]; a teacher source suggests 45-minute lessons "seem ideal" for ages 9-15 [S*, unverified].
 
@@ -122,13 +121,13 @@ Parent involvement: in the room, participating. Home: daily 5-minute listening o
 
 **Parent involvement:** shift from in-room to on-site. Parent comes into the last 5-10 minutes of class, hears one piece, and reads the written assignment; parent is a "practice supporter" rather than daily co-practicer. Research on Suzuki-style parent roles is mostly about younger children, and in a studio study the most effective parents elicited their child's views on how involved they should be and negotiated practice with them [S*, Creech 2010, abstract level only]. This supports a gradual release.
 
-**Reading vs ear:** 50/50: lead sheets with chord symbols, rhythm notation, tablature for guitar and bass, simple staff reading for piano and voice [K]. Reading grows in importance as school reading shifts to comprehension by third grade [S].
+**Reading vs ear:** 50/50: lead sheets with chord symbols, rhythm notation, tablature for guitar and bass, simple staff reading for piano [K]. Reading grows in importance as school reading shifts to comprehension by third grade [S].
 
 **Repertoire:** 40% worship songs and hymns (including chord-chart accompaniment of congregational songs), 40% general/popular and classical, 20% student choice. Introduce transposing and Nashville-number charts at Level 3 [K].
 
 **Motivation and retention:** optimal challenge over "making it easy or fun": the self-determination study says teachers should spend time making lessons optimally challenging, creating interest and new skills (competence), providing rewarding peer relationships (relatedness) and input into the curriculum (autonomy) [S]. The same study warns that "bribing students with rewards", sub-optimal challenge and contingent rewards can subvert motivation [S]. Ensembles by age band so friendships form.
 
-**Assessment and milestones:** Level 1-3 checkpoints. External benchmarks: RCM Levels 1-4 and ABRSM Grades 1-2 are plausible aims for the most committed students; Trinity Rock & Pop (guitar, bass, drums, keyboards, vocals; three songs plus a skills test in face-to-face; no age limits; no prerequisites [S]) fit the contemporary tracks. Typical external pace is 12-18 months per grade (tutor source [S*], unverified).
+**Assessment and milestones:** Level 1-3 checkpoints. External benchmarks: RCM Levels 1-4 and ABRSM Grades 1-2 are plausible aims for the most committed students; Trinity Rock & Pop (guitar, bass, drums, keyboards; three songs plus a skills test in face-to-face; no age limits; no prerequisites [S]) fit the contemporary tracks. Typical external pace is 12-18 months per grade (tutor source [S*], unverified).
 
 **Recital cadence:** monthly in-class sharing; two formal recitals per year (about every 16-18 weeks, [K]) plus optional participation in a church service or community event, always optional.
 
@@ -136,7 +135,7 @@ Parent involvement: in the room, participating. Home: daily 5-minute listening o
 
 ### 2.4 Ages 13-17
 
-**Starting ages:** all instruments including bass and voice take beginners. Voice: girls and boys are in or near voice change; assess range regularly and avoid forcing extremes [S* for boys; K for girls]. Teens starting from zero should sit in a teen cohort with a faster ladder, not in a class of 7-year-olds (relatedness [S]).
+**Starting ages:** all instruments including bass take beginners. Teens starting from zero should sit in a teen cohort with a faster ladder, not in a class of 7-year-olds (relatedness [S]).
 
 **Ideal class length and shape:** 60 minutes, group 4-8, ending in an ensemble.
 
@@ -146,7 +145,7 @@ Parent involvement: in the room, participating. Home: daily 5-minute listening o
 | 5-15 | Review and peer feedback |
 | 15-30 | Technique, theory and ear training integrated with repertoire (scales, chord construction, rhythm reading) |
 | 30-45 | Repertoire: student-chosen song learned by ear and chart |
-| 45-58 | Band or ensemble rehearsal: roles rotate (lead, rhythm, bass, drums, vocals) |
+| 45-58 | Band or ensemble rehearsal: roles rotate (lead, rhythm, bass, drums) |
 | 58-60 | Assignment and log |
 
 **Weekly rhythm:** one visit (60-minute class + 60-minute supervised practice, the second hour used for ensemble rehearsal or self-directed practice). Optional second weekly ensemble or worship-team rehearsal. Home practice 4-5 days of 20-40 minutes. Practice should be capped by health guidance: in a contest-level German sample, students practicing over 21 hours/week had playing-related pain at 94% and mean practice was about 7 hours 18 minutes a week [S]; Gamo's intended load is far lower.
@@ -179,9 +178,7 @@ Ages are the owner's minimums. The readiness test is mine [K] and should be trea
 | Guitar | 7 | Can press a string to the fretboard with a fingertip on a 1/4-1/2 nylon guitar; reaches fret 1 with slightly bent elbow (fit test [S]) | Follows a 3-step instruction; can match strum to beat |
 | Bass | 9 | Larger hand span and longer reach, short-scale bass (about 30-inch scale (unverified)); enough finger strength for thicker strings | Can follow a chord chart or root-note pattern |
 | Drums/percussion | 7 | Feet reach pedals with throne set properly; or pad work seated; can hold sticks | Keeps a steady beat for 8 bars; can follow simple pattern |
-| Voice | 8 | Healthy voice, can sing comfortably in about an octave range [K] | Matches pitch in small range; reads lyrics |
 
-Note on voice: studio sources vary from "no correct age" to 7+ and one teacher takes no young students at all [S*]; a claim that the larynx cannot execute belting until puberty is from a single blog and should be verified [S*, unverified]. Plan: no belting until adolescence, with gentle range and no strain [K].
 
 ### 3.2 Instrument sizing
 
@@ -192,14 +189,13 @@ Note on voice: studio sources vary from "no correct age" to 7+ and one teacher t
 | Piano/keyboard | Weighted 88-key digital piano or acoustic in the room (Suzuki piano programs require a piano, not a keyboard [S]; one Yamaha FAQ recommends a piano or Electone over a portable keyboard [S*]). Bench height: forearm level with the keys or black keys [S*]. Footstool for children [S*]. | Hand span: the 6-year-old in one database had a 5.8 in thumb-to-little-finger span; 7.4 in equals the width of eight keys but cannot play an octave comfortably [S]. Advocates (PASK, DS Standard) argue narrower keys reduce hand pain and children adapt quickly [S*]; those sources promote their own keyboards, so verify before purchasing. Practical response: small-hand repertoire, five-finger positions, no forced octaves for the youngest. |
 | Drums | Junior kits for about 5-8 years / 90-120 cm; most kids outgrow junior kits around 9-12 [S*, retailer-guide level]. Throne: thighs slightly downward, roughly 90-105 degrees at knees, feet resting flat and reaching both pedals [S*]; cymbals should sit at or below shoulder height so a child does not reach above it [S*]. | If throne is lowered to reach the pedals the drums sit too high; if raised, feet dangle [S*]. Drumeo notes comfortable 90 degrees for many drummers and says build the kit around kick, hi-hat and snare [S]; it does not address children. |
 | Pad sizes | Start with 8-12 inch practice pads or a pad-based tabletop kit [K, unverified]. | Pads are the quiet option for hearing safety (Mayo audiologists recommend pad practice [S*]) |
-| Voice | No instrument. Microphone on a stand or handheld at child height. | Give a stool or wedge for short children; avoid in-ear levels that are high |
 
 ### 3.3 Reading versus ear by band
 
 | Band | Ear/imitation | Reading | Rationale |
 |---|---|---|---|
 | 4-5 | 100% | 0% | Attention 5-10 minutes [S]; reading letters is emerging [S] |
-| 6-8 | about 70% | about 30% reading readiness | Suzuki delayed reading [S]; Kodály singing-first [S*]; songs-first modern band [S] |
+| 6-8 | about 70% | about 30% reading readiness | Suzuki delayed reading [S]; songs-first modern band [S] |
 | 9-12 | about 50% | about 50% | Reading shifts to comprehension by third grade [S]; Yamaha courses include aural plus reading and writing [S*] |
 | 13-17 | about 40% | about 60% | Chart fluency and independence; ensemble parts |
 
@@ -221,7 +217,7 @@ These splits are my judgment [K]; none of the sources specifies percentages.
 - Design: electronic kits with mesh heads or pad-only for Level 0-2; earmuffs for every child on acoustic kits; sound-level meter in every drum room, with a house rule of aiming at or below 80-85 dBA average [K, my synthesis]; amps kept low.
 
 **Posture and repetitive-strain prevention**
-- In a large German contest sample (Gembris et al. 2020; 1,143 musicians aged 9-24), playing-related pain was reported by 76% overall: 71% at ages 9-13, 73% at 14-15, 80% at 16-17, 85% at 18-24. By instrument: guitar 57%, voice 59%, piano 70%, percussion 73%. Pain sites: neck/shoulder 69%, wrist 56%, back 55%. Students practicing above their instrument's median had more pain for most instruments. Limitations: self-reported, talent-selected sample, unvalidated questionnaire, regression models explained only about 4-5% of variance, and non-musical pain was the strongest predictor [S].
+- In a large German contest sample (Gembris et al. 2020; 1,143 musicians aged 9-24), playing-related pain was reported by 76% overall: 71% at ages 9-13, 73% at 14-15, 80% at 16-17, 85% at 18-24. By instrument: guitar 57%, piano 70%, percussion 73%. Pain sites: neck/shoulder 69%, wrist 56%, back 55%. Students practicing above their instrument's median had more pain for most instruments. Limitations: self-reported, talent-selected sample, unvalidated questionnaire, regression models explained only about 4-5% of variance, and non-musical pain was the strongest predictor [S].
 - Authors' recommendations: include musician health and prevention in regular lessons; teach effective practice techniques; schedule warm-ups, cool-downs and breaks; correct posture and encourage self-observation; improve communication among students, teachers and parents [S]. About 71% of those with pain told their mother and 58% their teacher; 12% did not feel taken seriously at all [S].
 - Another survey summary (Ranelli et al.; 731 children aged 7-17) reports a 67% lifetime prevalence of playing-related musculoskeletal problems [S*].
 - Design: five-minute warm-up and cool-down in every class; breaks at least every 10-15 minutes for under-10s [K]; "pain is a stop sign" rule; teachers trained to check posture; furniture adjustable; ask about pain in every class; cap practice loads (section 5).
@@ -237,7 +233,6 @@ These splits are my judgment [K]; none of the sources specifies percentages.
 - **Guitar:** pain on fingertips in weeks 2-4 is normal (callus building) [K]; start with Em, G, C, D, which use only the first three frets [S]; nylon first.
 - **Bass:** root notes, two-finger alternation, and feeling the groove with a drummer; best taught in rhythm-section pairs [K].
 - **Drums:** pad grip and rudiments first; kit patterns after the child can play steady time; hearing protection mandatory on acoustic kits.
-- **Voice:** posture, breath and healthy tone; unison first; rounds and two-part singing; microphone technique; no belting for children [K].
 
 ---
 
@@ -286,16 +281,6 @@ These are Gamo-defined levels. Times assume weekly attendance of at least 80% of
 | 2 | Eighth-note hi-hat, kick variations, simple fills; dynamics; plays a song with a backing track | 6-9 months |
 | 3 | Sixteenth notes; paradiddle and rudiments; 6/8 or slow worship feel; plays in a small ensemble | 9-12 months |
 | 4 | Shuffle, syncopation, fills in context; reads simple charts; dynamics and ending cues; leads tempo in a band | 9-12 months |
-
-### Voice (start 8)
-
-| Level | Skills | Typical time |
-|---|---|---|
-| 0 | Posture and breath; match pitch in a small range; sing a short song with healthy tone | 8-12 weeks |
-| 1 | Sings two songs in key within a comfortable octave; keeps the beat; follows a conductor or leader | 4-6 months |
-| 2 | Rounds and echo harmony; diction and phrasing; handheld microphone basics | 6-9 months |
-| 3 | Two-part harmony; sings with accompaniment; reads simple melody with solfege or numbers; leads a verse of a worship song | 9-12 months |
-| 4 | Sings in a vocal trio or ensemble; independent harmony; dynamics; leads a song with a band | 9-12 months |
 
 ---
 
@@ -353,17 +338,14 @@ Group sizes are my reference suggestions (unverified [K]); the CDC youth-serving
 | 6-8 | Guitar | 7 | 45 min | 4-6 | Class + 45-60 min supervised practice + 5 x 10-15 min home |
 | 6-8 | Bass | 9 (not offered) | n/a | n/a | n/a |
 | 6-8 | Drums/percussion | 7 | 45 min | 3-4 (pads) or 4-6 (pad lab) | Class + 45-60 min supervised practice + 5 x 10-15 min home |
-| 6-8 | Voice | 8 | 45 min | 4-6 | Class + 45-60 min supervised practice + 5 x 10-15 min home |
 | 9-12 | Piano/keyboard | 6 (or beginner) | 45-60 min | 4-8 | Class + 60 min supervised practice + 4-5 x 15-25 min home |
 | 9-12 | Guitar | 7 | 45-60 min | 4-8 | Class + 60 min supervised practice + 4-5 x 15-25 min home |
 | 9-12 | Bass | 9 | 45-60 min | 3-6 (rhythm-section pairs with drums) | Class + 60 min supervised practice + 4-5 x 15-25 min home |
 | 9-12 | Drums/percussion | 7 | 45-60 min | 3-4 on kits or 4-8 on pads | Class + 60 min supervised practice + 4-5 x 15-25 min home |
-| 9-12 | Voice | 8 | 45-60 min | 4-8 | Class + 60 min supervised practice + 4-5 x 15-25 min home |
 | 13-17 | Piano/keyboard | any (beginner ok) | 60 min | 4-8 | Class + 60 min supervised practice + 4-5 x 20-40 min home + optional ensemble |
 | 13-17 | Guitar | any | 60 min | 4-8 | Same |
 | 13-17 | Bass | any | 60 min | 3-6 | Same |
 | 13-17 | Drums/percussion | any | 60 min | 3-4 on kits or 4-8 on pads | Same |
-| 13-17 | Voice | any (check range) | 60 min | 4-8 | Same |
 
 ---
 
@@ -425,11 +407,11 @@ Sources marked [S] were opened and read this session; [S*] only via search-resul
 5. Music Together (search only; class page returned a 404). https://www.musictogether.com/ [S*]. Supports only that it is a family music class for caregivers and young children; no class-length data retrieved.
 6. Kindermusik studio class listings (search summaries, not official specs). https://thewonderstudio.kindermusik.com/location/57822 and similar [S*]. Supports: studios list Kindermusik for ages 5-7 at 45-55 minutes; treat as indicative only.
 7. American Orff-Schulwerk Association. https://aosa.org/ and search results [S*]. Supports: play-based approach, "imitation, exploration, improvisation, composition" stages, not a fixed method.
-8. Loyola University Maryland, "What is Kodály Music Education?". https://www.loyola.edu/school-education/academics/graduate/kodaly-music-education/about.html [S*]. Supports: Kodály beliefs (music literacy a right, singing anchors, begin very young); sequence set by child development; no age-specific minute counts retrieved.
+8. Loyola University Maryland, "What is Kodály Music Education?". https://www.loyola.edu/school-education/academics/graduate/kodaly-music-education/about.html [S*]. Supports: Kodály beliefs (music literacy a right, begin very young); sequence set by child development; no age-specific minute counts retrieved.
 9. NAfME, "How Should We Define 'Modern Band'?". https://nafme.org/blog/modern-band-is-more-than-we-think/ [S]. Supports: modern band is a philosophy centered on student choice, contemporary music, collaborative music making; entry point not destination; student-led goals; no ages stated.
 
 **Child development**
-10. CDC, Milestones at 5 years. https://www.cdc.gov/act-early/milestones/5-years.html [S]. Supports: 5-year-olds pay attention for 5-10 minutes, count to 10, write some letters of their name, follow rules and take turns, sing/dance/act; milestones are what 75%+ of children do by that age; not a substitute for screening.
+10. CDC, Milestones at 5 years. https://www.cdc.gov/act-early/milestones/5-years.html [S]. Supports: 5-year-olds pay attention for 5-10 minutes, count to 10, write some letters of their name, follow rules and take turns, dance/act; milestones are what 75%+ of children do by that age; not a substitute for screening.
 11. MedlinePlus, School-age children development. https://medlineplus.gov/ency/article/002017.htm [S]. Supports: attention about 15 minutes at 6 and about an hour by 9; follows 3 commands at 6 and 5 at 10; peers grow in importance; reading shifts to comprehension by third grade; at least 1 hour physical activity daily.
 
 **Motivation, retention, early-start evidence**
@@ -441,7 +423,7 @@ Sources marked [S] were opened and read this session; [S*] only via search-resul
 
 **Assessment**
 17. Royal Conservatory, Guide to Examinations. https://files.rcmusic.com/sites/default/files/RCM_USA_Guide-to-Examinations_Online.pdf [S]. Supports: Preparatory A/B (piano) or Introductory/Preparatory (non-piano), Levels 1-10, ARCT; practical and theory requirements from Level 5.
-18. Trinity College London, Rock & Pop grades. https://trinitycollege.com/qualifications/music/rock-and-pop/grades [S] (age and no-prerequisite statements from search summary [S*]). Supports: guitar, bass, drums, keyboards, vocals; three songs structure; digital option.
+18. Trinity College London, Rock & Pop grades. https://trinitycollege.com/qualifications/music/rock-and-pop/grades [S] (age and no-prerequisite statements from search summary [S*]). Supports: guitar, bass, drums, keyboards; three songs structure; digital option.
 19. ABRSM Prep Test, regulations and timings (official pages returned 403; search summaries). https://www.abrsm.org/en-gb/other-assessments/prep-test and https://www.abrsm.org/en-gb/about-our-exams/exam-regulations [S*]. Supports: Prep Test is optional, about 10 minutes, no marks, any age; Music Medals teacher-assessed five levels, 5-10 minutes.
 20. Tutor and teacher-magazine estimates of ABRSM pace (12-18 months per grade; steady student starting at 8 reaches Grade 1 by about 11). https://www.piano-composer-teacher-london.co.uk/piano-grades-explained/ and https://musicteachermagazine.co.uk/articles/trends-in-current-piano-syllabuses [S*]. Supports: only rough pace, unverified.
 
@@ -462,10 +444,7 @@ Sources marked [S] were opened and read this session; [S*] only via search-resul
 32. CDC (2007), Preventing Child Sexual Abuse within Youth-serving Organizations: Getting Started on Policies and Procedures. https://stacks.cdc.gov/view/cdc/7538/cdc_7538_DS1.pdf [S]. Supports: six components; one-on-one limits and at least two adults; ratios; visible spaces and windows in doors; screening and background checks.
 33. Church Mutual, GuideOne and church-leadership child-safety guidance (search summaries). https://www.churchmutual.com/keeping-children-safe-in-your-house-of-worship (page returned 404 after redirect) and https://www.guideone.com/sites/default/files/sr-child-protection-policy-church-pdf.pdf [S*]. Supports: church-industry norms; not binding standards.
 
-**Voice**
-34. Cooksey voice-change research (search summaries; NAfME choral guide). https://nafme.org/an-abridged-choral-directors-guide-to-the-male-voice-change/ [S*]. Supports: assess male range regularly during voice change; stages; not girls.
-35. Teacher blogs on starting voice lessons (Sage Music, Ensemble Schools, others). https://www.sagemusic.co/blog/how-young-is-too-young-for-voice-lessons/ [S*]. Supports: wide disagreement about starting age; belting claim unverified.
 
 **Not retrieved (gaps)**
-- ABRSM guided learning hours for Prep Test and Music Medals; RCM typical age per level; RCM Smart Start details; official OAKE and AOSA age sequences; NATS guidance on young singers; AAP healthychildren pages on school-age attention; hand-span norms by age beyond the small Boyle sample; measured drum-kit sound levels at a child's ear. Verify before public claims.
+- ABRSM guided learning hours for Prep Test and Music Medals; RCM typical age per level; RCM Smart Start details; official OAKE and AOSA age sequences; AAP healthychildren pages on school-age attention; hand-span norms by age beyond the small Boyle sample; measured drum-kit sound levels at a child's ear. Verify before public claims.
 - The search-tool budget for this session ran out before a second round of verification; items marked [S*] should be confirmed.

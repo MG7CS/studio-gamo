@@ -44,7 +44,7 @@ All numbers below are [K] design proposals unless a source is cited.
 
 | Design question | Ideal recommendation | Basis |
 |---|---|---|
-| Group size per instrument | **4 to 6 students per teacher** for guitar, bass, keys and voice. **4 to 6 for drums and percussion** (one pad or kit each, or a pad circle plus one kit rotation). Add an assistant (a trained senior student or volunteer teacher) at 6. Never above 8. | Community programs commonly cap adult beginner guitar at 5 or 6, a few at 8 [S-search: Blue Bear, Kaufman, London Guitar Institute]. The older-adult piano study used groups of up to 4 [S]. No research gives an "ideal" number; this is judgment. |
+| Group size per instrument | **4 to 6 students per teacher** for guitar, bass and keys. **4 to 6 for drums and percussion** (one pad or kit each, or a pad circle plus one kit rotation). Add an assistant (a trained senior student or volunteer teacher) at 6. Never above 8. | Community programs commonly cap adult beginner guitar at 5 or 6, a few at 8 [S-search: Blue Bear, Kaufman, London Guitar Institute]. The older-adult piano study used groups of up to 4 [S]. No research gives an "ideal" number; this is judgment. |
 | Class length | **60 minutes** for adults (45 minutes minimum), followed by the supervised practice hour. Break every 20 minutes (stretch, water, hands). | Community music school guidance suggests adults begin with 45 or 60 minute lessons [S-search: CMSS]; the older-adult study used 60 minutes [S]. The 30-minute class length in the brief is better suited to children; keep 30 minutes only for a short "lab" format. |
 | Time of day | **Weekday evening (about 6:30 to 8:30 pm) and Saturday morning**, plus one early-weekday option for retirees. Same slot every week. Church venues: avoid clashing with midweek services. | [K]. Time is the most commonly reported barrier for adults [S-search; Pitts 2017 life histories confirm time/energy as stated reasons [S]]. |
 | Pacing | One song path, not a method book path. Session 1 ends with the group playing a recognizable song (two to three chords, simple pattern). New skill every week, with built-in review. Expect slower motor progress and plan extra repetition for older adults. | Early competence matters [S-search: frustration]; slower pace for older learners [S-search]. Specific pacing is [K]. |
@@ -60,7 +60,7 @@ All numbers below are [K] design proposals unless a source is cited.
 **Track A: Absolute beginner (default).**
 
 - Term: 12 weeks, 60 minutes class plus 60 minutes supervised practice.
-- Goal by week 4: play and sing or play along with one full song at slow tempo.
+- Goal by week 4: play along with one full song at slow tempo.
 - Goal by week 12: three songs, one performed for the class.
 - Placement: simple intake form (instrument, goals, songs they love, physical notes). No audition.
 
@@ -75,7 +75,7 @@ All numbers below are [K] design proposals unless a source is cited.
 
 - Purpose: a defined short path to playing a small set of songs for a congregation, with honest limits.
 - Structure (proposal, [K]): 8 weeks, 60 minutes class plus 60 minutes supervised practice, then 4 band rehearsals with a partner-church leader.
-- Content: 6 to 8 songs the partner church actually plays, in the church's keys; Nashville number charts; simple roles (strum or fingerpick patterns, bass root notes, pad and block chords on keys, cajon or simple kit patterns, unison or harmony vocal line); playing with a click or track; stopping and starting together; following a leader.
+- Content: 6 to 8 songs the partner church actually plays, in the church's keys; Nashville number charts; simple roles (strum or fingerpick patterns, bass root notes, pad and block chords on keys, cajon or simple kit patterns); playing with a click or track; stopping and starting together; following a leader.
 - Keys: congregational comfort range is often cited around B-flat3 to D5 for melodies, and songs pitched too high cause people to stop singing. These are practitioner rules of thumb, not measured research. [S-search: Worship Leader and others; no peer-reviewed measurement found]
 - Honest framing: the fast track gets someone ready for a trial Sunday role with supervision, not general musicianship. After the term they can continue to Track A or B content.
 
@@ -147,7 +147,7 @@ Cost scale: Low (staff time under 1 hour per class per week, no spend), Medium (
 | 3 | **Playable song in session 1; a song by week 4** (early competence) | B | Low | Competence needs are a core predictor of persistence [S]; frustration from slow progress is a main adult complaint [S]. |
 | 4 | **Supervised practice hour right after class** (the habit anchor, see section 4) | B (indirect) | Medium (room, supervisor, instruments) | Lally: repetition in a stable context builds automaticity; early repetitions give the largest gains [S]. No direct study of supervised practice labs and retention was found. |
 | 5 | **Low-stakes, optional sharing every 4 to 6 weeks** (open room, informal showcase) | B | Low | Adult piano performance group: confidence rose for 6 of 8; non-competitive format [S]. Formats at Levine and Peabody [S-search]. Early performance and recitals are often claimed to retain students but I found no outcome data linking them to adult retention [S-search]. |
-| 6 | **Progress visibility**: simple skills checklist and level markers, informal assessment by teacher | B-C | Low | Church-music scheme Voice for Life uses graded levels assessed informally by the choir director [S-search]. Competence feedback supports persistence [S: SDT framing]. Avoid grades or ranking adults against each other. |
+| 6 | **Progress visibility**: simple skills checklist and level markers, informal assessment by teacher | B-C | Low | Competence feedback supports persistence [S: SDT framing]. Avoid grades or ranking adults against each other. |
 | 7 | **Write-your-plan step: "when, where and what cue will I practice?"** (implementation intentions) | B | Low | Gollwitzer and Sheeran (2006): d = 0.65 across 94 tests. A later, larger synthesis reports smaller effects (about d = 0.27 for behavior, and smaller after bias correction). [S-search] Use it, but expect modest benefit. |
 | 8 | **Teach that ability grows with practice** ("growth" framing) | B | Low | In the UK and German study, entity beliefs about musicality predicted higher dropout (beta 0.50 in the cross-sectional model) [S]. Authors suggest teaching that ability can improve. |
 | 9 | **Personal outreach after one missed week** (teacher text or call; "pause, not quit" option; make-up in another cohort) | C | Low | Competing commitments are the top external reason [S]. Outreach is a [K] recommendation; no direct test found. |
@@ -209,14 +209,13 @@ Implications:
 - **Audition as interview.** One church training document describes the process as "not a standard audition, but more like an interview," to know the musical gifts in the church, give members an accurate view of their gifts, and spot training needs. It lists what to listen for by instrument (for example for guitar: strum, consistency of tempo, fills; for drums: steady tempo, following a leader in the rise and fall of songs) and outcomes such as "you are called," "you are called but we have no position now," and "get more training, or come back for an audition later." It also advises checking that the person is in a good place spiritually before replying and providing ongoing accountability, training and pastoral care. [S: https://sovereigngracemusic.s3.amazonaws.com/wp-content/uploads/20230821180852/auditioning_and_developing_musicians-wg06-kboer.pdf]
 - **Trial period with a mentor, same instrument where possible; re-audition yearly; background checks where children are present.** Church web pages describe this in many forms; no standard hours exist. [S-search: mercyhillchurch.com, worshiponline.com, others]
 - **Redirect, don't reject.** Candidates who are not ready are often offered other service roles or a path to develop. [S-search]
-- **RSCM Voice for Life** is a graded training scheme for church singers with levels, modules (vocal skills, theory, repertoire, aural, choir in context) and informal assessment by the choir director. It is an example of a defined structure, not research. [S-search: https://www.rscm.org.uk/learn-with-us/vfl-digital/]
 - **Tech teams.** A veteran sound-training article says not to expect solo front-of-house operation in under 6 months, and most need 6 to 12 months to be ready for a weekend; use milestones, not dates; start with the stage (mic locker, cables, stage plot) before the console; do not train on weekends; train during the week with a virtual soundcheck; avoid "stand behind the mixer" shadowing during live services; not everyone will run the weekend, but they can be valuable as assistants or midweek operators. [S: https://www.prosoundweb.com/church-sound-training-audio-volunteers/] Another source sketches a three-week observe, set up, run-with-supervisor model [S-search: https://www.whatstheprocessfor.com/blog/church-sound-booth-training]. No industry-standard hour count exists.
 
 ### 5.2 Proposed Gamo pathway (design, [K])
 
 **Principle:** Gamo certifies skills and readiness to audition. The partner church decides on serving, including spiritual and character readiness, background checks and Sunday placement. Gamo never promises a place, and church partnership or payment never changes vetting or rankings.
 
-**Worship team: instrument and voice**
+**Worship team: instruments**
 
 | Gate | What the student does | Approximate hours |
 |---|---|---|
@@ -247,7 +246,7 @@ About 40 hours and at least 3 months of elapsed time to supervised solo; full we
 ## Trade-offs when constrained
 
 - **No dedicated practice room or instruments:** run the practice lab in the same room with headphones (keyboards), practice pads and unplugged electric guitars; the drum kit is rotated. Quiet practice is possible; accept lower quality for loud instruments.
-- **One teacher, bigger groups:** cap at 8 only with an assistant; below that, keep 6. Drums and voice suffer most from large groups.
+- **One teacher, bigger groups:** cap at 8 only with an assistant; below that, keep 6. Drums suffer most from large groups.
 - **Cannot offer both class and practice hour:** keep the practice hour and shorten the class to 45 minutes. The fixed practice cue is the part with the strongest habit logic.
 - **Only one weekly slot:** pick weekday evening; use Saturday morning once demand justifies it.
 - **No volunteer assistants:** drop to 4 to 5 students and extend the practice hour supervision by video review.
@@ -329,7 +328,6 @@ Seen only in search summaries [S-search] (check before quoting):
 29. https://macphail.org/suzuki-triangle-parents and https://suzukiassociation.org/?p=1787 - Suzuki parent role and challenges. [S-search]
 30. https://www.frontiersin.org/articles/10.3389/fpsyg.2020.555717/pdf - Integrated parent-child music classes (caregiver interviews). [S-search]
 31. https://repository.uel.ac.uk/item/8609w - Davidson, Howe, Moore and Sloboda 1996, parental influences. [S-search]
-32. https://www.rscm.org.uk/learn-with-us/vfl-digital/ - Voice for Life graded levels for church singers. [S-search]
 33. https://worshiponline.com/worship-team-auditions/ and https://www.whatstheprocessfor.com/blog/church-sound-booth-training - Church audition and sound-booth training practice. [S-search]
 34. https://metatoc.com/papers/141494-the-effect-of-directed-practice-worksheets-and-logs-on-individual-practice-and-performance-outcomes-of-secondary-group-piano-students - Directed practice logs study (design only). [S-search]
 35. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11851691/ - Music performance anxiety interventions review (no amateur-specific exposure evidence found). [S-search]

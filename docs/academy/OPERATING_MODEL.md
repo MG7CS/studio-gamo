@@ -18,10 +18,9 @@ Status: **proposal for owner decision** (2026-11-16). Built from the seven files
 | Group | Ideal | Maximum | Notes |
 |---|---|---|---|
 | Piano / keyboard lab | 4–6 | 8 (10 for teens and adults) | Ages 5–6: 4, parent beside the child |
-| Guitar (acoustic, electric) | 4–6 | 8 | No guitar at 5–6 (use ukulele, Orff instruments, piano, singing) |
+| Guitar (acoustic, electric) | 4–6 | 8 | No guitar at 5–6 (use ukulele, Orff instruments, piano) |
 | Bass | 3–4 | 6 | Best inside a 6–8 player rhythm-section group |
 | Drums (pads) | 4–6 | 8 | Kit class 3–4 per kit |
-| Voice technique | 4–6 | 8 | Choir 12–16 (max 24) with two adults; group by voice stage from age 10 |
 | Mixed beginner ensemble | 6–8 | 10–12 | |
 | Early childhood with caregiver | 6–8 | 10–12 | |
 | Adult instrument class | 4–6 | 8 with an assistant | |
@@ -32,7 +31,7 @@ Strongest real evidence: group and private piano gave no overall difference at a
 
 | Band | Class | Supervised hour (active playing) | Home practice | Parent |
 |---|---|---|---|---|
-| 4–5 (optional Foundations) | 30 min, parent and child | n/a | listening, singing | in the room |
+| 4–5 (optional Foundations) | 30 min, parent and child | n/a | listening | in the room |
 | 6–8 | 45 min, groups of 4–6 | 20–25 min of the hour | 10–15 min, 5 days | in the room |
 | 9–12 | 45–60 min, groups of 4–8 | 30–35 min | 20–30 min, 5 days | on site, last 5–10 min |
 | 13–17 | 60 min ending in an ensemble | 40–45 min | 25–30 min+, 5 days | drop-off allowed by policy |
@@ -43,8 +42,8 @@ Target practice standard across ages: **5 days a week, one rest day**; 4 days is
 ## 4. The supervised practice hour
 
 - **Shape:** goal card, warm-up, two or three practice blocks, a break, a peer round, practice log, 3-minute handoff to the parent.
-- **Mentors:** 1 per 6 students by default; 1 per 4 for beginner voice and string-type instruments; 1 per 8 at headphone stations; a check-in round every 12 minutes; 2-hour training and a 10-minute weekly briefing; two screened adults always present; under-18 helpers never count toward them.
-- **Space:** about 25 square feet per headphone station, 35–40 per acoustic player (300–450 for 12 students, 600–900 for 24) plus one to three small rooms (65–120 sq ft) for voice and loud instruments; never simultaneous acoustic practice in a reverberant sanctuary.
+- **Mentors:** 1 per 6 students by default; 1 per 4 for beginner string-type instruments; 1 per 8 at headphone stations; a check-in round every 12 minutes; 2-hour training and a 10-minute weekly briefing; two screened adults always present; under-18 helpers never count toward them.
+- **Space:** about 25 square feet per headphone station, 35–40 per acoustic player (300–450 for 12 students, 600–900 for 24) plus one to three small rooms (65–120 sq ft) for loud instruments; never simultaneous acoustic practice in a reverberant sanctuary.
 - **Hearing:** room at or below 80 dBA; pads or electronic drums first; earmuffs and a sound-level meter on site.
 - **Tracking without accounts:** paper goal-and-log card, a short staff form, the admin dashboard for attendance and flags, a three-line weekly email to the family. No leaderboards.
 
@@ -55,7 +54,6 @@ Target practice standard across ages: **5 days a week, one rest day**; 4 days is
 | Piano | 16 (range 12–24) | 20 | digital piano after the Home-Ready Check |
 | Guitar / bass | 12 (8–16) | 24 | guitar after the check |
 | Drums | 16 | 20 | practice pad from week 1; kit stays on site |
-| Voice | 8 | 28 | nothing to take home; practice from week 1 |
 
 - **Phase C:** monthly 60-minute masterclass, one ensemble day a term, home practice about 120 minutes a week.
 - **Hours:** about 90–105 learning hours by week 36 (Levels 0–1); Levels 0–4 total about 450 hours over about 148 weeks (about 3 years). Published reference: Trinity Grade 1 is 60 total hours (12 teacher-led), about 80% independent practice.
@@ -98,10 +96,9 @@ Benchmarks: El Sistema USA averaged $2,401.68 per student in 2023–24 (71% of p
 
 | Issue | Files | Effect | Needed |
 |---|---|---|---|
-| **Staffing ratio in the cost model is lighter than the pedagogy.** File 07 costs mentors at up to 12 students per mentor; file 05 recommends 1 per 6 (1 per 4 for beginner voice and string-type instruments). | 05 vs 07 | Direct cost per student is understated, perhaps by hundreds of dollars a year | Re-run file 07's model at 1:6 before setting any tuition |
+| **Staffing ratio in the cost model is lighter than the pedagogy.** File 07 costs mentors at up to 12 students per mentor; file 05 recommends 1 per 6 (1 per 4 for beginner string-type instruments). | 05 vs 07 | Direct cost per student is understated, perhaps by hundreds of dollars a year | Re-run file 07's model at 1:6 before setting any tuition |
 | **One weekly visit or two.** File 02 argues for one visit (no second drive); file 04 plans supervised practice twice a week for the first 8 weeks. | 02, 05 vs 04 | Changes site capacity, mentor hours and family burden | Owner decision (recommendation: one visit, optional mid-week open practice) |
 | **Youngest students.** File 02: no instrument lessons at 4–5; file 01 allows piano at 5–6 in groups of 4 with a parent. Academy pages say piano 6+. | 01 vs 02 | Starting-age claims on public pages | Keep 6+ for instruments; Foundations class optional |
-| **Voice home-ready timing.** File 04 sets 8 weeks of on-site time for voice with nothing to take home. | 04 | Fine, but voice has no "instrument" gate | Confirm voice follows the same phases |
 | **Class length.** Owner said 30–60 minutes; research says 45 minutes for most bands, 30 for the optional Foundations class, 60 for teens and adults. | 02, 03 | Schedule design | Owner confirms 45 minutes as the standard |
 
 ## 10. Decisions needed from the owner
@@ -111,7 +108,7 @@ Benchmarks: El Sistema USA averaged $2,401.68 per student in 2023–24 (71% of p
 3. Approve **45 minutes** as the standard class length (30, 45 or 60 by band).
 4. Approve **groups of 4–6** and the **mentor ratio 1:6** as the default, and mentor pay and structure (volunteer, stipend or paid).
 5. Approve the **Foundations (ages 4–5)** optional class, or defer it.
-6. Which instruments launch first (recommendation: piano, then guitar; drums on pads; voice).
+6. Which instruments launch first (recommendation: piano, then guitar; drums on pads).
 7. Take-home instrument policy: **loan pool**, rent-to-own or family purchase; who owns the loan agreement.
 8. Host types for the pilot (church, school, organization) and the **first city**.
 9. Safeguarding standard (two screened adults, screening vendor), and who holds insurance (host, Gamo or both).

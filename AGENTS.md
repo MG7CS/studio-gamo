@@ -15,6 +15,7 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 - Existing docs and file names that say "nonprofit" (for example `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md`) are historical names; where their text says nonprofit or tax-exempt, this PBC statement prevails.
 - **Program order (owner, 2026-11-16):** Gamo Academy leads, then Gamo Worship, then Gamo Production — in navigation, program lists, homepage features and anywhere one program is featured first.
 - Gamo Academy speaks first to students, parents and families. The approved headline is **"Learn to Play the Instrument You Love."**
+- Age groups, levels, formats and instrument ages live only in `packages/config/academy-levels.ts` and `academy-instruments.ts`; never type them in pages or data files (`docs/academy/AGE_GROUPS_AND_LEVELS.md`).
 - Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
 - No donation, membership or sponsorship payment processing or language without owner approval.
 - Avoid corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value") when describing the mission.
@@ -153,6 +154,7 @@ Full rules, reference examples and review test: `DESIGN.md` §11. In short, for 
 - **A heading, and a subheading only where the heading alone is unclear** (one short line at most). Not the default label, heading, intro, button stack.
 - **Buttons, links, tabs and chips are small-radius rectangles**, never `rounded-full` or `rounded-pill`. One main action per block.
 - **Cards are photo-led and vary in size**, with the whole card as the link and no category tag. Do not build a wall of identical rounded tiles.
+- **No choirs, vocalists or singers anywhere (owner decision 2026-11-19):** Gamo does not work with them, so no offering, copy, role, lesson, instructor or photo for them in any app, doc or seed. Photos of singers are not used as site photos. Sound-engineering wording about vocal mixes in production copy is fine.
 - Required labels (Sample, Proposal, Sponsored), admin status chips, legends and breadcrumbs are information and stay, quietly.
 - **When unsure, remove the element.** Reviewers (`ui-reviewer`, `design-lead`) flag every violation. Existing components still carry the old pattern and are being migrated (home page first, then the shared components); do not copy it into new work.
 

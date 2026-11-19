@@ -11,7 +11,7 @@
  *   contact            web         contact                 /contact
  *   partner-interest   web         partner_interest        /partners/interest
  *
- * Roles are single words (Keys, Drums, Bass, Guitar, Vocals, Sound, Other) so `roster.roles` and
+ * Roles are single words (Keys, Drums, Bass, Guitar, Sound, Other) so `roster.roles` and
  * `request.roles_needed` carry stable values. Consent questions are single-option checkboxes, which the
  * publish check reports as a "fewer than 2 options" warning; that warning is expected and harmless.
  */
@@ -108,7 +108,7 @@ const section = (id: string, title: string, questions: Raw[], extra: Raw = {}): 
   ...extra,
 });
 
-const MUSIC_ROLES = ['Keys', 'Drums', 'Bass', 'Guitar', 'Vocals', 'Sound', 'Other'];
+const MUSIC_ROLES = ['Keys', 'Drums', 'Bass', 'Guitar', 'Sound', 'Other'];
 const TECH_ROLES = ['Camera', 'Audio', 'Lighting', 'Video switching', 'Livestream', 'Stage', 'Other'];
 const YES_NO = ['Yes', 'No'];
 

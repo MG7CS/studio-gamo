@@ -30,7 +30,7 @@ It does not replace the Academy Guardian Consent and Child-Safety Consent docume
 
 ### Allowed
 
-- AI or stock illustrations of children doing safe, everyday activities: playing an instrument, singing, listening, practising, in a classroom, home or church room, fully clothed.
+- AI or stock illustrations of children doing safe, everyday activities: playing an instrument, listening, practising, in a classroom, home or church room, fully clothed.
 - Hands on an instrument, instruments alone, music stands, sheet music.
 - Children seen from behind, or from far away in a group, with no face in focus.
 - Real photos of a child only with the written consent described in section 5, and only for the uses that consent names.

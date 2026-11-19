@@ -11,7 +11,7 @@ The screenshots in \`design-reference/homepage/\` are the composition source of 
 
 | Component | Reference | Must preserve |
 | --- | --- | --- |
-| \`MusiciansSection\` | \`02-musicians.png\` | Cream editorial introduction at left, large central keyboardist crop with sculpted edge, vocalist+bass+drums collage at right, overlapping audition mockup, six photographic instrument tiles below |
+| \`MusiciansSection\` | \`02-musicians.png\` | Cream editorial introduction at left, large central keyboardist crop with sculpted edge, bass+drums collage at right, overlapping audition mockup, six photographic instrument tiles below |
 | \`WorshipCoverageSection\` | \`03-worship-coverage.png\` | Dark upper photographic feature; text to left, musician/stage imagery in middle, layered white primary/standby preview cards to right; light four-step illustrated process beneath |
 | \`AcademySection\` | \`04-academy.png\` | Cream left text, large instructor/student photo right with sculpted edge, floating instructor/video interface, four photo-first lesson types and church-hosting panel below |
 | \`LiveSection\` | \`05-live.png\` | Cream left headline, immersive concert photograph right with glass event overlay, lower events gallery with three photo cards |

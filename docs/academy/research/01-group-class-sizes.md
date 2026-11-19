@@ -66,7 +66,7 @@ Teacher talk about 25%, hands-on at least 60%. Ofsted's finding on school music 
 - Class guitar in schools is run on 20-38 students daily [28, 29]. The Aaron Shearer Foundation suggests an assistant (an advanced student or nearby college guitar major) for larger groups, and a daily routine of about 25% group warm-up without music, 60% group study with music, 15% individual practice [29]. That time split is reusable at smaller sizes.
 - NAfME's standard sets quality markers for Gamo to borrow: multi-level class options, ability-based scheduling [7].
 
-**Evidence vs folklore.** I found no controlled study on guitar class size. A South African study (van der Merwe, North-West University) found that cooperative, peer-based practice reduced anxiety in a guitar class of about 150 adult education students [30]; it supports peer practice, not any size. The claim that guitar students "continue playing after high school more than any other group except voice students" is a teacher's statement in a NAfME blog [28], not research.
+**Evidence vs folklore.** I found no controlled study on guitar class size. A South African study (van der Merwe, North-West University) found that cooperative, peer-based practice reduced anxiety in a guitar class of about 150 adult education students [30]; it supports peer practice, not any size. The claim that guitar students continue playing after high school more than most other groups is a teacher's statement in a NAfME blog [28], not research.
 
 **Class format [K] (45-60 minutes, 4-6 students):** 5 min tuning and posture check (assistant helps), 10 min new chord or riff by echo, 20 min play-along with backing track (music keeps going; the teacher moves behind each student), 10 min pairs teach each other, 5 min peer performance. Repetition with small changes ("same thing, but they don't perceive it as the same") keeps everyone in the activity [10].
 
@@ -94,27 +94,6 @@ Teacher talk about 25%, hands-on at least 60%. Ofsted's finding on school music 
 **Evidence vs folklore.** I found no study on drum class size. The commercial listings I read show small groups, a 45-minute class, a 10-week cycle, ages 7+ for a drum-kit course, and a final performance for peers [33]. Treat as a market example, not evidence. The UK whole-class programs discussed in [14] included African drumming and steel pans alongside traditional instruments, and the letter reports more pupils wanting to continue than with small groups of pre-selected pupils (secondhand; see section 7).
 
 **Format [K] (45 min):** 5 min grip and posture; 10 min rudiment of the day on pads (everyone plays, teacher circulates); 15 min rotation: one student at the kit with the teacher, others on pads with the assistant or a practice card; 10 min groove play-along with a loop; 5 min peer performance.
-
----
-
-## 6. Voice (small vocal groups vs choirs; vocal health and age limits)
-
-**Ideal / range [K]:**
-- **Voice technique group** (including worship vocals, microphone work): ideal 4-6, maximum 8.
-- **Children's singing group / choir:** ideal 12-16, maximum about 24 with two adults (unverified; I found no source with a number).
-- **Ages 5-7:** a group of 6-8 with movement and singing games, led from the front, not a harmony choir.
-
-**Reasoning.**
-- Each singer needs individual listening; with a mic, each singer should have turns solo. At 6, a 45-minute class allows 2-3 minutes of solo each [K].
-- Child choir singers had fewer voice disorders than non-singers in a Barcelona cohort (1,495 children aged 8-14; 15.6% vs 32.4%); the authors cite voice training, regular voice checks and parent and child education as possible protective factors, but it is observational and the choirs may have selected better voices [17, S]. The singers sang about 7.5 hours per week on average [17].
-- A UK school study (58 children, ages 5-7; no control group) found singing competence improved over six months with visiting professional singers every two weeks and teachers between visits [18]. Years 1 and 2 had 29 children each, which is a school class, not a Gamo group.
-- Teaching vocal health: "Teach singers about puberty and how it affects the voice" is called a primary job of the director; check ranges often; use treble or non-gender-specific parts; avoid parts at the break; zero tolerance for mocking [19, S].
-
-**Age limits and voice change [S, with caveats].** Practitioner guidance (Cooksey stages): boys unchanged at 10-11, change often 12-15 and can start at 9, lasting 18 months to three years; girls change from about 11-15 and may take up to four years, less dramatically [20, practitioner blog]. NAfME's guidance says stages are "stages of vocal development, not voice parts" and that timing varies widely (one boy may stay in a stage a year, another a month) [19]. Ranges mentioned in the sources (about two octaves for healthy 7-10-year-olds [search excerpt, unverified]) are not a Gamo standard.
-
-**Rules for Gamo [K, from 17, 19, 20]:** group by voice stage, not only by age, from age 10 up; no forced, loud or belted singing for children (unverified recommendation; consult a children's voice specialist); screen for vocal strain after every session (no rule on hours found, so set a conservative cap of one voice class per day for under-13s); no upper age limit for adults, but warm-up and rest are mandatory.
-
-**Evidence vs folklore.** Folklore: "choir is bad for young voices" or "choir is automatically good." The Barcelona study shows association only [17]; a 2025 study of 45 child choir singers (mean age 13) reported mild dysphonia overall and vocal complaints in half after performances (Voice Foundation 2025 abstract, search excerpt only; not listed in Sources) [S-excerpt]. Moderation and monitoring are the supported messages.
 
 ---
 
@@ -149,7 +128,7 @@ Teacher talk about 25%, hands-on at least 60%. Ofsted's finding on school music 
 
 **Evidence vs folklore.** The parent-participation research I found is small and qualitative: parents join mainly for expected benefits to the child; one case study found family bonding as an outcome; one dissertation found parents struggled to state their own goals and did not join in order to improve their musical parenting [search excerpts]. There is no study here linking class size to outcomes; the numbers are what established programs run.
 
-**Parent role.** Treat the family member as the "assistant" for ages 3-6: sits beside the child, models singing and movement, and is the practice partner at home (the Suzuki "triangle" idea [K]). In Chiu's study, parents were required to join a 10-minute post-lesson discussion and about 50% watched lessons [1].
+**Parent role.** Treat the family member as the "assistant" for ages 3-6: sits beside the child, models movement, and is the practice partner at home (the Suzuki "triangle" idea [K]). In Chiu's study, parents were required to join a 10-minute post-lesson discussion and about 50% watched lessons [1].
 
 **Format [K] (30-45 minutes):** hello song and name song (3 min); movement and rhythm (10); instrument play, such as shakers, drums, bells (10); listening or quiet song (5); free play with the family, goodbye (5). Keep each activity under 5-7 minutes for under-fives [K].
 
@@ -166,8 +145,6 @@ Cell format: **ideal / max**, then assistant rule. "Asst" = screened adult assis
 | **Bass guitar** | N/A | N/A (start about 10+) | 3 / 4 (or in a rhythm-section group of 6-8) | 4 / 6 | 4 / 6 |
 | **Drums, pads** (rudiments) | 6 / 8 hand percussion; parent + asst | 4 / 6; asst at 5+ | 5 / 8; asst at 6+ | 6 / 8; asst at 7+ | 6 / 8; asst at 7+ |
 | **Drum kit** (rotation: 1 kit + pads) | N/A | 3 / 4 per kit | 4 / 4 per kit | 4 / 4 per kit | 4 / 4 per kit |
-| **Voice technique** (incl. worship vocals) | 6 / 8 singing games; parent or asst | 6 / 8; asst at 7+ | 5 / 8; group by voice stage | 4 / 6; group by voice stage | 6 / 8 |
-| **Choir** (if offered) | N/A | 12 / 24; 2 adults | 12 / 24; 2 adults | 14 / 24; 2 adults | open (unverified) |
 | **Mixed beginner ensemble** | N/A | 6 / 8; asst always | 8 / 10; asst always | 8 / 12; asst at 9+ | 8 / 12; asst at 9+ |
 | **Early childhood / parent-child** | 6-8 / 10, with caregiver; asst at 8+ | (graduate to instrument classes) | n/a | n/a | n/a |
 
@@ -178,7 +155,7 @@ Quick ratio rules [K]: under 10 years, one assistant for every 4-6 students past
 ## 10. Group vs private lessons: outcomes and retention
 
 **What the studies say [S unless noted].**
-- Chiu's review: group instruction "typically equal to or slightly superior" to private in elementary piano and other instruments; Rogers (1974) found group better on all aspects tested but gave unequal instruction time; Diehl (1980), Seipp (1976), Hutcherson (1955) found group better at sight-reading; Sims (1961) found group better for beginning high-school vocalists. Caveats: single teacher in many studies, most with 24 or fewer participants [1].
+- Chiu's review: group instruction "typically equal to or slightly superior" to private in elementary piano and other instruments; Rogers (1974) found group better on all aspects tested but gave unequal instruction time; Diehl (1980), Seipp (1976), Hutcherson (1955) found group better at sight-reading. Caveats: single teacher in many studies, most with 24 or fewer participants [1].
 - Chiu's own study: no significant overall difference; age x mode interaction (group better at 5, private better at 6-7; strongest for kinesthetic response). Her explanations: attitudes toward group work, growth of self-consciousness, sociability, achievement motivation. Her teachers noted 5-year-olds followed the teacher and joined activities, while 6-7-year-olds were more easily distracted by peers and made faster progress in private lessons [1, 2].
 - A 2025/26 interview study of five Sri Lankan piano teachers found both formats effective; four of five said group teaching builds teamwork, engagement and achievement more [31]. Perception data only.
 - A Swedish government inquiry (2016) recommended group tuition as the new norm in municipal music schools; teacher attitudes were mixed and master's-level studies said individual is better for technique and group for social skills [10].
@@ -188,9 +165,9 @@ Quick ratio rules [K]: under 10 years, one assistant for every 4-6 students past
 - Practitioner claim: a group-piano school owner says group offerings "will definitely improve student retention" and that converting from private to group cost her 40% of students at first [9]. One practitioner, not a study.
 - Whole-class UK programs: continuation low and hard to measure (see section 7) [11].
 
-**When group is better [K, supported by 1, 9, 10, 11].** Beginners; rhythm, ensemble and sight-reading; singing and rhythm-section instruments; motivation and belonging; families who need access at low cost; age 5; performance anxiety.
+**When group is better [K, supported by 1, 9, 10, 11].** Beginners; rhythm, ensemble and sight-reading; rhythm-section instruments; motivation and belonging; families who need access at low cost; age 5; performance anxiety.
 
-**When group is worse [K, supported by 1, 10].** Technique problems that need hands-on correction (guitar hand position, drum grip and posture, voice strain); wide level gaps; ages 6-7 who are easily distracted by peers (Chiu's observation); students who are shy to the point of not engaging (Merriam says about 5% cannot adapt; commercial claim, unverified) [32]; injury; audition or exam preparation; advanced repertoire.
+**When group is worse [K, supported by 1, 10].** Technique problems that need hands-on correction (guitar hand position, drum grip and posture); wide level gaps; ages 6-7 who are easily distracted by peers (Chiu's observation); students who are shy to the point of not engaging (Merriam says about 5% cannot adapt; commercial claim, unverified) [32]; injury; audition or exam preparation; advanced repertoire.
 
 **Best practice [K]:** group-first with a built-in individual component. Lee's models range from "one monthly group class plus weekly private" to "20/20/20 with 3 students" [9]. Hallam's report supports short "catch-up or extension" individual time as needed, instead of automatic weekly private lessons [13]. For Gamo, the supervised practice hour is the natural place for this (see section 12).
 
@@ -230,9 +207,9 @@ Options, ranked for Gamo's class-plus-supervised-practice model [K, with 9, 13, 
 
 | Age | What changes | Group design response |
 |---|---|---|
-| **5-6** | Short attention span; learns through movement, songs and the parent; fine motor control still developing; in Chiu's study, 5-year-olds did better in group, 6-year-olds started to prefer private [2] | Smaller groups (4-6 piano, 6-8 percussion/singing); parent beside the child; 20-30 minute class blocks with a change every 5-7 minutes; no harmony singing; no guitar or bass; no continuous 60 minutes of practice |
+| **5-6** | Short attention span; learns through movement, songs and the parent; fine motor control still developing; in Chiu's study, 5-year-olds did better in group, 6-year-olds started to prefer private [2] | Smaller groups (4-6 piano, 6-8 percussion); parent beside the child; 20-30 minute class blocks with a change every 5-7 minutes; no guitar or bass; no continuous 60 minutes of practice |
 | **7-9** | Can read, work in pairs and follow a plan; more peer-aware and easily distracted [1]; hands still small | Pairs and trios; same-age, same-level grouping; instruments in right sizes; assistant for any group over 4-6; gentle peer performance |
-| **10-13** | Peer opinion matters more; voice change begins for some (boys from about 9-12, girls 11+) [19, 20]; strongest social benefit | Groups of 5-8; ensembles and bands; peer-mentor training for the oldest; check ranges often; avoid public embarrassment during voice change |
+| **10-13** | Peer opinion matters more; strongest social benefit | Groups of 5-8; ensembles and bands; peer-mentor training for the oldest |
 | **14-17** | Self-conscious about mistakes; can mentor; schedules compete (school, work) | Choice of repertoire; band format; 6-10 per group; mentor roles with adult oversight; private check-ins available on request |
 | **Adults** | Self-directed, anxious about being "behind"; limited practice time; family members who drive may join | 6-10 per group; adult-only classes for beginners; lab or guitar group works the same; (see `03-adult-learners-and-retention.md` for adult-specific retention research) |
 
@@ -244,10 +221,9 @@ Options, ranked for Gamo's class-plus-supervised-practice model [K, with 9, 13, 
 2. **Make the supervised practice hour the individual-attention engine.** A 3-5 minute check-in per student per week by a teacher or assistant is the single most useful blend of group and private. It needs adults, so staffing assistants is part of the pedagogy, not an extra.
 3. **Staff by adult ratio, not by headcount alone.** Plan screened adult assistants as in section 11; peer mentors are a training and community feature that supplements, not replaces, adults. Church and school hosts will have their own safeguarding rules; follow the stricter one [K].
 4. **Instruments and rooms.** One keyboard per student with headphones and a lab controller (or a plan to run without); guitars and pads loaned on site so the family member driving does not carry gear; separate or acoustically treated space for kit drumming and amps. A church fellowship hall will not do for 3 simultaneous classes without room dividers or headphones [K].
-5. **Do not start younger instruments too early.** No guitar or bass group at 5-6; use ukulele, Orff-style instruments, piano and singing instead [K].
-6. **Voice program: protect young voices.** Group by voice stage from 10 up, track vocal strain, avoid forced loud singing for children, and have a voice-change policy for teens and a policy on how many voice classes a child may take per day (my cap of one is unverified).
-7. **Run honest measurement.** Evidence on size and retention is thin. Record, from day one and without personal data in public, minutes of individual attention per student, attendance, and who continues at 3, 6 and 12 months. That would give Gamo better evidence than most published sources. Do not publish retention or outcome claims until Gamo has its own data.
-8. **Mission fit.** Smaller groups plus assistants cost more per student than large classes. Because Academy is a mission program, the owner decides funding and fees; this document does not propose any fee, tier or pricing. Per `docs/GAMO_NONPROFIT_MODEL.md`, any payment model remains a proposal until the owner approves it.
+5. **Do not start younger instruments too early.** No guitar or bass group at 5-6; use ukulele, Orff-style instruments, piano instead [K].
+6. **Run honest measurement.** Evidence on size and retention is thin. Record, from day one and without personal data in public, minutes of individual attention per student, attendance, and who continues at 3, 6 and 12 months. That would give Gamo better evidence than most published sources. Do not publish retention or outcome claims until Gamo has its own data.
+7. **Mission fit.** Smaller groups plus assistants cost more per student than large classes. Because Academy is a mission program, the owner decides funding and fees; this document does not propose any fee, tier or pricing. Per `docs/GAMO_NONPROFIT_MODEL.md`, any payment model remains a proposal until the owner approves it.
 
 ---
 
@@ -261,7 +237,7 @@ If rooms, instruments or adults fall short, reduce in this order [K]:
 4. **Use pairs and trios as the unit.** A class of 8 that works as four pairs behaves like a smaller class.
 5. **Use mixed-level classes only with differentiated parts** (easy/medium/stretch), as in WCET and Big Noise [11, 21].
 6. **Keep parents at 5-6.** The family member is a free assistant.
-7. **If the whole-class size must go up (for example 12-20 for an ensemble or choir), add adults, shorten talk to under 20%, and keep sectionals.** Do not respond by running 20-minute lectures.
+7. **If the whole-class size must go up (for example 12-20 for an ensemble), add adults, shorten talk to under 20%, and keep sectionals.** Do not respond by running 20-minute lectures.
 8. **Combine instruments into ensemble groups** to make a half-room class workable (for example, a worship band of 8).
 
 ---
@@ -274,10 +250,9 @@ If rooms, instruments or adults fall short, reduce in this order [K]:
 4. **Age floors by instrument:** guitar from age 7, bass from 10, drum kit from 8? These are my starting points, not sourced.
 5. **Grouping rule:** by age, by level, or by both? Mixed-age sibling groups are practical for hosts but change group design.
 6. **Class length by age:** the brief says 30-60 minutes; do we set 30 for ages 5-6, 45 for 7-13, 60 for 14+?
-7. **Voice:** is there a conductor or voice specialist to set rules for children's singing and voice change? Do we offer a choir at all?
-8. **Instrument supply:** loaned on site, family-owned, or both? Who maintains a keyboard lab controller and headphones?
-9. **Host sites:** can each site offer three rooms (quiet, medium, loud)? If not, which instruments run at each site?
-10. **Evidence promise:** may Gamo collect and publish anonymous, aggregate attendance and retention data (consent wording needed)?
+7. **Instrument supply:** loaned on site, family-owned, or both? Who maintains a keyboard lab controller and headphones?
+8. **Host sites:** can each site offer three rooms (quiet, medium, loud)? If not, which instruments run at each site?
+9. **Evidence promise:** may Gamo collect and publish anonymous, aggregate attendance and retention data (consent wording needed)?
 
 ---
 
@@ -310,10 +285,6 @@ Each entry: URL, then what it supports. "Read" = fetched or converted to text th
 14. https://www.tes.com/news/more-are-making-music (letter in TES; read). 70-100% more pupils wanting to continue in some Ofsted pilot cases (secondhand claim).
 15. https://suzukiassociation.org/teachers/training/schools (Suzuki Association of the Americas; direct fetch failed; search excerpt only). 5-10 students for small group classes if individual lessons are not possible; smaller for younger students; monitor teacher/student ratio. [S-excerpt]
 16. https://open.bu.edu/items/5ab03b2c-9656-4fab-b382-c1bf11570223 (Suzuki research symposium summary; 403 on fetch; search excerpt). Average studio size 20.4; 23% of piano teachers do not offer group class. [S-excerpt]
-17. https://pmc.ncbi.nlm.nih.gov/articles/PMC6537783 (JAMA Otolaryngology, Barcelona cohort; read). 1,495 children aged 8-14; voice disorders 15.6% singers vs 32.4% non-singers; observational.
-18. https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2025.1595834/full (Frontiers in Psychology 2025; read). Ages 5-7, 58 children, 6 months, singing competence gains, no control group.
-19. https://nafme.org/blog/an-abridged-choral-directors-guide-to-the-male-voice-change/ (NAfME; read). Stages not voice parts; range checks; part assignment; teach puberty.
-20. https://www.ashleydanyew.com/posts/advice-for-working-with-changing-voices (practitioner blog; read). Ages by Cooksey stage for boys and girls; classroom advice.
 21. https://education.gov.scot/media/ph4fqyge/sistemascotlandirvol280917.pdf (Education Scotland review of Big Noise, 2017; converted text read). Group work plus individual tuition; breakaway groups; high adult-to-child ratio; induction for support staff.
 22. https://www.alfred.com/blog/peer-mentoring-instrumental-choral-and-general-music-classroom/ (publisher blog; read). Peer-mentor preparation routine; no ratios.
 23. https://www.uncg.edu/news/pal-program-strengthens-music-community/ and https://eld.bl.uk/catalog/100103844651_0x000001 (near-peer program and 2020 case study; search excerpts only). Near-peer benefits; mentors need preparation. [S-excerpt]

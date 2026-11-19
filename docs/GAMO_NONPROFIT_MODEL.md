@@ -140,7 +140,7 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 
 **Approved homepage headline — Decided:** **"Learn to Play the Instrument You Love."** Keep this exact wording unless the founder instructs otherwise.
 
-**Offerings — Decided scope:** individual lessons; beginner-to-advanced pathways; keyboard and synthesizer; acoustic and electric guitar; bass; drums and percussion; vocals and other supported instruments; church-hosted group lessons; clinics and workshops; youth programs; sponsored lessons; scholarship-supported instruction; pathways for students to eventually serve in church music ministries.
+**Offerings — Decided scope:** individual lessons; beginner-to-advanced pathways; keyboard and synthesizer; acoustic and electric guitar; bass; drums and percussion; other supported instruments; church-hosted group lessons; clinics and workshops; youth programs; sponsored lessons; scholarship-supported instruction; pathways for students to eventually serve in church music ministries.
 
 **Church partnership model — Proposed.** Churches with facilities and resources may host or sponsor instruction by contributing classrooms or rehearsal space, instruments and equipment, instructor funding, scholarships, student outreach, and volunteers. Gamo coordinates qualified instructors, scheduling, registration, curriculum support, safeguarding policies and educational administration.
 

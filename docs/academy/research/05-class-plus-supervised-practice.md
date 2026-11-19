@@ -16,7 +16,7 @@ No statistic or quote below is invented. Where research does not exist, I say so
 
 1. **The class-then-practice block is sound, but the research is indirect.** I found no study that directly compares "practice right after the lesson" with "practice later." What exists is consistent: immediate informative feedback and supervision are named conditions of the most effective practice [S, Ericsson summary]; motor skills keep consolidating for hours afterward and with sleep [S~, S]; and replaying the target material before stopping may protect overnight gains [S~, Allen]. A supervised hour right after class fits all of this. It must not be the only practice of the week.
 2. **"One hour" should mean one hour in the room, not one hour of continuous playing.** Typical beginners practice about 16-23 minutes a day when they practice [S, Hallam, arithmetic from weekly means]. Attention-span-by-age rules are folk guidance, not research [S~]. Recommended active playing inside the hour: about 20-25 minutes (ages 6-8), 30-35 (9-12), 40-45 (13-17), 45-50 (adults) (all **[K]**), split into short blocks with breaks, a peer round, a log and a parent handoff.
-3. **Mentors do check-ins, not teaching.** The lead teacher teaches new material in class; the practice mentor keeps the student on the teacher's goals, asks questions, models the practice routine and reports back. Recommended ratio **[K]**: 1 mentor to 6 students as the default, 1:4 for beginners on strings, winds, brass and voice in the first 8 weeks, up to 1:8 for headphone keyboards or guitar with a teacher console or older students. A mentor makes a 2-3 minute check-in round every 12 minutes.
+3. **Mentors do check-ins, not teaching.** The lead teacher teaches new material in class; the practice mentor keeps the student on the teacher's goals, asks questions, models the practice routine and reports back. Recommended ratio **[K]**: 1 mentor to 6 students as the default, 1:4 for beginners on strings, winds and brass in the first 8 weeks, up to 1:8 for headphone keyboards or guitar with a teacher console or older students. A mentor makes a 2-3 minute check-in round every 12 minutes.
 4. **Sound and hearing are the hard design problem.** University practice rooms averaged 87-95 dB(A), brass highest, and an estimated 48% of students exceeded the allowable daily dose [S~]. NIOSH: 85 dBA for 8 hours, halving the time for every 3 dB [S]. Twelve acoustic beginners in one hall add about 11 dB over one player (arithmetic **[K]**). The ideal is quiet-by-design instruments (digital pianos and electric guitars on headphones, practice pads, electronic kits) plus separate rooms for loud acoustic instruments and voices.
 5. **Parents are part of the design, not a waiting-room afterthought.** The Suzuki model, the most developed parent-practice model, has a parent attend every lesson, take notes and act as home teacher [S]; El Sistema programs include family learning and parent ensembles [S]. The practice hour should include a parent corner, a 10-minute weekly "how to support practice at home" mini-session, and a 3-minute handoff at the end.
 6. **Tracking can be low-tech and still strong.** A paper goal-and-log card in the student's hand, a one-line weekly email to the family, and a staff form for mentors. Explicit goal-setting, monitoring and evaluation are the best-supported practice skills to teach (metacognition and self-regulation: about +7 months in the EEF toolkit [S~]).
@@ -82,7 +82,6 @@ By instrument **[K]**:
 - **Keyboard, guitar:** longest blocks acceptable; watch posture and wrists.
 - **Strings:** well-fitted instrument size matters (Suzuki handbook requires properly sized instruments and footstools [S]); frequent posture resets for children.
 - **Brass and winds:** shorter blocks (about 10 minutes on, 3-5 off) for lip and breath fatigue.
-- **Voice:** frequent short rests. Children's voice guidance says split voice use into small units, add short rests within a rehearsal, and aim for 30-60 minutes of voice rest a day; these are from a children's voice specialist and a hospital blog, not a formal clinical standard [S~].
 - **Drums and percussion:** pads or electronic kits only in the shared practice hour; blocks of 10-15 minutes with wrist breaks.
 
 ---
@@ -99,7 +98,7 @@ The full minute-by-minute blueprint is in section 9. Components and the reason f
 | Goal-setting card (inside the first 5-10 min) | The teacher's class takeaway becomes today's plan: planning is the first phase of self-regulated practice | Planning, performance, evaluation cycle [S~, McPherson and Zimmerman]; explicit strategy teaching [S~, EEF] |
 | Warm-up (5 min) | Physical readiness, known material first (Suzuki sessions open with review, "psychologically beneficial to begin with what one knows well") | [S, Suzuki handbook] |
 | Practice blocks (2-3, with mentor check-ins about every 12 min) | The core work, with immediate informative feedback | [S, Ericsson summary] |
-| Short break | Rest and attention reset; voice and lip recovery | [S~, children's voice guidance]; [K] |
+| Short break | Rest and attention reset; lip recovery | [K] |
 | Record and review (one 30-60 second take) | Self-assessment | Mixed evidence, see 2.3 |
 | Peer round (5-7 min) | Motivation, observational learning | Section 4 |
 | Cool-down and log (5 min) | Close on something known and enjoyable (Suzuki ends sessions with review [S]); record one win and one next step | Evaluation phase [S~]; [K] |
@@ -142,7 +141,7 @@ No source I found gives instrument-specific ratios for supervised music practice
 | Situation | Students per mentor |
 |---|---|
 | Default mixed-instrument practice | 6 |
-| First 8 weeks, strings, winds, brass or voice, ages 6-10 | 4 |
+| First 8 weeks, strings, winds or brass, ages 6-10 | 4 |
 | Headphone keyboards or electric guitars, students 11+ | 8 |
 | Pads and electronic drums | 6 |
 | Graduate drop-in practice | 10-12 |
@@ -184,16 +183,15 @@ Mentor checklist (one page, laminated):
 | Drums, percussion | Practice pad with stand per student; mesh-head electronic kit for one or two students at a time | Pads and mesh heads; floor isolation pad under any pedal |
 | Violin, viola, cello | Correctly sized instrument, music stand, chair with right height, mute for early weeks | Practice mutes; separate room when more than 4 players |
 | Winds and brass | Instrument, stand, chair; mutes for brass | Separate room; hearing protection if levels run high; short blocks |
-| Voice | Stand, water; piano or recorded accompaniment | Separate room, distance from instrumentalists, vocal rest rules |
 | All | Metronome or tuner, pencil, goal card, practice log | |
 
 Each student gets personal headphones or washable ear pads; no sharing without cleaning **[K]**.
 
 ### 3.3 Floor area and layout **[K] unless cited**
 
-- **Reference points.** Planning guide rule of thumb: about 30 square feet per instrumental musician and 15-20 per choral singer [S~]. A 1983 military band design guide lists small individual practice rooms at about 65 net square feet minimum with at least 8 feet in the shortest dimension, large group practice rooms about 700 NSF, ceilings 10-12 feet preferred, 8-9 feet acceptable for individual rooms; room dimensions should not be equal or integral multiples to limit standing waves [S~]. A commercial design guide calls 10 x 12 feet a good solo practice room and warns against a 10 x 10 square [S~, informal]. A Wenger document gives 2,500 square feet for a 60-75 student band or orchestra rehearsal room with 18-22 foot ceilings [S~].
+- **Reference points.** Planning guide rule of thumb: about 30 square feet per instrumental musician [S~]. A 1983 military band design guide lists small individual practice rooms at about 65 net square feet minimum with at least 8 feet in the shortest dimension, large group practice rooms about 700 NSF, ceilings 10-12 feet preferred, 8-9 feet acceptable for individual rooms; room dimensions should not be equal or integral multiples to limit standing waves [S~]. A commercial design guide calls 10 x 12 feet a good solo practice room and warns against a 10 x 10 square [S~, informal]. A Wenger document gives 2,500 square feet for a 60-75 student band or orchestra rehearsal room with 18-22 foot ceilings [S~].
 - **Per student in a shared practice hall (recommended):** about 25 square feet for a headphone keyboard station (instrument, bench, a clear 3 feet behind); about 35-40 square feet for acoustic instruments with spacing and music stands. For 12 students, plan 300-450 square feet; for 24, 600-900 square feet (arithmetic from the per-student numbers).
-- **Open hall vs rooms.** Ideal: a main hall for quiet-by-design instruments (keyboards and electric guitars on headphones, pads) and two or three small rooms (65-120 square feet) for strings, winds, brass and voice. A single open hall works only with headphone-first instruments or with acoustic instruments in small groups spread in separate corners, with absorbent surfaces (rugs, curtains, portable absorptive screens). Portable screens reduce reverberation and visual distraction, not isolation **[K]**.
+- **Open hall vs rooms.** Ideal: a main hall for quiet-by-design instruments (keyboards and electric guitars on headphones, pads) and two or three small rooms (65-120 square feet) for strings, winds and brass. A single open hall works only with headphone-first instruments or with acoustic instruments in small groups spread in separate corners, with absorbent surfaces (rugs, curtains, portable absorptive screens). Portable screens reduce reverberation and visual distraction, not isolation **[K]**.
 - **Sight lines.** For safeguarding and supervision, every practice room needs a window or open door and the mentor must be able to see every student from the check-in route **[K]**.
 - **Avoid sanctuaries for simultaneous acoustic practice:** reverberant spaces raise the effective level of every player **[K]**.
 
@@ -307,21 +305,21 @@ Assumptions **[K]**: class 45 minutes (range 30-60), supervised practice 60 minu
 
 ### 7.1 Twelve students: one wave, Saturday 9:00-11:15
 
-Example mix: 6 keyboard, 4 guitar, 2 voice.
+Example mix: 8 keyboard, 4 guitar.
 
 | Time | Activity | Room | Instruments in use |
 |---|---|---|---|
 | 9:00-9:10 | Arrival, check-in, parent corner opens | Entry and Hall | none |
-| 9:10-9:55 | Class (1 lead teacher, 12 students) | Room A (classroom) | Keyboard lab (6 headphone keyboards), 4 guitars, 2 voices on stands |
+| 9:10-9:55 | Class (1 lead teacher, 12 students) | Room A (classroom) | Keyboard lab (8 headphone keyboards), 4 guitars |
 | 9:55-10:05 | Break, snack, water, goal cards | Hall | none |
-| 10:05-11:05 | Supervised practice (2 mentors, 1 lead floats) | Hall: 6 headphone keyboards and 4 guitars. Room B (small): 2 voice | Same |
+| 10:05-11:05 | Supervised practice (2 mentors, 1 lead floats) | Hall: 8 headphone keyboards and 4 guitars | Same |
 | 11:05-11:15 | Handoff to parents, pickup | Entry | none |
 
 Staff: 1 lead teacher, 2 mentors, 1 greeter or coordinator. Hall area about 300-450 sq ft.
 
 ### 7.2 Twenty-four students: two staggered cohorts, Saturday 9:00-12:15
 
-Example mix: 12 keyboard, 8 guitar, 4 voice. Cohort A (12) and Cohort B (12) share one classroom and one practice zone, used in sequence. Each family is on site about 2 hours 10 minutes.
+Example mix: 16 keyboard, 8 guitar. Cohort A (12) and Cohort B (12) share one classroom and one practice zone, used in sequence. Each family is on site about 2 hours 10 minutes.
 
 | Time | Cohort A | Cohort B | Rooms in use |
 |---|---|---|---|
@@ -336,14 +334,14 @@ One classroom serves both cohorts (A 9:10-9:55, B 10:05-10:50). The practice zon
 
 ### 7.3 Forty-eight students: two classrooms, two waves, Saturday 9:00-12:15
 
-Example mix: 20 keyboard, 14 guitar, 8 strings and winds, 6 voice. Waves of 24: Wave 1 = cohorts A and B; Wave 2 = cohorts C and D. Two lead teachers.
+Example mix: 26 keyboard, 14 guitar, 8 strings and winds. Waves of 24: Wave 1 = cohorts A and B; Wave 2 = cohorts C and D. Two lead teachers.
 
 | Time | Wave 1 (A + B, 24 students) | Wave 2 (C + D, 24 students) | Rooms |
 |---|---|---|---|
 | 9:00-9:10 | Arrival | | Entry |
-| 9:10-9:55 | Class A in Room A (keys, 12); Class B in Room B (guitar and voice, 12) | | Room A, Room B |
+| 9:10-9:55 | Class A in Room A (keys, 12); Class B in Room B (guitar, 12) | | Room A, Room B |
 | 9:55-10:05 | Break | | |
-| 10:05-11:05 | Supervised practice: Hall (keyboards on headphones, electric guitars), Room C (strings, winds), Room D (voice and pads) | | Hall, Room C, Room D |
+| 10:05-11:05 | Supervised practice: Hall (keyboards on headphones, electric guitars), Room C (strings, winds), Room D (pads) | | Hall, Room C, Room D |
 | 10:05-10:50 | | Class C in Room A; Class D in Room B | Room A, Room B |
 | 10:50-11:05 | | Break | |
 | 11:05-12:05 | | Supervised practice in the same three spaces | Hall, Room C, Room D |
@@ -361,7 +359,7 @@ For 48 students, Tuesday and Thursday evenings with 24 students each: arrival 5:
 
 Short, because the ideal above is the target.
 
-- **No separate rooms.** Use the sound-tier rule: all headphone keyboards, pads and quiet acoustic guitars in one hall; loud acoustic instruments, brass and voice move to a rotating 20-minute slot in a separate corner or room. Reduce active playing blocks to 8-10 minutes for acoustic instruments in the shared space.
+- **No separate rooms.** Use the sound-tier rule: all headphone keyboards, pads and quiet acoustic guitars in one hall; loud acoustic instruments, and brass move to a rotating 20-minute slot in a separate corner or room. Reduce active playing blocks to 8-10 minutes for acoustic instruments in the shared space.
 - **No digital pianos.** Use paper keyboards and quiet rhythm and listening work; or restrict keyboard sessions to one student per instrument in turn, which cuts capacity.
 - **Fewer mentors.** Raise ratio to 1:8 only for headphone and pad stations; reduce active playing for young students; extend peer pairing.
 - **Shorter hour.** Keep the structure (goal, two blocks, log, handoff) and cut the peer round to 3 minutes, total 45 minutes; do not cut the handoff.
@@ -373,11 +371,11 @@ Short, because the ideal above is the target.
 
 ## 9. Recommended session blueprint (one page)
 
-**Audience:** ages 6-17 and adults; cohorts of 12, grouped by age band and instrument family. **Site:** one classroom, one practice hall of quiet-by-design instruments, 1-3 small rooms for loud or vocal instruments, a parent corner in sight.
+**Audience:** ages 6-17 and adults; cohorts of 12, grouped by age band and instrument family. **Site:** one classroom, one practice hall of quiet-by-design instruments, 1-3 small rooms for loud instruments, a parent corner in sight.
 
 **Weekly shape:** Class 45 minutes (30 for ages 6-8, 60 for 13+). Break 10 minutes. Supervised practice 60 minutes. Total about 2 hours with transitions. Home: 10 minutes the next day plus 3-4 more short days (Suzuki: short and often [S]).
 
-**Staff:** 1 lead teacher per cohort of 12; mentors at 1:6 (1:4 for first 8 weeks of strings, winds, brass, voice, ages 6-10); 2 screened unrelated adults in the area; under-18 mentors are helpers only.
+**Staff:** 1 lead teacher per cohort of 12; mentors at 1:6 (1:4 for first 8 weeks of strings, winds, brass, ages 6-10); 2 screened unrelated adults in the area; under-18 mentors are helpers only.
 
 **Supervised hour (60 minutes):**
 
@@ -386,7 +384,7 @@ Short, because the ideal above is the target.
 | 0-5 | Arrival, instrument set-up, tuning, find the goal card | Mentor greets, checks card |
 | 5-10 | Warm-up: body, then known material | Open with something known [S, Suzuki] |
 | 10-25 | Block 1: today's first goal (age 6-8: 8-10 min; 13+: 15 min) | Check-in at minute 12: listen 30-60 sec, one praise, one question, one correction at most |
-| 25-30 | Break: water, stretch, quiet listening; voice and lip rest | Hearing break |
+| 25-30 | Break: water, stretch, quiet listening; lip rest | Hearing break |
 | 30-45 | Block 2: second goal, or the piece; one 30-60 second recording and review (optional) | Three-question review |
 | 45-52 | Peer round: pairs, play-along or mini-performance | Review and consolidation, not new material [S~] |
 | 52-57 | Cool-down: replay the one most important passage, then something fun; fill in the log (one win, one next step) | Reactivation before stopping [S~] |
@@ -403,10 +401,10 @@ Short, because the ideal above is the target.
 ## 10. Implications for Gamo Academy (concrete numbers)
 
 1. **Adopt the 60-minute supervised practice hour for all ages, with active playing of 20-25 min (6-8), 30-35 (9-12), 40-45 (13-17), 45-50 (adults).** Reason: attention limits and typical beginner practice (23 min a day at Preliminary level [S]).
-2. **Staff at 1 mentor per 6 students** (1:4 early beginners on strings, winds, brass, voice; 1:8 for headphone stations), **plus one lead teacher per 12-student class**. For 24 students: 1 teacher, 4 mentors, 1 coordinator on one classroom and one hall in staggered waves; for 48: 2 teachers, 8 mentors, 1 coordinator, 2 classrooms.
+2. **Staff at 1 mentor per 6 students** (1:4 early beginners on strings, winds, brass; 1:8 for headphone stations), **plus one lead teacher per 12-student class**. For 24 students: 1 teacher, 4 mentors, 1 coordinator on one classroom and one hall in staggered waves; for 48: 2 teachers, 8 mentors, 1 coordinator, 2 classrooms.
 3. **Put the mentor on a 12-minute check-in round** with 2-3 minutes per student.
 4. **Plan equipment first:** one digital piano or weighted keyboard and one pair of headphones per keyboard student; practice pads or mesh electronic kit for drums; headphone amps for electric guitars; practice mutes for strings and brass. Do not put loud acoustic drum kits in the shared hour **[K]**.
-5. **Space:** about 25 sq ft per headphone station and 35-40 sq ft per acoustic player; 300-450 sq ft for 12, 600-900 sq ft for 24; 1-3 small rooms of 65-120 sq ft for voice, strings, winds, brass. Never run simultaneous acoustic practice in a reverberant sanctuary.
+5. **Space:** about 25 sq ft per headphone station and 35-40 sq ft per acoustic player; 300-450 sq ft for 12, 600-900 sq ft for 24; 1-3 small rooms of 65-120 sq ft for strings, winds, brass. Never run simultaneous acoustic practice in a reverberant sanctuary.
 6. **Hearing:** room target 80 dBA or below; NIOSH reference 85 dBA for 8 hours, 94 dBA for 1 hour [S]; WHO child headphone mode 75 dB for 40 hours a week [S]; offer protection for loud instruments; build a quiet break into every hour.
 7. **Parents:** one parent corner, one weekly 10-minute coaching mini-session, one 3-minute handoff, one 3-line weekly email.
 8. **Tracking with no accounts:** paper goal-and-log card, a 3-field staff form, the existing admin dashboard for attendance and flags, and the existing signed-link email pattern for preferences. No ranking and no practice-time leaderboard.
@@ -418,7 +416,7 @@ Short, because the ideal above is the target.
 
 ## 11. Open questions for the owner
 
-1. **Instruments offered first.** Which instruments (keyboard, guitar, voice, strings, winds, drums) will Gamo Academy offer at launch? The room and equipment plan depends on it.
+1. **Instruments offered first.** Which instruments (keyboard, guitar, strings, winds, drums) will Gamo Academy offer at launch? The room and equipment plan depends on it.
 2. **Hosts.** Which host types (church hall, school classroom, partner venue) must the plan support? Church sanctuaries are a poor practice space; classrooms and fellowship halls are better.
 3. **Age bands.** Is the first cohort children only (6-12), teens, adults, or all? Adults change the schedule (late evenings, fewer parents).
 4. **Mentor model.** Volunteers only, older students, paid assistants, or a mix? Any payment for mentors or instructors is an owner and board decision and must stay separate from any Gamo administrative allocation (project rules).
@@ -465,7 +463,6 @@ All accessed 2026-11-16. Label shows how I used each source: **[S]** opened and 
 27. [Planning music suites for secondary schools](https://www.constructionspecifier.com/planning-music-suites-for-secondary-schools/), [UFC 4-171-04 Band training facilities](https://buildingcriteria2.tpub.com/ufc_4_171_04an/ufc_4_171_04an0057.htm), [Wenger, Higher Ideals](https://www.wengercorp.com/home/Lit/Higher%20Ideals.pdf) [S~]. About 30 sq ft per instrumental musician; 65 NSF minimum small practice room, 8-foot minimum dimension; 2,500 sq ft for 60-75 piece rehearsal room.
 28. [Acoustic quality criteria for music rehearsal rooms (ISO 23591 summary conference paper)](https://dael.euracoustics.org/confs/fa2023/data/articles/001271.pdf) [S~]. STC 60 for music performance spaces; PDF unreadable in fetch, figure from search summary.
 29. [University practice-room dosimetry study (via core.ac.uk)](https://core.ac.uk/download/149229675.pdf) [S~]. 40 students, mean 87-95 dB(A), brass highest, 48% above allowable dose; direct fetch returned 403.
-30. [Duke Health, tips for healthy children's voices](https://www.dukehealth.org/blog/tips-healthy-childrens-voices) and [British Voice Association, Looking After Children's Voices](https://britishvoiceassociation.org.uk/expert-advice/looking-after-childrens-voices-by-jenevora-williams/) [S~]. 30-60 minutes of voice rest a day; split voice use into small units.
 31. [I Can Play Drums, acoustic vs mesh heads and quiet drumheads](https://www.icanplaydrums.com/blog/acoustic-vs-mesh-heads) [S~]. Low-reliability decibel claims; included only to show the range of numbers.
 32. [Sistema Scotland Big Noise, what is Big Noise](https://makeabignoise.org.uk/about/what-is-big-noise) and [GCPH evaluation](https://www.gcph.co.uk/latest/publications/178-people-change-lives-evaluation-of-sistema-scotland-s-big-noise-programme) [S~]. Up to four after-school sessions a week; high adult-to-child ratio including volunteers (no numeric ratio given).
 33. [Self-recording research: Frontiers 2025 study of advanced pianists and 2023 child-robot study (TU Delft)](https://research.tudelft.nl/files/171721200/s12369_023-01080-3.pdf) [S~]. Thin evidence for children; small, non-significant effect for self-listening in advanced pianists.

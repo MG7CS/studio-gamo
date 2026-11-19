@@ -81,7 +81,7 @@ Use this as a staff form (not a public page). Each line is pass, conditional (wi
 | 13 | Parents' waiting area | No | Seating, view of corridor, Wi-Fi |
 | 14 | Wi-Fi | No | Reliable guest network |
 | 15 | HVAC | No | Quiet and comfortable |
-| 16 | Host program calendar conflicts | No | No overlap with services, choir, daycare or other loud uses during Gamo times |
+| 16 | Host program calendar conflicts | No | No overlap with services, daycare or other loud uses during Gamo times |
 | 17 | Neighborhood safety at pickup times | Yes | Daylight or well-lit, staffed entrance, local crime and traffic reviewed |
 | 18 | Host alignment | Yes | Host accepts inclusion language in 2.4 and the branding rules |
 

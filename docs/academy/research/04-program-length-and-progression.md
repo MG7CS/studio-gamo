@@ -15,10 +15,10 @@ Gamo Academy rules respected: no tuition, fee or pay recommendations are made he
 
 ## Summary
 
-- **Published exam hours give a usable design anchor.** Trinity College London's regulated figures are 40 total qualification hours (TQT) for Initial, 60 for Grade 1, 90 for Grade 2, 120 for Grade 3 and 150 for Grade 4. Only 8, 12, 18, 18 and 24 of those hours are teacher-led. The rest (80% at Initial through Grade 2) is independent practice. [S] I found no instrument-specific hours for guitar, drums or voice, so these figures are the best proxy for all five Gamo instruments.
+- **Published exam hours give a usable design anchor.** Trinity College London's regulated figures are 40 total qualification hours (TQT) for Initial, 60 for Grade 1, 90 for Grade 2, 120 for Grade 3 and 150 for Grade 4. Only 8, 12, 18, 18 and 24 of those hours are teacher-led. The rest (80% at Initial through Grade 2) is independent practice. [S] I found no instrument-specific hours for guitar or drums, so these figures are the best proxy for all four Gamo instruments.
 - **Students need roughly 2 hours of practice a week by Grade 1 to 3, and nearly 3 hours at Grade 4.** In a 2,559-student UK sample, self-reported weekly practice averaged 116 minutes at Grade 1, 132 at Grade 2, 140 at Grade 3 and 192 at Grade 4. [S] Class time alone cannot supply that, so home practice is the plan, not a bonus.
 - **Recommended program shape:** a 12-week term, three terms a year (36 teaching weeks), and a full-year first commitment. Ofsted-endorsed whole-class programs recommend a tuition phase of at least one year [S], and a strong pathway (planned progression, small-group follow-on) kept 50 to 70% of children learning versus about one third nationally. [S]
-- **Graduation of independence (gradual release of responsibility):** Phase A supported, Phase B blended, Phase C independent. Default for piano: 16 weeks in A, 20 weeks in B, then monthly masterclass. Guitar and bass: 12 and 24. Drums: 16 and 20 (pad practice at home from week 1, kit stays on site). Voice: 8 and 28 (nothing to take home). By week 36 a student has about 90 to 105 total learning hours, close to Initial plus Grade 1 (100 hours cumulative if the Trinity figures are treated as additive; [K] assumption). [M]
+- **Graduation of independence (gradual release of responsibility):** Phase A supported, Phase B blended, Phase C independent. Default for piano: 16 weeks in A, 20 weeks in B, then monthly masterclass. Guitar and bass: 12 and 24. Drums: 16 and 20 (pad practice at home from week 1, kit stays on site). By week 36 a student has about 90 to 105 total learning hours, close to Initial plus Grade 1 (100 hours cumulative if the Trinity figures are treated as additive; [K] assumption). [M]
 - **Take-home readiness is a gate, not a date.** Time sets the earliest, typical and latest exit; a five-part Home-Ready Check (skills, habit, care, home setup, own motivation) decides. Practice-log consistency and parent commitment are the two factors the research supports most strongly. [S] The specific thresholds are my judgment [K] and should be tested in a pilot.
 - **Capacity gain is large.** Worked example: a site with 8 instruments, open 20 hours a week at 80% utilization, serves about 54 new students a year (3 intakes of 18) when students graduate through the phases, versus a roster of about 73 total if every student keeps attending class plus one supervised practice forever. After three years that is a roster near 160 learners on the same 8 instruments. [M]
 - **The real new constraint moves to home instruments.** About 108 students at a time sit in Phase C at steady state in the example. Each needs a home instrument. Entry-level weighted digital pianos run about $400 to $500 new [S], so renting commercially costs more than buying after about 6 months. A Gamo-owned lending pool, sized by formula in section 5, is the likely answer for families who cannot buy (owner decision).
@@ -65,7 +65,7 @@ Notes and honest limits:
 
 - **ABRSM:** I could not find an ABRSM-published guided-hours or practice-hours figure for practical grades, only ABRSM theory TQT (Grade 1: 20, Grade 2: 30, Grade 3: 50 hours) reported by a secondary site. [S] for theory, unverified for ABRSM practical. ABRSM's own guidance found says "practise scales and arpeggios daily" and "little and often." [S†]
 - **RCM:** no official recommended practice hours found. [S†] The only official hour-like figure is the adult class length above (28 sessions of 60 minutes per level).
-- **Instrument differences:** Trinity's figures are the same for every instrument. Real differences exist in practice habits: in the UK sample, keyboard players at the preliminary level reported 213 minutes a week, strings 190, brass 111 and woodwind 92; at Grade 1 keyboard 151, strings 121, brass 113, woodwind 101. [S] That sample covers classical instruments only. It does not include guitar, drums or voice. I found no published hours for those; treat the Trinity figures as a starting proxy.
+- **Instrument differences:** Trinity's figures are the same for every instrument. Real differences exist in practice habits: in the UK sample, keyboard players at the preliminary level reported 213 minutes a week, strings 190, brass 111 and woodwind 92; at Grade 1 keyboard 151, strings 121, brass 113, woodwind 101. [S] That sample covers classical instruments only. It does not include guitar or drums. I found no published hours for those; treat the Trinity figures as a starting proxy.
 - **Cumulative hours:** if the per-grade figures are treated as additive (my assumption [K]; Trinity gives them per qualification), Initial plus Grade 1 is 100 TQT (20 teacher-led), through Grade 2 is 190 (38), through Grade 3 is 310 (56), through Grade 4 is 460 (80).
 - **Teacher rules of thumb:** one piano teacher site suggests 6 to 12 months per grade at the early grades and 12 to 18 months later. [S†] Not authoritative.
 
@@ -93,7 +93,6 @@ Published sources give hours to a grade but not hours to "first songs." The foll
 | Acoustic/electric guitar | 4 to 8 hours for two or three chords | 20 to 35 hours (calluses and chord changes slow the first 8 weeks) | about 60 TQT |
 | Bass | 3 to 6 hours for a root-note line | 15 to 25 hours | about 60 TQT |
 | Drums/percussion | 2 to 5 hours for a basic beat on pad or kit | 15 to 25 hours | about 60 TQT; a kit is needed for coordination |
-| Voice | 1 to 3 hours for a simple melody | 10 to 20 hours | about 60 TQT; slower for ear and pitch accuracy |
 
 Trinity's Initial and Grade 1 hours (40 and 60) include every piece, technical work and aural work, so "Level 1 equals roughly 100 hours from zero" is the strongest published reference for a first year. [S, M]
 
@@ -137,30 +136,29 @@ All items [K]. A student shows items as playing, not describing.
 | Acoustic or electric guitar | Tunes with a clip-on tuner. Holds the guitar and picks or strums without help. Plays at least 4 of G, C, D, Em, Am cleanly and changes between two of them at about 60 beats per minute. Plays 3 songs with a steady strum. Reads a chord chart or tab line. |
 | Bass | Tunes with a tuner. Plays root-and-fifth lines on 3 songs with the click. Mutes unused strings. Reads a simple chart. |
 | Drums/percussion | Correct stick grip and posture. Plays an 8th-note rock beat (kick, snare, hi-hat) for one minute at 70 to 90 beats per minute with a metronome. Plays single strokes, double strokes and a paradiddle slowly on a pad. Reads a simple one-line rhythm. |
-| Voice | Sings 3 songs in tune from memory with a steady pulse. Comfortable range of about an octave. Uses relaxed posture and breath. Checks own pitch against a recording. Knows warm-up and rest rules (no pushing, no long loud sessions). |
 
 ### 2.4 Recommended phases, weeks and hours by instrument
 
 Assumptions [M]: class 45 minutes; supervised practice 60 minutes; a student keeps the same hosted-site contact rules in all phases. Supervised practice counts as independent learning in Trinity's sense (not teacher-led).
 
-| | Piano/keyboard | Guitar and bass | Drums/percussion | Voice |
-|---|---|---|---|---|
-| **Phase A weeks** (earliest / typical / latest) | 12 / 16 / 24 | 8 / 12 / 16 | 12 / 16 / 20 | 4 / 8 / 12 |
-| A class | weekly, 45 min | weekly, 45 min | weekly, 45 min | weekly, 45 min |
-| A supervised practice | 2 a week in the first half of A, 1 a week in the second half | same | same (on-site kit); pad, sticks and metronome at home from week 1 | 1 a week (coaching with accompaniment tracks) |
-| A hours: class + supervised (+ home) | 12 + 24 (+0) = 36 | 9 + 18 (+4 trial loan) = 31 | 12 + 24 (+16 pad) = 52 | 6 + 8 (+8 recordings) = 22 |
-| **Phase B weeks** | 20 | 24 | 20 | 28 |
-| B class | weekly for 8 weeks, then every other week (14 sessions) | weekly 8, then biweekly (16 sessions) | same as piano (14) | weekly 8, then biweekly (18) |
-| B open on-site practice | 1 hour every other week (10 h) | 12 h | 10 h (kit) | 14 h (accompanist or practice room) |
-| B home practice | about 100 min a week | same | same (pad, then electronic kit if space allows) | same |
-| B hours: class + open + home | 10.5 + 10 + 33 = 54 | 12 + 12 + 40 = 64 | 10.5 + 10 + 33 = 54 | 13.5 + 14 + 47 = 74 |
-| **Total by week 36 (Levels 0 and 1)** | about 90 | about 95 | about 106 | about 96 |
-| **Phase C** (from week 37) | monthly 60-min masterclass, one ensemble day a term, a short video review a month | same | same, plus a monthly on-site kit slot | same |
-| C home practice | about 120 min a week or more | same | same | same |
+| | Piano/keyboard | Guitar and bass | Drums/percussion |
+|---|---|---|---|
+| **Phase A weeks** (earliest / typical / latest) | 12 / 16 / 24 | 8 / 12 / 16 | 12 / 16 / 20 |
+| A class | weekly, 45 min | weekly, 45 min | weekly, 45 min |
+| A supervised practice | 2 a week in the first half of A, 1 a week in the second half | same | same (on-site kit); pad, sticks and metronome at home from week 1 |
+| A hours: class + supervised (+ home) | 12 + 24 (+0) = 36 | 9 + 18 (+4 trial loan) = 31 | 12 + 24 (+16 pad) = 52 |
+| **Phase B weeks** | 20 | 24 | 20 |
+| B class | weekly for 8 weeks, then every other week (14 sessions) | weekly 8, then biweekly (16 sessions) | same as piano (14) |
+| B open on-site practice | 1 hour every other week (10 h) | 12 h | 10 h (kit) |
+| B home practice | about 100 min a week | same | same (pad, then electronic kit if space allows) |
+| B hours: class + open + home | 10.5 + 10 + 33 = 54 | 12 + 12 + 40 = 64 | 10.5 + 10 + 33 = 54 |
+| **Total by week 36 (Levels 0 and 1)** | about 90 | about 95 | about 106 |
+| **Phase C** (from week 37) | monthly 60-min masterclass, one ensemble day a term, a short video review a month | same | same, plus a monthly on-site kit slot |
+| C home practice | about 120 min a week or more | same | same |
 
 Frequency summary (all instruments):
 
-- **Phase A:** 3 on-site contacts a week at the start (class plus 2 supervised practices), 2 later. About 2.75 on-site hours a week early, 1.75 later (voice 1.75 throughout).
+- **Phase A:** 3 on-site contacts a week at the start (class plus 2 supervised practices), 2 later. About 2.75 on-site hours a week early, 1.75 later.
 - **Phase B:** class weekly for 8 weeks then every other week; open practice every other week; home practice 5 days a week of 15 to 25 minutes (about 100 minutes a week). About 1 on-site hour a week on average.
 - **Phase C:** one masterclass or check-in a month (60 minutes), one ensemble day a term, 5 to 6 home days a week.
 
@@ -169,7 +167,6 @@ Why these weeks:
 - Piano gets the longest A because a weighted digital piano is the costliest home item and the one most families need time (and sometimes a loan) to arrange. The NIU Suzuki program also insists on a piano rather than a keyboard. [S]
 - Guitar and bass can leave A sooner: instruments are cheap and portable, and a 4-week trial loan in weeks 9 to 12 lets the student prove the habit before B. [K]
 - Drums leave A earliest *for the pad* (week 1) but never fully leave the site for the kit: noise, size and cost make a real kit a poor home loan. Merriam Music notes electronic kits are quieter for practice and a metronome (phone app or device) is recommended. [S]
-- Voice has no instrument to lend, so home practice starts in week 1 with recordings; on-site time is for coaching. [K]
 - Young children (under about 8) add 4 to 8 weeks to A and need a parent present in every phase (Suzuki, Yamaha both require it for early courses). [S] The age rule is [K].
 
 ---
@@ -186,7 +183,6 @@ Prices are market reference points, not Gamo recommendations to charge or sell. 
 | Acoustic guitar | Correct size (see below), nylon strings for young beginners, clip-on tuner, strap or footstool, gig bag or case, spare strings. | Guitar $100 to $250, 3/4 sizes similar *(unverified)* [K]. Tuner $10 to $20 *(unverified)* [K]. |
 | Electric guitar or bass | Short-scale for small hands, small practice amp with a headphone jack, cable, tuner, strap. | $250 to $450 for a starter pack *(unverified)* [K]. |
 | Drums/percussion | Practice pad (rubber), pair of 5A sticks, metronome (phone app is enough), stable throne or stool, earplugs if an acoustic kit is used. Electronic kit later if space and noise allow. | Pad plus sticks and stool $40 to $90 *(unverified)* [K]; electronic kit $400 to $800 *(unverified)* [K]. Stick wear: "a few weeks to a month" for heavy practice. [S] |
-| Voice | No instrument needed. A quiet spot, a phone for recordings, a pitch reference (piano app or keyboard), headphones; optional dynamic microphone only when the student begins performing. | $0 to $100 *(unverified)* [K]. |
 
 Guitar sizes: sources agree on approximate sizes by age and say height and arm reach matter more than age. Da Capo Music: ages 5 to 8 half-size, 8 to 12 three-quarter, 12 and up full size; nylon strings are "recommended and preferred by most for learning" and easier on the fingers. [S] Thomann: 1/8 at 4 to 6, 1/4 at 5 to 8, 1/2 at 7 to 9, 3/4 at 10 to 13, full size 12 and up; classical (nylon) is considered best for beginners. [S] Alfred Music: prefers 3/4-size nylon-string guitars for children and notes cost as the biggest obstacle to one guitar per student. [S] Because children outgrow sizes about every 2 to 3 years, lending or exchanging sizes is more sensible than buying each size new. [K]
 
@@ -314,7 +310,7 @@ Home practice per week implied: Level 1 B about 100 minutes; Level 2 about 120; 
 
 | View | What the student has done | Instrument at home | On-site rhythm at the end | Hours so far |
 |---|---|---|---|---|
-| **1 year** | Levels 0 and 1. Home instrument arrives by week 16 to 17; Home-Ready Check passed at the end of Phase A; Phase B for about 20 weeks. First showcase at week 12, second at week 24, third at week 36. | Yes, from week 16 (piano), week 12 (guitar, bass), pad from week 1 (drums), none needed (voice) | Class every other week plus optional open practice | about 90 to 105 |
+| **1 year** | Levels 0 and 1. Home instrument arrives by week 16 to 17; Home-Ready Check passed at the end of Phase A; Phase B for about 20 weeks. First showcase at week 12, second at week 24, third at week 36. | Yes, from week 16 (piano), week 12 (guitar, bass), pad from week 1 (drums) | Class every other week plus optional open practice | about 90 to 105 |
 | **2 years** | Level 2. Monthly masterclass, termly ensemble day, monthly video check-in; logs maintained. | Yes | One masterclass a month | about 180 to 195 |
 | **3 years** | Level 3. Student is ready to join a church music team, a community ensemble or a private teacher. Some students begin Level 4. | Yes (upgrade to an acoustic piano or better instrument is a family decision) | One masterclass a month | about 300 |
 | **Year 4 (optional)** | Level 4. Check-ins every 2 weeks, small-group or online. | Yes | Every two weeks | about 450 |
@@ -329,7 +325,7 @@ Concrete numbers (all [M] or [K] unless marked; validate in a pilot site):
 
 1. **Term and year:** 12-week terms, 3 intakes a year, 36 teaching weeks, a first commitment of one year (3 terms), with a showcase and a progress review at the end of every term. Basis: Play On Philly three sessions each with a jury [S], WCET 38 weeks and one-year minimum [S], RCM adult 28-week levels [S].
 2. **Class and practice structure:** 45-minute weekly class; supervised practice 2 a week for the first 8 weeks, then 1 a week through the end of Phase A.
-3. **Home-ready points:** piano week 16 (range 12 to 24); guitar and bass week 12 (range 8 to 16); drums week 16 for the kit, pad from week 1; voice nothing to take home, home practice from week 1.
+3. **Home-ready points:** piano week 16 (range 12 to 24); guitar and bass week 12 (range 8 to 16); drums week 16 for the kit, pad from week 1.
 4. **Phase B and C rhythm:** B is weekly class for 8 weeks then every other week, open practice every other week, home about 100 minutes a week. C is a monthly 60-minute masterclass, one ensemble day a term, a short video review monthly, home about 120 minutes a week.
 5. **Hours by end of year 1:** about 90 to 105 total learning hours (piano about 90); 19 to 23 of them class time; about 22 to 34 supervised or open on-site practice; about 33 to 47 at home (drums add about 16 pad hours in Phase A).
 6. **Capacity:** 8 stations, 20 open hours a week, 80% utilization gives 128 station-hours a week and about 54 new students a year (3 intakes of 18), a roster of about 160 by year 3 compared with about 73 if no one ever graduates. About 7 new starts per station per year.
@@ -341,12 +337,12 @@ Concrete numbers (all [M] or [K] unless marked; validate in a pilot site):
 
 ## Trade-offs when constrained
 
-- **Only one supervised practice a week in Phase A (current model):** extend Phase A by about 4 weeks (piano 20, guitar and bass 16, drums 20, voice 12) and add short daily at-home listening or silent-fingering tasks (as Suzuki programs use daily listening [S]) on the other days; throughput rises to about 63 new starts a year in the example, but expect slower progress. [M, K]
+- **Only one supervised practice a week in Phase A (current model):** extend Phase A by about 4 weeks (piano 20, guitar and bass 16, drums 20) and add short daily at-home listening or silent-fingering tasks (as Suzuki programs use daily listening [S]) on the other days; throughput rises to about 63 new starts a year in the example, but expect slower progress. [M, K]
 - **Fewer stations:** move guitar, bass and drums to home sooner (cheap items), keep piano at the longest A, add a pad or silent-keyboard station to widen supervised practice, and stagger starts to six small cohorts to flatten the peak (6 intakes of 9 gave the same capacity as 3 of 18). [M]
 - **No lending pool or funds for instruments:** require the home-ready decision to include a family route (buy or retailer rent-to-own) and hold the student in Phase B-with-open-practice (more on-site hours) until one is arranged; this consumes seats, so prioritize pools for piano first. [K]
 - **Limited teacher time:** keep Phase C in group masterclasses (6 to 10 students) and use 60 to 90-second videos with short written feedback; skip one-to-one check-ins except at the progress review.
 - **Younger children (under about 8):** add 4 to 8 weeks to Phase A and require a parent at class and in the first half of Phase B (Suzuki and Yamaha model). [S, K]
-- **No suitable home space:** voice and pad drumming still work; for piano, a headphone-capable digital piano avoids noise problems.
+- **No suitable home space:** pad drumming still works; for piano, a headphone-capable digital piano avoids noise problems.
 
 ---
 
