@@ -4,7 +4,6 @@ import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const paths = [
   {
@@ -30,10 +29,7 @@ const paths = [
 ];
 ---
 
-<Section id="opportunities" title="What can we build together?">
-  <ButtonLink slot="actions" href="/partners/interest" arrow>
-    Start a partnership inquiry
-  </ButtonLink>
+<Section id="opportunities" title="What can we build together?" align="center">
   <FeatureGrid as="ul" max={3}>
     {paths.map((p) => (
       <Card as="li" padding="lg" data-reveal>
