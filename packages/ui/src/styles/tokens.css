@@ -17,34 +17,35 @@
 
 @source "../components";
 
-/* Editorial type scale. Titles follow the booklet: heavy (900), uppercase, tight leading. */
+/* Editorial type scale: heavy (900), tight leading, first letter of every word capitalised (owner direction
+   2026-11-19; previously all caps). */
 @utility display-xl {
   font-size: var(--text-hero);
   line-height: 1;
   letter-spacing: -0.02em;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 @utility display-lg {
   font-size: var(--text-page-title);
   line-height: 1.04;
   letter-spacing: -0.02em;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 @utility section-heading {
   font-size: var(--text-section-title);
   line-height: 1.08;
   letter-spacing: -0.01em;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 @utility section-subheading {
   font-size: clamp(1.75rem, 2.8vw, 2.75rem);
   line-height: 1.08;
   letter-spacing: -0.01em;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 
 /* Opt-in rhythm: compositions can retain their own sizes and natural height. */
