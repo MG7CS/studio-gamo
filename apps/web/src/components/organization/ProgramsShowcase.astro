@@ -1,7 +1,8 @@
 ---
 /**
- * The three programs in owner order: Gamo Academy as the full-width leading card, Worship and Production side by
- * side below it. Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible
+ * The three programs in owner order. Default `featured` layout: Gamo Academy as the full-width leading card, Worship
+ * and Production side by side below it (/mission). `row` layout (the homepage, owner direction 2026-11-19): three
+ * cards of equal size next to each other, all in the same square frame. Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible
  * (owner direction 2026-11-19). Photo-led (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it,
  * and there is no label, badge or paragraph. Used on the homepage and /mission.
  */
@@ -20,8 +21,10 @@ interface Props {
   tone?: 'default' | 'raised';
   /** Show the one line under each program name. Default true; the home page leaves it out. */
   lead?: boolean;
+  /** `featured` (one large card, then two) or `row` (three equal cards side by side). Default featured. */
+  layout?: 'featured' | 'row';
 }
-const { title, accent, id, tone = 'default', lead = true } = Astro.props;
+const { title, accent, id, tone = 'default', lead = true, layout = 'featured' } = Astro.props;
 const [featured, ...others] = programs;
 ---
 
@@ -30,27 +33,13 @@ const [featured, ...others] = programs;
     {title}
     {accent && <span class="block text-accent">{accent}</span>}
   </Fragment>
-  <Stack gap="lg">
-    {featured && (
-      <MediaCard
-        variant="overlay"
-        image={{
-          name: featured.bannerPhoto ?? featured.photo,
-          ratio: featured.bannerPhoto ? (featured.bannerRatio ?? 'landscape') : featured.photoRatio,
-          sizes: 'full',
-        }}
-        title={featured.name}
-        href={featured.href}
-      >
-        {lead && <p class="text-base font-semibold">{featured.lead}</p>}
-      </MediaCard>
-    )}
-    <FeatureGrid max={2} min="lg" gap="lg" as="ul">
-      {others.map((p) => (
+  {layout === 'row' ? (
+    <FeatureGrid max={3} min="md" gap="lg" as="ul">
+      {programs.map((p) => (
         <MediaCard
           as="li"
           variant="overlay"
-          image={{ name: p.photo, ratio: p.photoRatio, sizes: 'half' }}
+          image={{ name: p.photo, ratio: 'square', sizes: 'third' }}
           title={p.name}
           href={p.href}
         >
@@ -58,5 +47,35 @@ const [featured, ...others] = programs;
         </MediaCard>
       ))}
     </FeatureGrid>
-  </Stack>
+  ) : (
+    <Stack gap="lg">
+      {featured && (
+        <MediaCard
+          variant="overlay"
+          image={{
+            name: featured.bannerPhoto ?? featured.photo,
+            ratio: featured.bannerPhoto ? (featured.bannerRatio ?? 'landscape') : featured.photoRatio,
+            sizes: 'full',
+          }}
+          title={featured.name}
+          href={featured.href}
+        >
+          {lead && <p class="text-base font-semibold">{featured.lead}</p>}
+        </MediaCard>
+      )}
+      <FeatureGrid max={2} min="lg" gap="lg" as="ul">
+        {others.map((p) => (
+          <MediaCard
+            as="li"
+            variant="overlay"
+            image={{ name: p.photo, ratio: p.photoRatio, sizes: 'half' }}
+            title={p.name}
+            href={p.href}
+          >
+            {lead && <p class="text-base font-semibold">{p.lead}</p>}
+          </MediaCard>
+        ))}
+      </FeatureGrid>
+    </Stack>
+  )}
 </Section>
