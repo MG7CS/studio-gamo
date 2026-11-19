@@ -1,0 +1,117 @@
+---
+/**
+ * Home page Gamo Worship section (restored 2026-11-18 without the label above the heading and the sentence under
+ * it, DESIGN.md section 11): heading with its accent line, three commitments, two actions, and the photo with a
+ * Sample Sunday roster preview (fictional church and schedule, labelled Sample).
+ */
+import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
+const pillars: { icon: IconName; title: string; body: string }[] = [
+  {
+    icon: 'verified',
+    title: 'Thoughtful vetting, never pay-to-rank',
+    body: 'Musicians are reviewed for preparation, skill, and ministry character. Sponsorships or contributions never affect vetting or placement.',
+  },
+  {
+    icon: 'shield',
+    title: 'Primary & standby preparation',
+    body: 'When unexpected illness happens, we work to pair services with standby coverage where local musician availability allows.',
+  },
+  {
+    icon: 'heart',
+    title: 'Fair, transparent musician pay',
+    body: 'Musician compensation and any proposed administrative allocation are always displayed as separate line items.',
+  },
+];
+
+const coverageSteps = [
+  {
+    day: 'Tue',
+    text: 'Set list, keys, and call times shared with primary and standby musicians',
+    done: true,
+  },
+  { day: 'Thu', text: 'Primary musician confirms rehearsal and Sunday schedule', done: true },
+  {
+    day: 'Sat',
+    text: 'Standby musician remains prepared with the same charts where local coverage allows',
+    done: true,
+  },
+  {
+    day: 'Sun',
+    text: 'Arrival check-in recorded; musician pay kept as its own transparent line item',
+    done: false,
+  },
+];
+---
+
+<SplitHero as="section" spacing="section" id="worship" aria-labelledby="home-worship-title">
+  <h2 id="home-worship-title" class="section-heading text-balance text-fg">
+    Every Sunday is shared work.
+    <span class="block text-accent">We help it hold together.</span>
+  </h2>
+
+  <ul class="mt-8 grid gap-6">
+    {pillars.map((p) => (
+      <li class="flex gap-4">
+        <Icon name={p.icon} class="mt-1 size-6 shrink-0 text-action" />
+        <div>
+          <h3 class="text-lg font-semibold text-fg">{p.title}</h3>
+          <p class="mt-1 text-body-sm text-fg-muted">{p.body}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  <div class="mt-8 flex flex-wrap gap-3">
+    <ButtonLink href={siteUrl('web', '/worship/request')} arrow>
+      Request a musician
+    </ButtonLink>
+    <ButtonLink href={siteUrl('web', '/worship/apply')} variant="secondary">
+      Apply as a musician
+    </ButtonLink>
+  </div>
+
+  <div slot="media" class="relative">
+    <Frame
+      photo="acousticLeader"
+      ratio="landscape"
+      sizes="half"
+      alt="Worship leader singing and playing acoustic guitar on stage"
+    />
+    <div class="relative -mt-12 px-4 sm:absolute sm:-start-6 sm:-bottom-12 sm:mt-0 sm:px-0">
+      <FloatingPreviewCard
+        title="Sunday service roster"
+        as="aside"
+        aria-label="Sample Sunday coverage plan"
+        class="sm:max-w-sm"
+      >
+        <p class="text-body-sm font-semibold">Cornerstone Chapel · 9:00 AM · Confirmed</p>
+        <ol class="space-y-2.5 border-t border-border pt-3 text-small">
+          {coverageSteps.map((step) => (
+            <li class="flex items-start gap-2.5">
+              <span
+                class:list={[
+                  'mt-0.5 grid size-5 shrink-0 place-items-center rounded-pill',
+                  step.done ? 'bg-action text-on-action' : 'ring-1 ring-border',
+                ]}
+              >
+                {step.done && <Icon name="check" class="size-3" strokeWidth={2} />}
+              </span>
+              <span>
+                <strong class="font-semibold text-fg">{step.day}:</strong>{' '}
+                <span class="text-fg-muted">{step.text}</span>
+                {step.done && <span class="sr-only">(done)</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </FloatingPreviewCard>
+    </div>
+  </div>
+</SplitHero>

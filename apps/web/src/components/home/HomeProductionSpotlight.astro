@@ -1,0 +1,49 @@
+---
+/**
+ * Home page Gamo Production section (restored 2026-11-18 without the pill and the sentence under the heading,
+ * DESIGN.md section 11): the shared EditorialFeatureCard with the heading and accent, three support areas, the
+ * sound engineer photo with its "(proposed)" caption, and two actions.
+ */
+import EditorialFeatureCard, {
+  type EditorialFeaturePoint,
+} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+const areas: EditorialFeaturePoint[] = [
+  {
+    icon: 'sliders',
+    title: 'Sanctuary & stage audio',
+    body: 'Clear vocal presence, balanced monitor mixes, and practical room gain staging.',
+  },
+  {
+    icon: 'video',
+    title: 'Livestream & broadcast clarity',
+    body: 'Reliable camera workflows and dedicated broadcast audio for homebound congregants.',
+  },
+  {
+    icon: 'users',
+    title: 'Volunteer team training',
+    body: 'Patient, hands-on coaching so church volunteers feel confident behind the console.',
+  },
+];
+---
+
+<EditorialFeatureCard
+  id="production"
+  title="Better tools and training"
+  accent="for the team behind the board."
+  points={areas}
+  photo="soundEngineer"
+  photoAlt="Sound engineer wearing headphones at a digital mixing console during worship"
+  photoRatio="square"
+  caption="Sunday booth readiness & volunteer training (proposed)"
+  tone="inset"
+>
+  <ButtonLink href={siteUrl('web', '/production/request')} arrow>
+    Request a needs assessment
+  </ButtonLink>
+  <ButtonLink href={siteUrl('production', '/training')} variant="secondary">
+    Explore volunteer training
+  </ButtonLink>
+</EditorialFeatureCard>

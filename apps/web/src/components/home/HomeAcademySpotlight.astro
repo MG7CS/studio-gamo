@@ -1,0 +1,93 @@
+---
+/**
+ * Home page Gamo Academy section (restored 2026-11-18 without the label above the heading and the sentence under
+ * it, DESIGN.md section 11): heading, the instruments as flat linked rows, the planned scholarship note (labelled
+ * Proposal) and two actions, beside the mentor and young pianist photos.
+ */
+import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
+const instruments: { name: string; age: string; path: string; icon: IconName }[] = [
+  { name: 'Piano & Keys', age: 'Ages 6 to adult', path: '/instruments/piano', icon: 'piano' },
+  {
+    name: 'Acoustic & Electric Guitar',
+    age: 'Ages 7 to adult',
+    path: '/instruments/acoustic-guitar',
+    icon: 'guitar',
+  },
+  { name: 'Voice & Worship Vocals', age: 'Ages 8 to adult', path: '/instruments/vocals', icon: 'mic' },
+  { name: 'Drums & Rhythm', age: 'Ages 7 to adult', path: '/instruments/drums', icon: 'drums' },
+  { name: 'Bass Guitar', age: 'Ages 9 to adult', path: '/instruments/bass', icon: 'music' },
+  { name: 'Ensemble & Group Labs', age: 'Youth & families', path: '/instruments', icon: 'users' },
+];
+---
+
+<SplitHero
+  as="section"
+  spacing="section"
+  mediaSide="start"
+  tone="raised"
+  id="academy"
+  aria-labelledby="home-academy-title"
+>
+  <h2 id="home-academy-title" class="section-heading text-balance text-fg">
+    Learn to Play the <span class="text-accent">Instrument You Love.</span>
+  </h2>
+
+  <ul class="mt-8 grid gap-x-6 sm:grid-cols-2">
+    {instruments.map((inst) => (
+      <li class="border-t border-border">
+        <a
+          href={siteUrl('academy', inst.path)}
+          class="flex min-h-11 items-center gap-3 py-3 text-fg hover:text-action"
+        >
+          <Icon name={inst.icon} class="size-5 shrink-0 text-action" />
+          <span class="min-w-0">
+            <span class="block text-body-sm font-semibold">{inst.name}</span>
+            <span class="block text-small text-fg-muted">{inst.age}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="mt-8 rounded-card bg-surface p-6" data-surface="inset">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-body-sm font-semibold text-fg">
+        Music education should not depend solely on a family's budget.
+      </p>
+      <Badge tone="proposal">Planned · proposal</Badge>
+    </div>
+    <p class="mt-2 text-small text-fg-muted">
+      We are planning church-hosted cohorts and scholarship-supported seats so more students can begin lessons
+      close to home. All tuition and sponsorship structures remain proposals pending program launch.
+    </p>
+  </div>
+
+  <div class="mt-8 flex flex-wrap gap-3">
+    <ButtonLink href={siteUrl('academy', '/instruments')} arrow>
+      Choose an instrument
+    </ButtonLink>
+    <ButtonLink href={siteUrl('academy', '/sponsored')} variant="secondary">
+      Explore planned scholarship cohorts
+    </ButtonLink>
+  </div>
+
+  <div slot="media">
+    <PhotoGrid
+      layout="pair"
+      photos={[
+        { photo: 'guitarMentor', alt: 'Guitar instructor guiding a young student through a chord' },
+        {
+          photo: 'youngPianist',
+          alt: 'Young pianist smiling while playing a keyboard in a bright classroom',
+        },
+      ]}
+    />
+  </div>
+</SplitHero>
