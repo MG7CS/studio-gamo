@@ -49,15 +49,15 @@ export const instructors: Instructor[] = [
     approach: ['Songs First, Theory Woven In', 'Small-Group Band Sessions', 'Healthy Technique from Day One'],
   },
   {
-    slug: 'voice-and-choir',
-    name: 'Voice and Choir Instructor',
+    slug: 'voice',
+    name: 'Voice Instructor',
     icon: 'mic',
     instruments: ['Vocals'],
     instrumentSlugs: ['vocals'],
     teaches: 'All ages',
     formats: ['Private', 'Group', 'Online'],
     tone: 'bg-surface-inset text-fg',
-    bio: 'Vocal coach for soloists and choirs, with a focus on breath, healthy range and harmony.',
+    bio: 'Vocal coach for soloists and small groups, with a focus on breath, healthy range and harmony.',
     approach: [
       'Vocal Health and Warm-Up Routines',
       'Harmony and Ensemble Listening',

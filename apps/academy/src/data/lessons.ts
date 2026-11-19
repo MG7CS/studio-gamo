@@ -71,7 +71,7 @@ export const lessons: Lesson[] = [
     title: 'Voice & Harmony Workshop',
     instrument: 'Vocals',
     instrumentSlug: 'vocals',
-    instructorSlug: 'voice-and-choir',
+    instructorSlug: 'voice',
     level: 'Developing',
     ages: ['Teens', 'Adults'],
     format: 'Church-hosted',
