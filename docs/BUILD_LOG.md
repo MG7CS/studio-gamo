@@ -825,3 +825,11 @@
 - The art-direction previews (three live hero directions) were rejected by the owner and removed with their font packages; the owner will bring a reference. Research notes: Fraunces, Instrument Serif and Instrument Sans (SIL OFL, self-hostable) were the shortlist.
 - The mega menu axe test waited only for the panel to be visible, so it sometimes measured contrast while the panel was still fading in; it now waits for full opacity (3 clean repeats).
 - Checked: `pnpm check` passes (949 unit tests, journeys, 88 Playwright tests).
+
+## 2026-11-18 — Home page in three sections, wide photos, test cut
+
+- The home page's programs block is now three sections (Academy, Worship, Production), each a heading, one button and a large photo with the side alternating (`ProgramSections`); `/mission` keeps the single-block `ProgramsShowcase`.
+- Wide illustration trial on the home page and the child photo and consent policy draft: see `docs/DECISIONS.md` (same date).
+- Offer and admin-form browser tests: the local test database (one SQLite file) sometimes answers "database is locked" when tests write at once, which left clicks waiting out the 10-minute test timeout; those specs run serially with retries and clicks give up after 15 seconds (`playwright.config.ts`). Production D1 is not affected.
+- Test suite cut to 237 tests (see `docs/DECISIONS.md`); timings before the cut: typecheck 22 s, browser tests 45 s (the page-by-page smoke test about 20 s per app), unit tests 9 s, lint, format, API check, build and journeys 4 to 6 s each.
+- Not deployed: pushing and setting the upload secret were blocked, the owner paused the deploy ("wait on deploying"); steps are in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md`.

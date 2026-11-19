@@ -130,3 +130,13 @@ Owner-approved replacements for the AI-generated set. Each licence was read on t
 | software-mobile-app | https://unsplash.com/photos/2MbXuj8PDrA | Jakub Żerdzicki | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | software-team-collaboration | https://unsplash.com/photos/dWYU3i-mqEo | Annie Spratt | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | software-support-maintenance | https://www.pexels.com/photo/a-man-and-a-woman-using-a-laptop-together-7551644/ | Kampus Production | Pexels License: "License: Free (shown under the 'License' heading on the photo page)" | 2026-11-18 |  |
+
+## AI-generated illustrations (owner-supplied, 2026-11-18)
+
+Three wide (1774 x 887) illustrations supplied by the owner on 2026-11-18, stored in `assets/images/2026-brand-refresh/illustrations/`. They are AI-generated, not licensed stock photography, and no generator or licence terms are recorded here. Use as illustration only: never on a musician profile, never captioned or described as a real member, student or musician of Gamo Studios.
+
+| Stem | Source file | Used on |
+| --- | --- | --- |
+| illustrations-singer-close-up | singer-close-up.png | Home hero |
+| illustrations-worship-service-purple | worship-service-purple.png | Home, Gamo Worship section |
+| illustrations-piano-headphones-purple | piano-headphones-purple.png | Home, Gamo Academy section |
