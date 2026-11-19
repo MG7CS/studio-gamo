@@ -1,5 +1,5 @@
 ---
-/** Section 5: how lessons work — heading and photo beside aligned NumberedSteps on a dark band. */
+/** Section 5: how lessons work — portrait photo beside the heading and NumberedSteps on a dark band. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
@@ -23,17 +23,17 @@ const steps = [
 
 <Section tone="dark" data-reveal>
   <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+    <div class="order-last lg:order-first">
+      <Frame
+        photo="youngPianist"
+        ratio="portrait"
+        sizes="half"
+        alt="Young pianist smiling while playing a keyboard in a bright classroom"
+      />
+    </div>
     <div>
       <EditorialHeading tone="dark" title="Simple steps," accent="steady progress." />
-      <div class="mt-10 hidden lg:block">
-        <Frame
-          photo="youngPianist"
-          ratio="landscape"
-          sizes="half"
-          alt="Young pianist smiling while playing a keyboard in a bright classroom"
-        />
-      </div>
+      <NumberedSteps items={steps} tone="raised" class="mt-10" />
     </div>
-    <NumberedSteps items={steps} tone="raised" />
   </div>
 </Section>

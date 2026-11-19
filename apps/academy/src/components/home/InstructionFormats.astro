@@ -1,5 +1,5 @@
 ---
-/** Section 3: private & group instruction — one photo beside two format cards. */
+/** Section 3: private & group instruction — one square photo (the 3:2 source crops least) in a wide column beside two format cards. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
@@ -26,17 +26,17 @@ const formats = [
 ---
 
 <Section data-reveal>
-  <div class="grid items-center gap-12 lg:grid-cols-2">
-    <div class="mx-auto w-full max-w-lg">
+  <div class="grid items-center gap-12 lg:grid-cols-12">
+    <div class="w-full lg:col-span-7">
       <Frame
         photo="guitarMentor"
-        ratio="portrait"
+        ratio="square"
         sizes="half"
         alt="Guitar instructor guiding a young student through a chord"
         caption="Private or group — you choose"
       />
     </div>
-    <div>
+    <div class="lg:col-span-5">
       <EditorialHeading title="One-on-one focus" accent="or the joy of a group." />
       <FeatureGrid as="ul" min="lg" max={2} class="mt-10">
         {formats.map((f) => (

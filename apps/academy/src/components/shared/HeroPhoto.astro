@@ -8,7 +8,7 @@
  *   <HeroPhoto slot="media" photo="guitarMentor" alt="Guitar instructor with a student" ratio="portrait" />
  */
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
-import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
+import { photos, PHOTO_RATIOS, type PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface Props {
   photo: PhotoKey;
@@ -17,8 +17,16 @@ interface Props {
   ratio?: 'landscape' | 'portrait' | 'square';
 }
 const { photo, alt, ratio } = Astro.props;
-// Landscape unless the photo is tall-only; a frame ratio the photo does not allow throws at render.
-const shape = ratio ?? (photos[photo].ratios.includes('landscape') ? 'landscape' : 'square');
+// The allowed hero ratio closest to the photo's own shape, so it crops least: landscape for 3:2 and
+// wide photos, square for portrait and square ones (a 4:5 hero would push the page below the fold).
+const entry = photos[photo];
+const source = entry.width / entry.height;
+const fits = (['landscape', 'square'] as const).filter((r) => entry.ratios.includes(r));
+const shape =
+  ratio ??
+  fits.reduce((best, r) =>
+    Math.abs(Math.log(source / PHOTO_RATIOS[r])) < Math.abs(Math.log(source / PHOTO_RATIOS[best])) ? r : best,
+  );
 ---
 
 <Frame photo={photo} ratio={shape} sizes="half" alt={alt ?? photos[photo].alt} priority />
