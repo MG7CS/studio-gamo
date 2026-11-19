@@ -19,7 +19,7 @@ pages, so it is applied when we reach them. Order: home (main site), then Academ
    shared heading styles (and photo-card titles, `.media-card__title`) show the text exactly as typed; pages not yet
    done still use the old rule (every word capitalised by CSS). When every page is done, make "as written" the default
    and remove the attribute. Done: home (5ff33a15).
-2. **Headings are short:** one line where possible, two at most.
+2. **Headings are short:** one line where possible, two at most. One exception, by the owner (2026-11-19): the home hero heading is longer, "Preparing the Way so Worship Can Rise in Every Community", because it has to cover worship, learning and the technical and software work without naming music.
 3. **Photos crop as little as possible and are at least as tall as the text beside them.** Use the frame ratio closest
    to the photo's own shape; make the photo taller, or trim the text when a wide photo cannot grow. Done: main site
    (082ac360), Academy (490fccc2). Ready but unchecked: Worship and Production, parked on the branch
