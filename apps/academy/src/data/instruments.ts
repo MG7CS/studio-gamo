@@ -61,13 +61,6 @@ const details: Record<string, Omit<Instrument, 'name' | 'photo' | 'ages'>> = {
     blurb: 'Rhythm, coordination and groove, starting on practice pads and growing to a full kit.',
     firstSteps: ['Grip, Posture and Counting', 'Basic Rock and Ballad Grooves', 'Fills and Dynamics'],
   },
-  'vocals': {
-    slug: 'vocals',
-    short: 'Voice',
-    icon: 'mic',
-    blurb: 'Breath, pitch and healthy technique for solo singing and harmony.',
-    firstSteps: ['Breathing and Warm-Ups', 'Finding Your Comfortable Range', 'Pitch, Harmony and Confidence'],
-  },
 };
 
 export const instruments: Instrument[] = ACADEMY_INSTRUMENTS.map((i) => ({

@@ -11,7 +11,6 @@ export const instruments: Instrument[] = [
   { name: 'Acoustic & electric guitar', icon: 'guitar', roles: 'Rhythm, lead, ambient textures' },
   { name: 'Drums & percussion', icon: 'drums', roles: 'Kit, cajón, auxiliary percussion' },
   { name: 'Bass', icon: 'music', roles: 'Electric and upright bass' },
-  { name: 'Vocals', icon: 'mic', roles: 'Lead worship and harmony' },
   { name: 'Sound & media', icon: 'sliders', roles: 'Front-of-house, monitors, lyrics' },
 ];
 
@@ -48,6 +47,5 @@ export const musicianRoles: MusicianRole[] = [
   { instrument: 'Acoustic & electric guitar', icon: 'guitar', involves: 'Play rhythm, lead or ambient parts from shared charts, in the key and arrangement the worship leader sets.' },
   { instrument: 'Drums & percussion', icon: 'drums', involves: 'Keep steady, room-appropriate time on kit, cajón or auxiliary percussion, from quiet hymns to full worship sets.' },
   { instrument: 'Bass', icon: 'music', involves: 'Lock in with drums and keys on electric or upright bass, following the set list and keys shared before rehearsal.' },
-  { instrument: 'Vocals', icon: 'mic', involves: 'Lead worship or sing harmony, prepared with the set list, keys and lyrics in advance.' },
   { instrument: 'Sound & media', icon: 'sliders', involves: 'Run front-of-house, monitors or lyrics so the congregation can hear clearly and sing along.' },
 ];

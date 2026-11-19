@@ -61,7 +61,6 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
     worship: {
       tiles: (
         [
-          ['Vocals and worship leaders', 'musicianWorshipLeader'],
           ['Acoustic guitar', 'musicianAcousticGuitarist'],
           ['Electric guitar', 'musicianElectricGuitarist'],
           ['Keys', 'musicianKeysPlayer'],

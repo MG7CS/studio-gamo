@@ -29,5 +29,4 @@ export const ACADEMY_INSTRUMENTS: readonly AcademyInstrument[] = [
   },
   { slug: 'bass', name: 'Bass Guitar', photo: 'instrumentBassGuitar', ages: 'Ages 9 and up' },
   { slug: 'drums', name: 'Drums & Percussion', photo: 'instrumentDrums', ages: 'Ages 7 and up' },
-  { slug: 'vocals', name: 'Vocals', photo: 'instrumentVocals', ages: 'Ages 8 and up' },
 ];
