@@ -5,7 +5,6 @@
  * card describing how a Sunday is prepared (no church, time or status named, so it carries no tag; 2026-11-19).
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
@@ -28,13 +27,6 @@ const pillars: { icon: IconName; title: string; body: string }[] = [
     title: 'Fair, transparent musician pay',
     body: 'Musician pay and any administrative allocation are always shown as separate line items, with no deduction.',
   },
-];
-
-const coverageSteps = [
-  { day: 'Tue', text: 'Set list, keys, and call times shared with primary and standby musicians' },
-  { day: 'Thu', text: 'Primary musician confirms rehearsal and the Sunday schedule' },
-  { day: 'Sat', text: 'Standby musician prepared with the same charts where local coverage allows' },
-  { day: 'Sun', text: 'Arrival check-in; musician pay kept as its own line item' },
 ];
 ---
 
@@ -65,39 +57,11 @@ const coverageSteps = [
     </ButtonLink>
   </div>
 
-  <div slot="media" class="relative">
-    <Frame
-      photo="acousticLeader"
-      ratio="landscape"
-      sizes="half"
-      alt="Worship leader singing and playing acoustic guitar on stage"
-    />
-    <div class="relative -mt-12 px-4 sm:absolute sm:-start-6 sm:-bottom-12 sm:mt-0 sm:px-0">
-      <FloatingPreviewCard
-        title="A Sunday plan"
-        as="aside"
-        aria-label="How a Sunday is prepared"
-        badge={false}
-        class="sm:max-w-sm"
-      >
-        <p class="text-body-sm font-semibold">How each Sunday is prepared</p>
-        <ol class="space-y-2.5 border-t border-border pt-3 text-small">
-          {coverageSteps.map((step) => (
-            <li class="flex items-start gap-2.5">
-              <span
-                class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-pill bg-action text-on-action"
-                aria-hidden="true"
-              >
-                <Icon name="check" class="size-3" strokeWidth={2} />
-              </span>
-              <span>
-                <strong class="font-semibold text-fg">{step.day}:</strong>{' '}
-                <span class="text-fg-muted">{step.text}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
-      </FloatingPreviewCard>
-    </div>
-  </div>
+  <Frame
+    slot="media"
+    photo="acousticLeader"
+    ratio="landscape"
+    sizes="half"
+    alt="Worship leader singing and playing acoustic guitar on stage"
+  />
 </SplitHero>
