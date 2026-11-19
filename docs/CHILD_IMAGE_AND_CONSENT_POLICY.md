@@ -156,7 +156,7 @@ From the code on 2026-11-18. Image descriptions come from the catalog alt text (
 | Academy sponsored `/sponsored` | `apps/academy/src/pages/sponsored.astro` | Families, sponsored students | `boyGuitar` hero |
 | Academy register `/register/[lesson]` | `apps/academy/src/pages/register/[lesson].astro` | Age groups Under 6 to 16–17 | none |
 | Academy instructor `/instructors/[slug]` | `apps/academy/src/pages/instructors/[slug].astro` | No | initials only, "Sample" badge |
-| Web home `/` | `apps/web/src/pages/index.astro`, `components/organization/PathChooser.astro`, `data/organization.ts` | "children, teens and adults" | `illustrationPianoHeadphones` (AI, "Young person"; age unclear), `girlGuitar` (Students & families card) |
+| Web home `/` | `apps/web/src/pages/index.astro`, `components/organization/PathChooser.astro`, `data/organization.ts` | "children, teens and adults" | `boyGuitar` (hero, a boy playing guitar), `girlGuitar` (Students & families card) |
 | Web get started `/get-started` | `apps/web/src/pages/get-started.astro` | via PathChooser | `girlGuitar` |
 | Web get involved, mission, support | `apps/web/src/pages/get-involved.astro`, `mission.astro`, `support.astro` | No | `guitarMentor`; `girlGuitar` (support hero; mission via `ProgramsShowcase` and `data/programs.ts`) |
 | Worship home `/` | `apps/worship/src/components/home/JoinSection.astro` | No | `guitarMentor` |

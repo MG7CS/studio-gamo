@@ -344,25 +344,6 @@ const meta = {
     position: '50% 50%',
     tone: 'bright',
   },
-  /* AI-generated illustrations supplied by the owner (docs/ASSET_MANIFEST.md). Illustration only: never on musician profiles, never described as a real member. */
-  illustrationSingerCloseUp: {
-    stem: 'illustrations-singer-close-up',
-    alt: 'Singer with eyes closed at a microphone, a guitarist and a drummer behind her',
-    position: '66% 40%',
-    tone: 'dark',
-  },
-  illustrationWorshipService: {
-    stem: 'illustrations-worship-service-purple',
-    alt: 'Congregation with raised hands facing a band on a stage lit in purple',
-    position: '50% 40%',
-    tone: 'dark',
-  },
-  illustrationPianoHeadphones: {
-    stem: 'illustrations-piano-headphones-purple',
-    alt: 'Young person wearing headphones and playing a piano keyboard in a purple room',
-    position: '65% 40%',
-    tone: 'dark',
-  },
 } as const satisfies Record<
   string,
   Pick<PhotoEntry, 'stem' | 'alt' | 'position' | 'tone'> & { ratios?: readonly PhotoRatio[] }

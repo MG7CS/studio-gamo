@@ -290,3 +290,5 @@ Owner direction: "the testing is too much", then "delete 80% of the tests ... pr
 ## 2026-11-18 — Three wide AI illustrations tried on the home page
 
 Owner direction: use them as illustrations only (never on a musician profile); for children only appropriate, safe images and a consent policy must be written. The singer close-up is the full-width home hero (dark scrim, AA contrast checked), the worship-service picture sits in the Worship program section and the piano picture in the Academy section. Open for the owner's judgement: the dark scrim, and the purple against the cream and terracotta brand. The draft policy is `docs/CHILD_IMAGE_AND_CONSENT_POLICY.md` (DRAFT, not legal advice, not lawyer-reviewed; not yet linked from AGENTS.md).
+
+**Outcome (same day):** the owner asked to undo the full-width hero and the three program sections, so the home page is back to the three-photo hero and the single programs block, and the three illustrations were removed from the repository. The illustration-only rule and the consent policy draft stand.
