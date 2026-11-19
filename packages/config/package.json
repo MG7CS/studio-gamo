@@ -12,6 +12,7 @@
     "./programs": "./programs.ts",
     "./menus": "./menus.ts",
     "./academy-instruments": "./academy-instruments.ts",
+    "./academy-levels": "./academy-levels.ts",
     "./env-validation": "./env-validation.ts"
   }
 }

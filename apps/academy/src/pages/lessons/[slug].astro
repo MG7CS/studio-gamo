@@ -9,6 +9,7 @@ import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import InstructorCard from '../../components/shared/InstructorCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { ageGroupLabel, formatLabel } from '@gamo/config/academy-levels';
 import { lessons, type Lesson } from '../../data/lessons';
 import { instructorBySlug } from '../../data/instructors';
 import { instrumentBySlug } from '../../data/instruments';
@@ -24,13 +25,13 @@ const facts = [
   ['calendar', 'Schedule', l.schedule],
   ['clock', 'Length', l.length],
   ['pin', 'Location', l.location],
-  ['users', 'Ages', l.ages.join(', ')],
+  ['users', 'Ages', l.ageGroups.map(ageGroupLabel).join(', ')],
 ] as const;
 ---
 
 <Layout
   title={l.title}
-  description={clampDescription(`${l.title} (${l.format}, ${l.schedule}): ${l.summary}`)}
+  description={clampDescription(`${l.title} (${formatLabel(l.format)}, ${l.schedule}): ${l.summary}`)}
 >
   <PageHero
     title={l.title}

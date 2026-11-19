@@ -5,6 +5,7 @@
  * filtered out (e.g. a filter preset from the URL).
  */
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
+import { ageGroupLabel } from '@gamo/config/academy-levels';
 import type { Lesson } from '../../data/lessons';
 
 interface Props {
@@ -18,7 +19,7 @@ const { lesson: l, headingLevel = 'h3', as: Tag = 'li', hidden = false } = Astro
 // Two plain facts only: no level or format tags, no invented length or instructor line.
 const facts: [string, string][] = [
   ['Schedule', l.schedule],
-  ['Ages', l.ages.join(', ')],
+  ['Ages', l.ageGroups.map(ageGroupLabel).join(', ')],
 ];
 ---
 
@@ -27,7 +28,7 @@ const facts: [string, string][] = [
   data-instrument={l.instrumentSlug}
   data-level={l.level}
   data-format={l.format}
-  data-ages={l.ages.join(',')}
+  data-ages={l.ageGroups.join(',')}
   hidden={hidden}
   class="flex"
 >

@@ -1,6 +1,7 @@
 ---
 /** The lesson a family is registering for: schedule, location, ages and how tuition is shown. */
 import Card from '@studio-gamo/ui/components/content/Card.astro';
+import { ageGroupLabel, formatLabel, levelLabel } from '@gamo/config/academy-levels';
 import type { Lesson } from '../../data/lessons';
 
 interface Props {
@@ -11,7 +12,7 @@ const { lesson, class: className } = Astro.props;
 const facts: [string, string][] = [
   ['Schedule', `${lesson.schedule} · ${lesson.length}`],
   ['Location', lesson.location],
-  ['Ages', lesson.ages.join(', ')],
+  ['Ages', lesson.ageGroups.map(ageGroupLabel).join(', ')],
 ];
 const dtClass = 'text-caption font-semibold tracking-wide text-fg-muted uppercase';
 ---
@@ -21,7 +22,7 @@ const dtClass = 'text-caption font-semibold tracking-wide text-fg-muted uppercas
     {lesson.title}
   </h2>
   <p class="mt-1 text-small text-fg-muted">
-    {lesson.instrument} · {lesson.level} · {lesson.format}
+    {lesson.instrument} · {levelLabel(lesson.level)} · {formatLabel(lesson.format)}
   </p>
   <dl class="mt-5 space-y-3">
     {facts.map(([k, v]) => (

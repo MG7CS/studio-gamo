@@ -10,7 +10,7 @@ import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { ACADEMY_INSTRUMENTS } from '@gamo/config/academy-instruments';
+import { ACADEMY_INSTRUMENTS, instrumentAgeLabel } from '@gamo/config/academy-instruments';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { IconName } from '@studio-gamo/ui/lib/icons';
 
@@ -25,7 +25,7 @@ const icons: Record<string, IconName> = {
 };
 const instruments = ACADEMY_INSTRUMENTS.map((i) => ({
   name: i.name,
-  age: i.ages,
+  age: instrumentAgeLabel(i),
   path: `/instruments/${i.slug}`,
   icon: icons[i.slug] ?? 'music',
 }));

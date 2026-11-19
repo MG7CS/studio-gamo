@@ -10,7 +10,8 @@ import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astr
 import LessonCard from '../../components/shared/LessonCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { instructors, type Instructor } from '../../data/instructors';
+import { joinAgeGroups } from '@gamo/config/academy-levels';
+import { instructorFormatLabels, instructors, type Instructor } from '../../data/instructors';
 import { lessons } from '../../data/lessons';
 
 // Rendered on demand (not prerendered) so the page gets the same security and cache headers
@@ -20,14 +21,16 @@ if (!found) return Astro.rewrite('/404');
 const t: Instructor = found;
 const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 const details = [
-  ['users', t.teaches],
-  ['video', t.formats.join(', ')],
+  ['users', joinAgeGroups(t.ageGroups)],
+  ['video', instructorFormatLabels(t).join(', ')],
 ] as const;
 ---
 
 <Layout
   title={t.name}
-  description={clampDescription(`Gamo Academy ${t.name.toLowerCase()} profile: ${t.teaches}. ${t.bio}`)}
+  description={clampDescription(
+    `Gamo Academy ${t.name.toLowerCase()} profile: ${joinAgeGroups(t.ageGroups)}. ${t.bio}`,
+  )}
 >
   <Container class="page-intro-space">
     <div class="grid gap-10 lg:grid-cols-3">

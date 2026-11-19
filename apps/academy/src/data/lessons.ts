@@ -3,9 +3,7 @@
  * proposals only, stored as integer minor units (cents) for the gated checkout, and never shown on public
  * pages until the board approves them.
  */
-type Level = 'Beginner' | 'Developing' | 'Advancing';
-export type Age = 'Kids' | 'Teens' | 'Adults';
-type Format = 'Private' | 'Group' | 'Church-hosted';
+import type { AgeGroupId, FormatId, LevelId } from '@gamo/config/academy-levels';
 
 export interface Lesson {
   slug: string;
@@ -13,9 +11,9 @@ export interface Lesson {
   instrument: string;
   instrumentSlug: string;
   instructorSlug: string;
-  level: Level;
-  ages: Age[];
-  format: Format;
+  level: LevelId;
+  ageGroups: AgeGroupId[];
+  format: FormatId;
   schedule: string;
   length: string;
   location: string;
@@ -33,15 +31,15 @@ export const lessons: Lesson[] = [
     instrument: 'Piano',
     instrumentSlug: 'piano',
     instructorSlug: 'piano',
-    level: 'Beginner',
-    ages: ['Kids'],
-    format: 'Private',
+    level: 'beginner',
+    ageGroups: ['kids'],
+    format: 'private',
     schedule: 'Weekly · 30 min',
     length: '10 weeks',
     location: 'Online or in person',
     proposedTuitionCents: 3000,
     summary:
-      'A gentle introduction to the keyboard for children ages 6–10, with a practice plan for families.',
+      'A gentle introduction to the keyboard for children, with a practice plan for families.',
     outcomes: [
       'Play simple melodies with both hands',
       'Read basic notation',
@@ -55,9 +53,9 @@ export const lessons: Lesson[] = [
     instrument: 'Acoustic guitar',
     instrumentSlug: 'acoustic-guitar',
     instructorSlug: 'guitar',
-    level: 'Beginner',
-    ages: ['Teens'],
-    format: 'Group',
+    level: 'beginner',
+    ageGroups: ['teens'],
+    format: 'group',
     schedule: 'Weekly · 60 min',
     length: '8 weeks',
     location: 'Community room',
@@ -72,9 +70,9 @@ export const lessons: Lesson[] = [
     instrument: 'Drums & percussion',
     instrumentSlug: 'drums',
     instructorSlug: 'drums-and-bass',
-    level: 'Beginner',
-    ages: ['Kids', 'Teens'],
-    format: 'Private',
+    level: 'beginner',
+    ageGroups: ['kids', 'teens'],
+    format: 'private',
     schedule: 'Weekly · 45 min',
     length: '12 weeks',
     location: 'Studio',
@@ -89,9 +87,9 @@ export const lessons: Lesson[] = [
     instrument: 'Electric guitar',
     instrumentSlug: 'electric-guitar',
     instructorSlug: 'guitar',
-    level: 'Developing',
-    ages: ['Adults'],
-    format: 'Private',
+    level: 'developing',
+    ageGroups: ['adults'],
+    format: 'private',
     schedule: 'Weekly · 45 min',
     length: 'Ongoing',
     location: 'Online',
@@ -107,9 +105,9 @@ export const lessons: Lesson[] = [
     instrument: 'Bass guitar',
     instrumentSlug: 'bass',
     instructorSlug: 'drums-and-bass',
-    level: 'Advancing',
-    ages: ['Teens', 'Adults'],
-    format: 'Group',
+    level: 'advancing',
+    ageGroups: ['teens', 'adults'],
+    format: 'group',
     schedule: 'Weekly · 60 min',
     length: '6 weeks',
     location: 'Studio',

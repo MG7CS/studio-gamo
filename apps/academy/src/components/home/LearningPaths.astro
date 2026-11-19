@@ -6,37 +6,34 @@
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import MediaCardGrid from '@studio-gamo/ui/components/content/MediaCardGrid.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
-import type { Age } from '../../data/lessons';
+import { AGE_GROUPS, ageGroupWithRange, type AgeGroupId } from '@gamo/config/academy-levels';
 
-const groups: {
-  age: Age;
-  label: string;
-  photo: PhotoKey;
-  title: string;
-  points: string[];
-}[] = [
+// The age id, label and range come from `@gamo/config/academy-levels`; only the card copy and photo live here.
+const copy: Record<
+  AgeGroupId,
   {
-    age: 'Kids',
-    label: 'Kids (6–12)',
+    photo: PhotoKey;
+    title: string;
+    points: string[];
+  }
+> = {
+  kids: {
     photo: 'youngPianist',
     title: 'Playful, Patient First Steps',
     points: ['30-minute lessons', 'Games for rhythm and reading', 'Progress notes for families'],
   },
-  {
-    age: 'Teens',
-    label: 'Teens (13–17)',
+  teens: {
     photo: 'girlGuitar',
     title: 'Real Songs, Real Confidence',
     points: ['Songs they choose', 'Group sessions with peers', 'Technique that lasts'],
   },
-  {
-    age: 'Adults',
-    label: 'Adults',
+  adults: {
     photo: 'guitarMentor',
     title: 'It is Never Too Late to Start',
     points: ['Evening and online options', 'Beginner-friendly pacing', 'Goals you set'],
   },
-];
+};
+const groups = AGE_GROUPS.map((g) => ({ id: g.id, label: ageGroupWithRange(g.id), ...copy[g.id] }));
 ---
 
 <Section id="ages" tone="raised" align="center" data-reveal>
@@ -46,7 +43,7 @@ const groups: {
   <MediaCardGrid
     max={3}
     items={groups.map((g) => ({
-      href: `/lessons?ages=${g.age}`,
+      href: `/lessons?ages=${g.id}`,
       title: g.title,
       image: { name: g.photo, alt: '' },
       meta: `${g.label} · ${g.points.join(' · ')}`,

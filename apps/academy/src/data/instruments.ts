@@ -1,10 +1,11 @@
 /**
  * Instrument catalog for Gamo Academy (design phase).
- * Which instruments exist, their names, photos and ages come from the shared list in `@gamo/config/academy-instruments`
+ * Which instruments exist, their names, photos, minimum ages and levels come from the shared list in `@gamo/config/academy-instruments`
  * (the same list the header panel and the main-site home use); this file adds the lesson details.
- * Lesson formats and age ranges are proposals; nothing here is a live offering.
+ * Lesson formats and age ranges (see `@gamo/config/academy-levels`) are proposals; nothing here is a live offering.
  */
-import { ACADEMY_INSTRUMENTS } from '@gamo/config/academy-instruments';
+import { ACADEMY_INSTRUMENTS, instrumentAgeGroups, instrumentAgeLabel } from '@gamo/config/academy-instruments';
+import type { AgeGroupId } from '@gamo/config/academy-levels';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images.ts';
 // Narrow instrument icons keep data independent of Astro component modules.
 type InstrumentIcon = 'piano' | 'guitar' | 'drums' | 'music' | 'mic' | 'sliders';
@@ -17,11 +18,13 @@ export interface Instrument {
   icon: InstrumentIcon;
   /** Only set when a genuinely matching photo exists; otherwise a typographic card is used. */
   photo?: PhotoKey;
+  /** "Ages 6 and up", from the instrument's minimum age. */
   ages: string;
+  ageGroups: AgeGroupId[];
   firstSteps: string[];
 }
 
-const details: Record<string, Omit<Instrument, 'name' | 'photo' | 'ages'>> = {
+const details: Record<string, Omit<Instrument, 'name' | 'photo' | 'ages' | 'ageGroups'>> = {
   'piano': {
     slug: 'piano',
     short: 'Piano',
@@ -67,7 +70,8 @@ export const instruments: Instrument[] = ACADEMY_INSTRUMENTS.map((i) => ({
   ...details[i.slug]!,
   name: i.name,
   photo: i.photo as PhotoKey,
-  ages: i.ages,
+  ages: instrumentAgeLabel(i),
+  ageGroups: instrumentAgeGroups(i),
 }));
 
 export const plannedInstruments = ['Violin', 'Cello', 'Saxophone', 'Trumpet', 'Ukulele', 'Music theory'];

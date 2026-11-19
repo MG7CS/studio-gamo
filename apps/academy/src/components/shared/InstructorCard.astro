@@ -1,7 +1,8 @@
 ---
 /** Instructor card recipe (LinkCard), titled by role. No photos of faces and no decorative avatar. */
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
-import type { Instructor } from '../../data/instructors';
+import { joinAgeGroups } from '@gamo/config/academy-levels';
+import { instructorFormatLabels, type Instructor } from '../../data/instructors';
 
 interface Props {
   instructor: Instructor;
@@ -21,6 +22,8 @@ const { instructor: t, headingLevel = 'h3', as = 'article', class: className } =
 >
   <p class="font-medium text-action-strong">{t.instruments.join(' · ')}</p>
   <p class="mt-3">{t.bio}</p>
-  <p class="mt-4 text-small text-fg-muted">{[t.teaches, ...t.formats].join(' · ')}</p>
+  <p class="mt-4 text-small text-fg-muted">
+    {[joinAgeGroups(t.ageGroups), ...instructorFormatLabels(t)].join(' · ')}
+  </p>
   <Fragment slot="meta">View profile</Fragment>
 </LinkCard>

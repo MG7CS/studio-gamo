@@ -1,14 +1,13 @@
 /**
- * Lesson list filters (/lessons): the facets, their options, URL presets (`?ages=Kids`) and matching.
+ * Lesson list filters (/lessons): the facets, their options, URL presets by id (`?ages=kids`) and matching.
  * The page and the client script in LessonFilters.astro apply the same rules.
  */
+import { AGE_GROUPS, FORMATS, LEVELS, ageGroupWithRange } from '@gamo/config/academy-levels';
 import { instruments } from '../data/instruments';
 import type { Lesson } from '../data/lessons';
 
 export type LessonFilterName = 'instrument' | 'ages' | 'level' | 'format';
 export type LessonFilterValues = Partial<Record<LessonFilterName, string>>;
-
-const plain = (values: readonly string[]) => values.map((v) => ({ value: v, label: v }));
 
 export const LESSON_FILTERS: {
   name: LessonFilterName;
@@ -20,9 +19,13 @@ export const LESSON_FILTERS: {
     label: 'Instrument',
     options: instruments.map((i) => ({ value: i.slug, label: i.short })),
   },
-  { name: 'ages', label: 'Age group', options: plain(['Kids', 'Teens', 'Adults']) },
-  { name: 'level', label: 'Level', options: plain(['Beginner', 'Developing', 'Advancing']) },
-  { name: 'format', label: 'Format', options: plain(['Private', 'Group', 'Church-hosted']) },
+  {
+    name: 'ages',
+    label: 'Age group',
+    options: AGE_GROUPS.map((g) => ({ value: g.id, label: ageGroupWithRange(g.id) })),
+  },
+  { name: 'level', label: 'Level', options: LEVELS.map((l) => ({ value: l.id, label: l.label })) },
+  { name: 'format', label: 'Format', options: FORMATS.map((f) => ({ value: f.id, label: f.label })) },
 ];
 
 /** Known filter values from the query string; anything else is ignored. */
@@ -40,6 +43,6 @@ export function lessonMatches(lesson: Lesson, values: LessonFilterValues): boole
     (!values.instrument || lesson.instrumentSlug === values.instrument) &&
     (!values.level || lesson.level === values.level) &&
     (!values.format || lesson.format === values.format) &&
-    (!values.ages || (lesson.ages as string[]).includes(values.ages))
+    (!values.ages || (lesson.ageGroups as string[]).includes(values.ages))
   );
 }
