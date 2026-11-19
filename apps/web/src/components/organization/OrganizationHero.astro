@@ -1,13 +1,15 @@
 ---
 /**
  * Organization-page hero (mission, get-involved, partners, support): the shared PageHero with a two-line
- * title (second line in the accent colour), an optional intro, actions and one landscape photo Frame in the media slot (the page's priority image).
+ * title (second line in the accent colour), an optional intro, actions and one photo Frame in the media slot (the page's
+ * priority image). `photoRatio` (default landscape) is the frame ratio closest to the photo's own shape: portrait for a
+ * 4:5 photo, so it crops as little as possible (2026-11-19).
  *
  * Slots: default (actions), caption (optional note under the photo).
  */
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
-import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
+import { photos, type PhotoKey, type PhotoRatio } from '@studio-gamo/ui/lib/images';
 
 interface Props {
   title: string;
@@ -16,9 +18,11 @@ interface Props {
   photo: PhotoKey;
   /** Omit for the catalog description. */
   photoAlt?: string;
+  /** Frame ratio closest to the photo's own shape. Default landscape. */
+  photoRatio?: PhotoRatio;
   tone?: 'default' | 'inset';
 }
-const { title, accent, body, photo, photoAlt, tone = 'default' } = Astro.props;
+const { title, accent, body, photo, photoAlt, photoRatio = 'landscape', tone = 'default' } = Astro.props;
 const hasCaption = Astro.slots.has('caption');
 ---
 
@@ -32,7 +36,7 @@ const hasCaption = Astro.slots.has('caption');
     <slot />
   </Fragment>
   <figure slot="media">
-    <Frame photo={photo} ratio="landscape" sizes="half" alt={photoAlt ?? photos[photo].alt} priority />
+    <Frame photo={photo} ratio={photoRatio} sizes="half" alt={photoAlt ?? photos[photo].alt} priority />
     {hasCaption && (
       <figcaption class="mt-3 text-small text-fg-muted">
         <slot name="caption" />

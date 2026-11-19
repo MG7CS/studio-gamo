@@ -3,6 +3,7 @@
  * Home page Gamo Worship section (restored 2026-11-18 without the label above the heading and the sentence under
  * it, DESIGN.md section 11): heading with its accent line, three commitments, two actions, and the photo with a
  * card describing how a Sunday is prepared (no church, time or status named, so it carries no tag; 2026-11-19).
+ * The photo is portrait in its own 4:5 shape so it is at least as tall as the text (2026-11-19).
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -59,7 +60,7 @@ const pillars: { icon: IconName; title: string; body: string }[] = [
   <Frame
     slot="media"
     photo="acousticLeader"
-    ratio="landscape"
+    ratio="portrait"
     sizes="half"
     alt="Worship leader singing and playing acoustic guitar on stage"
   />

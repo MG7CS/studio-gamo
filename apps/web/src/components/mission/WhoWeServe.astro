@@ -1,5 +1,9 @@
 ---
-/** Who we serve: audience list beside a photo (SplitHero used as a section band). */
+/**
+ * Who we serve: audience list beside a photo (SplitHero used as a section band). The 4:3 congregation photo sits in a
+ * square frame (a landscape frame would be shorter than the text, a portrait one cropped too much), and the list keeps
+ * three audiences so it stays no taller than the photo (2026-11-19); church volunteers are named with their churches.
+ */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 
@@ -7,19 +11,11 @@ const audiences = [
   { title: 'Students & families', body: 'Young learners and parents who want a caring path into music.' },
   {
     title: 'Churches & ministries',
-    body: 'Congregations of every size looking for musicians, guidance and technical help.',
+    body: 'Congregations of every size, and their sound and media volunteers, looking for musicians, guidance and training.',
   },
   {
     title: 'Musicians & instructors',
     body: 'Teachers and worship musicians who want to serve with their gifts and be treated fairly.',
-  },
-  {
-    title: 'Church volunteers',
-    body: 'Sound, media and worship volunteers who want practical training to serve with confidence.',
-  },
-  {
-    title: 'Community partners & supporters',
-    body: 'Individuals and organizations who want to share time, skills, spaces or resources.',
   },
 ];
 ---
@@ -37,7 +33,7 @@ const audiences = [
   <Frame
     slot="media"
     photo="sanctuaryCongregation"
-    ratio="portrait"
+    ratio="square"
     sizes="half"
     alt="Congregation worshipping together in a sunlit sanctuary"
   />

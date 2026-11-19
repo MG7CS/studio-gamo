@@ -1,7 +1,8 @@
 ---
 /**
- * The three programs in owner order: Gamo Academy as the wide leading card, Worship and Production side by side
- * below it. Photo-led (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it,
+ * The three programs in owner order: Gamo Academy as the full-width leading card, Worship and Production side by
+ * side below it. Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible
+ * (owner direction 2026-11-19). Photo-led (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it,
  * and there is no label, badge or paragraph. Used on the homepage and /mission.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
@@ -35,7 +36,7 @@ const [featured, ...others] = programs;
         variant="overlay"
         image={{
           name: featured.bannerPhoto ?? featured.photo,
-          ratio: featured.bannerPhoto ? 'wide' : 'landscape',
+          ratio: featured.bannerPhoto ? (featured.bannerRatio ?? 'landscape') : featured.photoRatio,
           sizes: 'full',
         }}
         title={featured.name}
@@ -49,7 +50,7 @@ const [featured, ...others] = programs;
         <MediaCard
           as="li"
           variant="overlay"
-          image={{ name: p.photo, ratio: 'landscape', sizes: 'half' }}
+          image={{ name: p.photo, ratio: p.photoRatio, sizes: 'half' }}
           title={p.name}
           href={p.href}
         >

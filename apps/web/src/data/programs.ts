@@ -3,7 +3,7 @@
  * Gamo Academy, then Gamo Worship, then Gamo Production (AGENTS.md "Program order").
  */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
-import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import type { PhotoKey, PhotoRatio } from '@studio-gamo/ui/lib/images';
 
 export interface Program {
   key: 'academy' | 'worship' | 'production';
@@ -13,8 +13,12 @@ export interface Program {
   summary: string;
   href: string;
   photo: PhotoKey;
-  /** A photo that crops to the wide ratio, for the leading card (Academy). */
+  /** Frame ratio closest to `photo`'s own shape, for the program cards (crops as little as possible). */
+  photoRatio: PhotoRatio;
+  /** A landscape photo for the full-width leading card (Academy). */
   bannerPhoto?: PhotoKey;
+  /** Frame ratio closest to `bannerPhoto`'s own shape. */
+  bannerRatio?: PhotoRatio;
 }
 
 export const programs: Program[] = [
@@ -26,7 +30,9 @@ export const programs: Program[] = [
       'Patient, caring lessons in piano, guitar, voice, bass and drums for children, teens and adults, private or in small groups.',
     href: siteUrl('academy'),
     photo: 'girlGuitar',
+    photoRatio: 'portrait',
     bannerPhoto: 'guitarMentor',
+    bannerRatio: 'landscape',
   },
   {
     key: 'worship',
@@ -36,6 +42,7 @@ export const programs: Program[] = [
       'Vetted worship musicians who help churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
     href: siteUrl('worship'),
     photo: 'worshipBand',
+    photoRatio: 'square',
   },
   {
     key: 'production',
@@ -45,5 +52,6 @@ export const programs: Program[] = [
       'Practical audio, livestream and lighting support, a proposed software area for church websites, apps and email, and hands-on training for the church volunteers behind the board.',
     href: siteUrl('production'),
     photo: 'soundEngineer',
+    photoRatio: 'square',
   },
 ];
