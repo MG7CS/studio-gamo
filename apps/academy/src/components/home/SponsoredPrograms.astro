@@ -8,29 +8,30 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const ideas: EditorialFeaturePoint[] = [
   {
     icon: 'heart',
-    title: 'Need-based tuition support',
+    title: 'Need-Based Tuition Support',
     body: 'Reduced or no-cost lessons for families who need it.',
   },
   {
     icon: 'church',
-    title: 'Church-sponsored cohorts',
+    title: 'Church-Sponsored Cohorts',
     body: 'Groups a congregation could underwrite for its community.',
   },
   {
     icon: 'school',
-    title: 'Instrument lending',
+    title: 'Instrument Lending',
     body: 'Instruments on loan for students without one at home.',
   },
 ];
 ---
 
 <EditorialFeatureCard
-  title="Music lessons should not depend on"
-  accent="a family's budget."
+  title="Lessons for Every"
+  accent="Family's Budget."
   points={ideas}
   photo="boyGuitar"
   photoRatio="portrait"
   tone="sand"
+  mediaFirstStacked
 >
   <ButtonLink href="/sponsored" arrow>
     Explore sponsored programs

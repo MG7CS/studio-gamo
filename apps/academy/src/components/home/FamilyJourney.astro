@@ -20,32 +20,24 @@ const learner = {
   schedule: 'The lesson you chose: format and schedule',
 };
 const steps = [
-  { title: 'Choose a lesson', body: 'Pick the instrument, format and schedule that fit your student.' },
+  { title: 'Choose a Lesson', body: 'Pick the instrument, format and schedule that fit your student.' },
   {
-    title: 'Fill in one form',
+    title: 'Fill in One Form',
     body: 'One short form per student, by a parent or guardian, or by an adult learner for themselves.',
   },
-  { title: 'Check your email', body: 'A receipt arrives with a private link to your registration.' },
-  { title: 'View, update or cancel', body: 'Use the private link at any time. No account or password.' },
+  { title: 'Check Your Email', body: 'A receipt arrives with a private link to your registration.' },
+  { title: 'View, Update or Cancel', body: 'Use the private link at any time. No account or password.' },
 ];
-const pills = ['No account needed', 'One form per student', 'Emailed receipt'];
 ---
 
 <Section data-reveal>
   <div class="grid items-start gap-12 lg:grid-cols-2 lg:items-center lg:gap-14">
     <div>
       <EditorialHeading
-        title="Signing up should"
-        accent="feel easy."
+        title="Signing Up Should"
+        accent="Feel Easy."
         lede="Choose a lesson and fill in one short form for each student. No account is needed: we email you a receipt with a private link to view, update or cancel the registration."
       />
-      <ul class="mt-6 flex flex-wrap gap-2">
-        {pills.map((pill) => (
-          <li>
-            <Badge>{pill}</Badge>
-          </li>
-        ))}
-      </ul>
       <NumberedSteps items={steps} tone="inset" class="mt-8" />
       <div class="mt-8 flex flex-wrap items-center gap-3">
         <ButtonLink href={siteUrl('academy', '/lessons')} arrow>

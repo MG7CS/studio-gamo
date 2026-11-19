@@ -5,17 +5,17 @@ import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astr
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 const steps = [
-  { title: 'Choose an instrument', body: 'Explore instruments and first lessons to find what excites you.' },
+  { title: 'Choose an Instrument', body: 'Explore instruments and first lessons to find what excites you.' },
   {
-    title: 'Meet your instructor',
+    title: 'Meet Your Instructor',
     body: 'A short introductory call to talk about goals, schedule and experience.',
   },
   {
-    title: 'Learn week by week',
+    title: 'Learn Week by Week',
     body: 'Regular lessons with a simple practice plan and notes for families.',
   },
   {
-    title: 'Celebrate progress',
+    title: 'Celebrate Progress',
     body: 'Milestones, friendly recitals and, when ready, playing with others.',
   },
 ];
@@ -23,7 +23,7 @@ const steps = [
 
 <Section tone="dark" data-reveal>
   <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
-    <div class="order-last lg:order-first">
+    <div>
       <Frame
         photo="youngPianist"
         ratio="portrait"
@@ -32,7 +32,7 @@ const steps = [
       />
     </div>
     <div>
-      <EditorialHeading tone="dark" title="Simple steps," accent="steady progress." />
+      <EditorialHeading tone="dark" title="Simple Steps," accent="Steady Progress." />
       <NumberedSteps items={steps} tone="raised" class="mt-10" />
     </div>
   </div>

@@ -47,7 +47,9 @@ const pad = (i: number) => String(start + i).padStart(2, '0');
           {pad(i)}
         </span>
         <div class="min-w-0">
-          <Heading class="text-lg font-black tracking-tight text-balance uppercase">{item.title}</Heading>
+          <Heading class="numbered-steps__title text-lg font-black tracking-tight text-balance uppercase">
+            {item.title}
+          </Heading>
           {item.body && <p class="mt-2 text-body-sm text-fg-muted">{item.body}</p>}
         </div>
       </li>

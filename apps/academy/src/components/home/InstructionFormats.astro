@@ -9,12 +9,12 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 const formats = [
   {
     icon: 'users' as const,
-    name: 'Private lessons',
+    name: 'Private Lessons',
     items: ['30, 45 or 60 minutes', 'In person or online', 'Personal practice plan'],
   },
   {
     icon: 'music' as const,
-    name: 'Group classes',
+    name: 'Group Classes',
     items: [
       '3–8 students per class',
       'Weekly sessions',
@@ -36,7 +36,7 @@ const formats = [
       />
     </div>
     <div class="lg:col-span-5">
-      <EditorialHeading title="One-on-one focus" accent="or the joy of a group." />
+      <EditorialHeading title="One-on-One" accent="or in a Group." />
       <FeatureGrid as="ul" min="lg" max={2} class="mt-10">
         {formats.map((f) => (
           <Card as="li" padding="lg">

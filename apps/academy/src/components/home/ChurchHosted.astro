@@ -9,30 +9,31 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const roles: EditorialFeaturePoint[] = [
   {
     icon: 'church',
-    title: 'A church provides',
+    title: 'A Church Provides',
     body: 'A welcoming room, a schedule window and an invitation to its neighborhood.',
   },
   {
     icon: 'shield',
-    title: 'Gamo Academy provides',
+    title: 'Gamo Academy Provides',
     body: 'Reviewed instructors, curriculum and family communication.',
   },
   {
     icon: 'users',
-    title: 'Students receive',
+    title: 'Students Receive',
     body: 'Quality lessons close to home, open to the wider community.',
   },
 ];
 ---
 
 <EditorialFeatureCard
-  title="Lessons in the heart"
-  accent="of the neighborhood."
+  title="Lessons Close"
+  accent="to Home."
   points={roles}
   photo="churchModernDay"
   photoRatio="square"
   tone="ivory"
   reverse={true}
+  mediaFirstStacked
 >
   <ButtonLink href={inquiryUrl('Church-hosted lessons')} arrow>
     Apply to host lessons
