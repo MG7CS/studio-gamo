@@ -19,8 +19,6 @@ pages, so it is applied when we reach them. Order: home (main site), then Academ
    shared heading styles (and photo-card titles, `.media-card__title`) show the text exactly as typed; pages not yet
    done still use the old rule (every word capitalised by CSS). When every page is done, make "as written" the default
    and remove the attribute. Done: home (5ff33a15).
-6. **Header menu tiles are pictures without links** (ddb2b62d): the side links and "All of …" still work. Applies to
-   every page already, because the header is shared.
 2. **Headings are short:** one line where possible, two at most.
 3. **Photos crop as little as possible and are at least as tall as the text beside them.** Use the frame ratio closest
    to the photo's own shape; make the photo taller, or trim the text when a wide photo cannot grow. Done: main site
@@ -32,6 +30,8 @@ pages, so it is applied when we reach them. Order: home (main site), then Academ
 5. **Shared photo cards and the closing invitation band** still force landscape: add a frame-shape option to
    `MediaCard` and `CtaInvitation` when a page needs it (for example Academy's "Lessons for Every Age & Stage" cards
    and its closing band crop portrait photos).
+6. **Header menu tiles are pictures without links** (ddb2b62d): the side links and "All of …" still work. Applies to
+   every page already, because the header is shared.
 
 ## Decisions waiting for the owner (ask when we reach the page)
 
