@@ -1,12 +1,17 @@
 ---
 /**
- * The three programs in owner order. Default `featured` layout: Gamo Academy as the full-width leading card, Worship
- * and Production side by side below it (/mission). `row` layout (the homepage, owner direction 2026-11-19): three
- * cards of equal size next to each other, all in the same square frame. Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible
- * (owner direction 2026-11-19). Photo-led (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it,
- * and there is no label, badge or paragraph. Used on the homepage and /mission.
+ * The three programs in owner order.
+ * - `featured` layout (default, /mission): Gamo Academy as the full-width leading card, Worship and Production side by
+ *   side below it, under a left-aligned heading.
+ * - `row` layout (the homepage, owner direction 2026-11-19): three cards of equal size next to each other, all in the
+ *   same square frame, under a centred heading that stays on one line on wide screens with its second part in the
+ *   accent colour.
+ * Each card uses the frame ratio closest to its photo's own shape so it crops as little as possible. Photo-led
+ * (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it, and there is no label,
+ * badge or paragraph.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
 import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
@@ -14,7 +19,7 @@ import { programs } from '../../data/programs';
 
 interface Props {
   title: string;
-  /** Optional second line of the heading, in the accent colour. */
+  /** Optional second part of the heading, in the accent colour (a second line, or the same line in the `row` layout). */
   accent?: string;
   /** Heading id; also the in-page anchor ("programs" for #programs). */
   id?: string;
@@ -26,28 +31,41 @@ interface Props {
 }
 const { title, accent, id, tone = 'default', lead = true, layout = 'featured' } = Astro.props;
 const [featured, ...others] = programs;
+const headingId = `${id ?? 'programs'}-title`;
 ---
 
-<Section tone={tone} title={title} id={id}>
-  <Fragment slot="title">
-    {title}
-    {accent && <span class="block text-accent">{accent}</span>}
-  </Fragment>
-  {layout === 'row' ? (
-    <FeatureGrid max={3} min="md" gap="lg" as="ul">
-      {programs.map((p) => (
-        <MediaCard
-          as="li"
-          variant="overlay"
-          image={{ name: p.photo, ratio: 'square', sizes: 'third' }}
-          title={p.name}
-          href={p.href}
-        >
-          {lead && <p class="text-base font-semibold">{p.lead}</p>}
-        </MediaCard>
-      ))}
-    </FeatureGrid>
-  ) : (
+{layout === 'row' ? (
+  <section
+    id={id}
+    aria-labelledby={headingId}
+    data-tone={tone}
+    class:list={['section-space text-fg', tone === 'raised' && 'bg-surface-raised']}
+  >
+    <Container>
+      <h2 id={headingId} class="section-heading mb-10 text-center text-balance text-fg">
+        {title} {accent && <span class="text-accent">{accent}</span>}
+      </h2>
+      <FeatureGrid max={3} min="md" gap="lg" as="ul">
+        {programs.map((p) => (
+          <MediaCard
+            as="li"
+            variant="overlay"
+            image={{ name: p.photo, ratio: 'square', sizes: 'third' }}
+            title={p.name}
+            href={p.href}
+          >
+            {lead && <p class="text-base font-semibold">{p.lead}</p>}
+          </MediaCard>
+        ))}
+      </FeatureGrid>
+    </Container>
+  </section>
+) : (
+  <Section tone={tone} title={title} id={id}>
+    <Fragment slot="title">
+      {title}
+      {accent && <span class="block text-accent">{accent}</span>}
+    </Fragment>
     <Stack gap="lg">
       {featured && (
         <MediaCard
@@ -77,5 +95,5 @@ const [featured, ...others] = programs;
         ))}
       </FeatureGrid>
     </Stack>
-  )}
-</Section>
+  </Section>
+)}
