@@ -18,8 +18,19 @@ interface Props {
   id?: string;
   /** When the copy and the photo stack (below lg), put the photo first and the copy and buttons below it. */
   mediaFirstStacked?: boolean;
+  /** Frame shape of the photo. Default landscape; pick the ratio closest to the photo's own shape so it crops least. */
+  photoRatio?: 'portrait' | 'landscape' | 'square';
 }
-const { title, body, photo, photoAlt, tone = 'light', id, mediaFirstStacked = false } = Astro.props;
+const {
+  title,
+  body,
+  photo,
+  photoAlt,
+  tone = 'light',
+  id,
+  mediaFirstStacked = false,
+  photoRatio = 'landscape',
+} = Astro.props;
 const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 const dark = tone === 'dark';
 ---
@@ -38,7 +49,7 @@ const dark = tone === 'dark';
       </div>
     </div>
     <div class:list={[mediaFirstStacked && 'max-lg:order-first']}>
-      <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
+      <Frame photo={photo} ratio={photoRatio} sizes="half" {...frameAlt} />
     </div>
   </Container>
 </section>
