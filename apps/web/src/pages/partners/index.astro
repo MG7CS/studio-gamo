@@ -2,7 +2,6 @@
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import OrganizationHero from '../../components/organization/OrganizationHero.astro';
 import PartnershipOpportunities from '../../components/organization/PartnershipOpportunities.astro';
-import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
@@ -16,13 +15,4 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </ButtonLink>
   </OrganizationHero>
   <PartnershipOpportunities />
-  <CtaInvitation
-    title="Bring your community into the picture."
-    body="Lessons will be sponsored through partner organizations and churches."
-    photo="chapelSpring"
-  >
-    <ButtonLink href="/partners/interest" arrow>
-      Start a partnership inquiry
-    </ButtonLink>
-  </CtaInvitation>
 </SiteLayout>
