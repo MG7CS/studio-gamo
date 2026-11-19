@@ -2,8 +2,8 @@
 import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * One support area on the landing page: the shared SplitHero (as a section) with a photo,
- * an optional floating `preview` (a FloatingPreviewCard recipe) and the area's copy. Tone and side vary per
- * area so consecutive rows do not repeat.
+ * an optional floating `preview` (a FloatingPreviewCard recipe) and the area's copy. Only the side varies per
+ * area; the band surface alternates automatically (bands.css).
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -16,7 +16,7 @@ interface Props {
   area: SupportArea;
   /** Puts the photo on the start side in wide containers. */
   reverse?: boolean;
-  tone?: 'default' | 'raised' | 'dark';
+  tone?: 'default' | 'dark';
 }
 const { area, reverse = false, tone = 'default' } = Astro.props;
 const dark = tone === 'dark';
@@ -28,7 +28,6 @@ const id = `area-${area.slug}`;
   spacing="section"
   mediaSide={reverse ? 'start' : 'end'}
   tone={dark ? 'dark' : 'default'}
-  class={tone === 'raised' ? 'bg-surface-raised' : undefined}
 >
   <h2 id={id} class="section-heading text-balance text-fg">
     <TitleCase>{area.title}</TitleCase>

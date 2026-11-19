@@ -1,0 +1,64 @@
+/*
+ * Section bands (owner direction 2026-11-19): neighbouring full-width bands are told apart by a pale surface,
+ * automatically. Pages set nothing.
+ *
+ * Marker: every page band carries `data-band` and `data-tone` (Section, SplitHero, PageHero, EditorialFeatureCard,
+ * CtaInvitation, ProgramsShowcase and the app hero sections). A band on the default surface has data-tone="default".
+ * A Section with spacing="none" is the body of the band above it (a form, a list that follows the hero, no padding
+ * of its own): it has data-tone="continues", stays on the surface above and starts the count again.
+ *
+ * Rule: inside a run of neighbouring default bands the first stays on the default surface, the second takes the pale
+ * band surface (--ui-surface-band), the third goes back to the default, and so on. A band with an explicit tone
+ * (raised, inset, dark) keeps it and ends the run, so the next default band starts on the default surface again.
+ * Pure CSS (sibling combinators); the chain covers eight bands in a row, which no page comes near. Bands count as
+ * neighbours when they are siblings (pages put them straight in <main>). Unlayered on purpose: it must win over the
+ * utilities some bands carry for the default surface.
+ */
+:is([data-band][data-tone='default'], [data-band][data-tone='continues']) + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface-band);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface-band);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface-band);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface);
+}
+:is([data-band][data-tone='default'], [data-band][data-tone='continues'])
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default']
+  + [data-band][data-tone='default'] {
+  background-color: var(--ui-surface-band);
+}

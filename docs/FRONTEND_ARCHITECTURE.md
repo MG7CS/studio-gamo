@@ -133,3 +133,13 @@ defaults of the shared layers and apply to every page of every app; no page sets
 | Narrow screens never overflow, at any zoom | `@layer base` in `tokens.css`: `min-width: 0` on grid and flex children, `overflow-wrap: anywhere` on headings and text, `max-width: 100%` on media, tables and `pre`, `text-size-adjust: 100%`; fluid heading sizes whose clamp minimum also shrinks with the viewport (`tokens.base.css`); `NumberedSteps`, `SplitHero`, `PageHero`, `EditorialFeatureCard`, cards and the header brand block shrink instead of overflowing. `xs` (24rem) and `2xs` (17rem) breakpoints exist for very narrow screens. |
 
 An opt-out is added to a shared component only when a real page needs it, and is named for the exception, never for the default.
+
+## Section bands (2026-11-19)
+
+Neighbouring full-width sections are told apart by a pale background, automatically; a page sets nothing.
+
+- **Marker.** Every page band carries `data-band` and `data-tone`: `Section`, `SplitHero`, `PageHero`, `EditorialFeatureCard` (the section, not its panel), `CtaInvitation`, `ProgramsShowcase` (row layout) and the app hero sections. A band on the default surface has `data-tone="default"`.
+- **Rule.** `packages/ui/src/styles/bands.css` (imported by `tokens.css`, unlayered, pure CSS): in a run of neighbouring default bands the first stays on `--ui-surface` (cream), the second takes `--ui-surface-band`, the third goes back to cream, and so on (sibling combinators, eight deep). The hero is the first band and stays cream.
+- **Token.** `--ui-surface-band` (Tailwind `bg-surface-band`) in `tokens.semantic.css`, with a value for each of the light, inset and dark wrappers: a pale sand, an even mix of cream and sand in light, so cards (ivory) still lift off it. Text on it passes AA (ink 15.3:1, muted 6.6:1, terracotta 4.5:1, deep terracotta 6.5:1).
+- **Opt out.** An explicit tone (`raised`, `inset`, `dark`) keeps its own surface and ends the run, so the next default band starts on cream again. Use it only for a deliberate panel or emphasis, never to alternate by hand. A `Section` with `spacing="none"` is the body of the band above (a form or list under the hero): it gets `data-tone="continues"`, keeps that surface and the next band takes the pale one.
+- **One dark band.** A dark band is deliberate emphasis: at most one in a page body and never directly above the footer (which is dark). Rounded panels inside a band (`EditorialFeatureCard`) keep their own tone, so they read against cream or the pale band.

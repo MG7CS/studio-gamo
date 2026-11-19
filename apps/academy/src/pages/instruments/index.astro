@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -19,7 +19,7 @@ import { instruments, plannedInstruments } from '../../data/instruments';
     </Fragment>
     <HeroPhoto slot="media" photo="youngPianist" />
   </PageHero>
-  <Container class="pb-16 lg:pb-24">
+  <Section spacing="none" class="pb-16 lg:pb-24">
     <LinkRows
       headingLevel="h2"
       items={instruments.map((i) => ({
@@ -29,7 +29,7 @@ import { instruments, plannedInstruments } from '../../data/instruments';
       }))}
     />
     <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>
-  </Container>
+  </Section>
   <CtaInvitation title="Find a Lesson Path That Fits." photo="guitarMentor">
     <ButtonLink href="/lessons" size="lg" arrow>
       Browse lessons

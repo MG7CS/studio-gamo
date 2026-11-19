@@ -5,6 +5,9 @@ import type { HTMLAttributes } from 'astro/types';
  * (title, intro, actions; no label above the heading, DESIGN.md section 11). With a title it renders <section aria-labelledby>; without one
  * it renders a plain <div> so unnamed bands do not create empty landmarks.
  *
+ * Bands alternate on their own (styles/bands.css): leave `tone` unset unless the band is a deliberate panel or dark
+ * emphasis; `spacing="none"` makes the section the body of the band above it.
+ *
  * Usage:
  *   <Section tone="inset" title="How it works">
  *  *     <p slot="intro">Three calm steps from first lesson to recital.</p>
@@ -66,7 +69,8 @@ const spacingClass: Record<Spacing, string> = { default: 'section-space', tight:
   {...rest}
   class:list={[toneClass[tone], spacingClass[spacing], className]}
   aria-labelledby={hasTitle ? headingId : undefined}
-  data-tone={tone}
+  data-band
+  data-tone={spacing === 'none' && tone === 'default' ? 'continues' : tone}
   data-surface={surface}
 >
   <Container width={width}>

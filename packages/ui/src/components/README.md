@@ -139,3 +139,9 @@ There is no `eyebrow` slot or prop any more and the guard test fails if one retu
 - **No badge or caption by default**: `FloatingPreviewCard` shows a badge only if the `badge` slot is filled.
 - **No overflow on narrow screens**: base-layer `min-width: 0`, `overflow-wrap`, `max-width: 100%`, fluid heading
   sizes; use `xs:` and `max-2xs:` for very narrow adjustments, never fixed widths wider than a phone.
+
+## Section bands (2026-11-19; `docs/FRONTEND_ARCHITECTURE.md`, "Section bands")
+
+- **Automatic.** Bands (`Section`, `SplitHero`, `PageHero`, `EditorialFeatureCard`, `CtaInvitation`) carry `data-band` and `data-tone`; `styles/bands.css` gives every second default band in a run the pale `--ui-surface-band` (`bg-surface-band`), so neighbouring sections differ without any page flag. The hero stays on the default surface.
+- **Opt out** with an explicit `tone` (`raised`, `inset`, `dark`) for a deliberate panel or emphasis; it ends the run. Do not set a tone to alternate by hand. `Section spacing="none"` continues the band above it.
+- **One dark band** at most per page body, never directly above the footer.

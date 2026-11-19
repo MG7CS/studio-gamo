@@ -5,6 +5,8 @@
  *   surface          page background (cream; ink under data-surface="dark"; sand under "inset")
  *   surface-raised   cards and panels lifted off the surface (ivory)
  *   surface-inset    wells, input backgrounds, quiet bands (sand)
+ *   surface-band     the pale band between two neighbouring default bands (pale sand: between cream and sand); set
+ *                    automatically by bands.css, never by a page
  *   surface-inverse  opposite-tone band inside the current surface (ink on light, cream on dark)
  *   fg               primary text and icons on surface (ink / cream)
  *   fg-muted         secondary text, captions, meta (muted / stone); AA on surface and inset
@@ -52,6 +54,7 @@
     --ui-surface: var(--color-cream);
     --ui-surface-raised: var(--color-ivory);
     --ui-surface-inset: var(--color-sand);
+    --ui-surface-band: color-mix(in srgb, var(--color-cream) 50%, var(--color-sand));
     --ui-surface-inverse: var(--color-ink);
     --ui-fg: var(--color-ink);
     --ui-fg-muted: var(--color-muted);
@@ -71,6 +74,7 @@
     --ui-surface: var(--color-sand);
     --ui-surface-raised: var(--color-ivory);
     --ui-surface-inset: var(--color-cream);
+    --ui-surface-band: color-mix(in srgb, var(--color-sand) 50%, var(--color-cream));
     --ui-surface-inverse: var(--color-ink);
     --ui-fg: var(--color-ink);
     --ui-fg-muted: var(--color-muted);
@@ -91,6 +95,7 @@
     --ui-surface: var(--color-ink);
     --ui-surface-raised: var(--color-ink-raised);
     --ui-surface-inset: var(--color-night);
+    --ui-surface-band: color-mix(in srgb, var(--color-ink) 50%, var(--color-night));
     --ui-surface-inverse: var(--color-cream);
     --ui-fg: var(--color-cream);
     --ui-fg-muted: var(--color-stone);
@@ -113,6 +118,7 @@
   --color-surface: var(--ui-surface);
   --color-surface-raised: var(--ui-surface-raised);
   --color-surface-inset: var(--ui-surface-inset);
+  --color-surface-band: var(--ui-surface-band);
   --color-surface-inverse: var(--ui-surface-inverse);
   --color-fg: var(--ui-fg);
   --color-fg-muted: var(--ui-fg-muted);

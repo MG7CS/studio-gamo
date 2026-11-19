@@ -97,8 +97,15 @@ const iconBadgeSurface = {
 }[tone];
 ---
 
-<section id={id} data-tone={tone} class:list={['px-4 section-space sm:px-8', sectionClass]} data-reveal>
+<section
+  id={id}
+  data-band
+  data-tone="default"
+  class:list={['px-4 section-space sm:px-8', sectionClass]}
+  data-reveal
+>
   <div
+    data-tone={tone}
     data-surface={surface}
     class:list={[
       'mx-auto grid max-w-page overflow-hidden rounded-hero shadow-panel lg:grid-cols-12',
