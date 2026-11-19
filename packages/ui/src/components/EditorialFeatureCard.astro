@@ -117,7 +117,8 @@ const iconBadgeSurface = {
 
       <h2 class="section-heading mt-4 text-balance">
         <TitleCase>
-          {title} {accent && <span class="text-accent">{accent}</span>}
+          {accent ? `${title} ` : title}
+          {accent && <span class="text-accent">{accent}</span>}
         </TitleCase>
       </h2>
 
