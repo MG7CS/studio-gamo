@@ -204,28 +204,6 @@
       1600
     ]
   },
-  "instruments-vocals-microphone": {
-    "source": "2026-brand-refresh/instruments/vocals-microphone.jpg",
-    "width": 2400,
-    "height": 3200,
-    "widths": [
-      480,
-      800,
-      1200,
-      1600
-    ]
-  },
-  "live-gospel-vocalists-concert-stage": {
-    "source": "2026-brand-refresh/live/gospel-vocalists-concert-stage.png",
-    "width": 1254,
-    "height": 1254,
-    "widths": [
-      480,
-      800,
-      1200,
-      1254
-    ]
-  },
   "live-worship-concert-crowd-wide": {
     "source": "2026-brand-refresh/live/worship-concert-crowd-wide.png",
     "width": 1672,
@@ -281,17 +259,6 @@
       1600
     ]
   },
-  "musicians-choir": {
-    "source": "2026-brand-refresh/musicians/choir.jpg",
-    "width": 2400,
-    "height": 1602,
-    "widths": [
-      480,
-      800,
-      1200,
-      1600
-    ]
-  },
   "musicians-drummer": {
     "source": "2026-brand-refresh/musicians/drummer.jpg",
     "width": 2400,
@@ -340,17 +307,6 @@
     "source": "2026-brand-refresh/musicians/strings-player.jpg",
     "width": 2400,
     "height": 1601,
-    "widths": [
-      480,
-      800,
-      1200,
-      1600
-    ]
-  },
-  "musicians-worship-leader-vocalist": {
-    "source": "2026-brand-refresh/musicians/worship-leader-vocalist.jpg",
-    "width": 2400,
-    "height": 3600,
     "widths": [
       480,
       800,

@@ -64,7 +64,7 @@ const meta = {
   },
   acousticLeader: {
     stem: 'worship-acoustic-worship-leader-stage',
-    alt: 'Worship leader singing and playing acoustic guitar on stage',
+    alt: 'Worship leader playing acoustic guitar on stage',
     position: '45% 25%',
     tone: 'dark',
   },
@@ -76,7 +76,7 @@ const meta = {
   },
   worshipBand: {
     stem: 'worship-worship-band-sanctuary',
-    alt: 'Worship team with vocalists, guitar, drums and keys leading in a bright sanctuary',
+    alt: 'Worship team with guitar, drums and keys leading in a bright sanctuary',
     position: '55% 35%',
     tone: 'warm',
   },
@@ -140,12 +140,6 @@ const meta = {
     position: '50% 40%',
     tone: 'dark',
   },
-  gospelVocalists: {
-    stem: 'live-gospel-vocalists-concert-stage',
-    alt: 'Gospel vocalists leading a concert as the audience worships',
-    position: '50% 30%',
-    tone: 'dark',
-  },
   soundEngineer: {
     stem: 'production-sound-engineer-mixing-console',
     alt: 'Sound engineer wearing headphones at a digital mixing console during worship',
@@ -180,12 +174,6 @@ const meta = {
     stem: 'instruments-drums',
     alt: 'Drum kit in warm light',
     position: '50% 50%',
-    tone: 'warm',
-  },
-  instrumentVocals: {
-    stem: 'instruments-vocals-microphone',
-    alt: 'Microphone on a stand against a terracotta wall',
-    position: '50% 40%',
     tone: 'warm',
   },
   instrumentViolin: {
@@ -224,12 +212,6 @@ const meta = {
     position: '50% 50%',
     tone: 'bright',
   },
-  musicianWorshipLeader: {
-    stem: 'musicians-worship-leader-vocalist',
-    alt: 'Vocalist singing into a microphone on a dark stage',
-    position: '50% 30%',
-    tone: 'dark',
-  },
   musicianAcousticGuitarist: {
     stem: 'musicians-acoustic-guitarist',
     alt: 'Guitarist playing an acoustic guitar by a window',
@@ -258,12 +240,6 @@ const meta = {
     stem: 'musicians-bassist',
     alt: 'Hands on a bass guitar in soft light',
     position: '50% 50%',
-    tone: 'warm',
-  },
-  musicianChoir: {
-    stem: 'musicians-choir',
-    alt: 'Adult choir singing in terracotta robes',
-    position: '50% 45%',
     tone: 'warm',
   },
   musicianFullBand: {

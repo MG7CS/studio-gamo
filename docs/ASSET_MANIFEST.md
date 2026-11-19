@@ -17,7 +17,6 @@ Based on an audit of the approved design references in `design-reference/homepag
 
 ## 2. Meet the Musicians (`02-musicians.png`)
 **Hero Grid Images**
-* **Image 1 (Top Right)**: Black female vocalist singing into a microphone, warm stage lighting. Aspect ratio: ~16:9.
 * **Image 2 (Middle Center)**: Black male bassist with glasses looking down at his instrument. Aspect ratio: ~4:3.
 * **Image 3 (Middle Right)**: Black male drummer playing a kit. Aspect ratio: ~4:3.
 * **Avatar**: Small circular portrait for the "Marcus T." glassmorphism card. Aspect ratio: 1:1.
@@ -27,12 +26,11 @@ Based on an audit of the approved design references in `design-reference/homepag
 * **Guitarists**: Close-up of hands on a white electric guitar.
 * **Bassists**: Close-up of hands on a bass guitar.
 * **Drummers**: Medium shot of a drummer.
-* **Vocalists**: Medium shot of a female vocalist.
 * **Brass & More**: Medium shot of two brass players (trumpets).
 
 ## 3. Your Sunday, Covered (`03-worship-coverage.png`)
 **Main Background Image**
-* **Subject**: Over-the-shoulder view of a keyboardist looking toward a brightly lit stage with singers and a cross in the background.
+* **Subject**: Over-the-shoulder view of a keyboardist looking toward a brightly lit stage with a cross in the background.
 * **Composition**: Bleeds to the right, sitting under a curved overlay on the left.
 * **Aspect Ratio**: 16:9 / Cover.
 
@@ -60,20 +58,18 @@ Based on an audit of the approved design references in `design-reference/homepag
 * **Keys & Synth**: Young woman playing a keyboard.
 * **Guitar**: Man playing acoustic guitar.
 * **Drums**: Young boy playing drums with headphones.
-* **Vocals**: Young woman singing into a studio condenser microphone.
 
 ## 5. Gamo Live (`05-live.png`)
 **Main Background Image**
-* **Subject**: Large concert setting, female lead singer center stage with arm raised, guitarist to her left, crowd silhouettes in foreground.
+* **Subject**: Large concert setting, guitarist on stage, crowd silhouettes in foreground.
 * **Composition**: Bleeds to the right, framed by a curved overlay.
 * **Aspect Ratio**: 16:9 / Cover.
 
 **Floating UI Thumbnails**
-* **Avatars**: 3 small circular portraits of band members/singers. Aspect ratio: 1:1.
+* **Avatars**: 3 small circular portraits of band members. Aspect ratio: 1:1.
 
 **Upcoming Events (Bottom Row, all ~16:9 or 4:3)**
 * **Phoenix Worship Night**: Crowd from behind, hands raised, large lit cross on stage.
-* **Community Choir Tour**: Large gospel choir singing.
 * **Christmas Worship Concert**: Close-up of hands playing an electric/acoustic guitar.
 
 ## 6. Testimonials & CTA (`06-testimonials-cta.png`)
@@ -102,20 +98,17 @@ Owner-approved replacements for the AI-generated set. Each licence was read on t
 | instruments-electric-guitar | https://unsplash.com/photos/shallow-focus-photo-of-black-and-brown-electric-guitar-cTj8vbZeX44 | Giancarlo Duarte | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-bass-guitar | https://unsplash.com/photos/8z_LLNthDss | Gesiel Amaral | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-drums | https://unsplash.com/photos/9lfubBqLbRc | Shawn Sim | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
-| instruments-vocals-microphone | https://unsplash.com/photos/black-and-gray-microphone-with-stand-zoG585VYsV8 | Jon Tyson | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-violin | https://unsplash.com/photos/a-violin-and-bow-rest-on-a-wooden-surface-MwiVcpSElHs | Raymond Petrik | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-cello | https://unsplash.com/photos/yFnMehH1DIw | Adrian Maximiliano Arellano | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-saxophone | https://unsplash.com/photos/EDGxL5i1y2c | Jeziel Felipe | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-trumpet | https://unsplash.com/photos/brass-colored-trumpet-3j45Gy-WkyA | Hal Gatewood | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-ukulele | https://unsplash.com/photos/w9IHmVSNBfU | Mariana D'Lara | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | instruments-music-theory | https://unsplash.com/photos/BFcN8o_kzks | Miguel Alcântara | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
-| musicians-worship-leader-vocalist | https://unsplash.com/photos/woman-in-black-long-sleeve-shirt-singing-0oohfwLEyvU | City Church CA | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-acoustic-guitarist | https://unsplash.com/photos/man-playing-acoustic-guitar-selective-focus-photography-hUHzaiAHuUc | Jacek Dylag | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-electric-guitarist | https://unsplash.com/photos/a-person-playing-a-guitar-in-front-of-a-microphone-u9maXmAfsjg | Shalom Ejiofor | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 | bottom 15% cropped to remove a brand mark |
 | musicians-keys-player | https://unsplash.com/photos/a-person-sitting-at-a-keyboard-with-their-hands-on-it-YsPit1Bhp0s | Balian Roberts | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-drummer | https://unsplash.com/photos/man-playing-on-drums-JxufJsFmvW0 | Michael Dobrinski | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-bassist | https://unsplash.com/photos/person-playing-red-electric-guitar-kTCoE0lZafY | Laura Nyhuis | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
-| musicians-choir | https://www.pexels.com/photo/a-people-singing-on-the-church-8815024/ | Pavel Danilyuk | Pexels License: "Photo page License field: "Free" (links to pexels.com/license). License page: "All photos and videos on Pexels are free " | 2026-11-18 |  |
 | musicians-full-band | https://unsplash.com/photos/several-women-and-men-performing-on-stage-4o2vwgYTMkM | Hermes Rivera | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-strings-player | https://unsplash.com/photos/a-close-up-of-a-person-playing-a-violin-1O5ZXau6K8Q | Xingchen Yan | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
 | musicians-brass-player | https://unsplash.com/photos/person-playing-trumpet-during-night-time-A10y2Eq7OHY | Chris Bair | Unsplash License: "Free to use under the Unsplash License" | 2026-11-18 |  |
@@ -133,4 +126,4 @@ Owner-approved replacements for the AI-generated set. Each licence was read on t
 
 ## AI-generated illustrations (owner-supplied, 2026-11-18): removed
 
-Three wide (1774 x 887) AI-generated illustrations (a singer close-up, a worship service and a young person at a keyboard) were tried on the home page on 2026-11-18 and removed the same day at the owner's request. They are not in the repository; the originals stay in the owner's Downloads folder. If they return, record them here again as illustrations, never on a musician profile.
+Three wide (1774 x 887) AI-generated illustrations (including a worship service and a young person at a keyboard) were tried on the home page on 2026-11-18 and removed the same day at the owner's request. They are not in the repository; the originals stay in the owner's Downloads folder. If they return, record them here again as illustrations, never on a musician profile.

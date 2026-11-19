@@ -19,7 +19,7 @@ To add a photo: drop it in the right category folder with a descriptive kebab-ca
 
 | Catalog key | Original source file (as delivered) | Organized source | Size / orientation | Subject | Intended use |
 |---|---|---|---|---|---|
-| `worshipLeaderGolden` | ChatGPT Image Oct 12, 2026, 09_48_57 PM-1.png | worship/gospel-worship-leader-golden-light.png | 1122×1402 portrait | Female gospel worship leader singing, warm golden light | Proposed global hero, Worship hero, Mission |
+| `worshipLeaderGolden` | ChatGPT Image Oct 12, 2026, 09_48_57 PM-1.png | worship/gospel-worship-leader-golden-light.png | 1122×1402 portrait | Female gospel worship leader, warm golden light | Proposed global hero, Worship hero, Mission |
 | `boyGuitar` | ChatGPT Image Oct 12, 2026, 09_48_59 PM-2.png | academy/boy-learning-acoustic-guitar.png | 1122×1402 portrait | Boy learning acoustic guitar, sunlit room | Academy hero, global Academy card, Get Involved |
 | `girlGuitar` | ChatGPT Image Oct 12, 2026, 09_49_00 PM-3.png | academy/girl-practicing-acoustic-guitar.png | 1122×1402 portrait | Girl practicing guitar with music stand | Academy hero/cards, Mission |
 | `churchModernDay` | ChatGPT Image Oct 12, 2026, 09_49_01 PM-4.png | churches/modern-church-exterior-daylight.png | 1448×1086 landscape | Modern church exterior, daylight | Partners, Worship churches, Mission |
@@ -28,7 +28,6 @@ To add a photo: drop it in the right category folder with a descriptive kebab-ca
 | `concertCrowdWide` | ChatGPT Image Oct 12, 2026, 09_49_15 PM-1.png | live/worship-concert-crowd-wide.png | 1672×941 wide | Worship concert crowd beneath lit cross | Live hero spotlight |
 | `acousticLeader` | ChatGPT Image Oct 12, 2026, 09_49_16 PM-2.png | worship/acoustic-worship-leader-stage.png | 1122×1402 portrait | Male worship leader with acoustic guitar | Worship musicians, Live events |
 | `worshipNight` | ChatGPT Image Oct 12, 2026, 09_49_17 PM-3.png | live/worship-night-hands-raised.png | 1254×1254 square | Worship night audience, hands raised | Live cards, global Live card |
-| `gospelVocalists` | ChatGPT Image Oct 12, 2026, 09_49_18 PM-4.png | live/gospel-vocalists-concert-stage.png | 1254×1254 square | Gospel vocalists leading a concert | Live gospel concerts |
 | `worshipBand` | ChatGPT Image Oct 12, 2026, 09_49_19 PM-5.png | worship/worship-band-sanctuary.png | 1254×1254 square | Full worship team in bright sanctuary | Worship hero/teams, Production |
 | `acousticLeaderAlt` | ChatGPT Image Oct 12, 2026, 09_49_20 PM-6.png | worship/acoustic-worship-leader-stage-alt.png | 1122×1402 portrait | Near-duplicate variant of `acousticLeader` | Spare; avoid placing beside its twin |
 | `youngPianist` | ChatGPT Image Oct 12, 2026, 09_49_22 PM-7.png | academy/young-pianist-bright-classroom.png | 1122×1402 portrait | Young pianist in bright classroom | Academy piano, Mission |
@@ -51,7 +50,7 @@ Moved to `design-reference/2026-brand-refresh/`. They contain UI, navigation and
 
 ## Gaps
 
-- No photography yet for electric guitar, bass, drums or vocals lessons; Academy uses typographic/icon treatments for those cards instead of mismatched photos.
+- No photography yet for electric guitar, bass or drums lessons; Academy uses typographic/icon treatments for those cards instead of mismatched photos.
 - No dedicated volunteer, lighting-rig, livestream-camera or Bible-study photography.
 - All photos are AI-generated originals for Gamo Studios; review faces/hands at large sizes before any print use.
 
@@ -69,7 +68,6 @@ Each pattern exists under every public apps public/images/optimized directory. B
 | 2026-brand-refresh/churches/white-chapel-steeple-spring.png | churches-white-chapel-steeple-spring-{width}w.{avif,webp} | 480, 800, 1200, 1448 |
 | 2026-brand-refresh/community/guitar-mentor-with-student.png | community-guitar-mentor-with-student-{width}w.{avif,webp} | 480, 800, 1200, 1536 |
 | 2026-brand-refresh/community/sunlit-sanctuary-congregation.png | community-sunlit-sanctuary-congregation-{width}w.{avif,webp} | 480, 800, 1200, 1448 |
-| 2026-brand-refresh/live/gospel-vocalists-concert-stage.png | live-gospel-vocalists-concert-stage-{width}w.{avif,webp} | 480, 800, 1200, 1254 |
 | 2026-brand-refresh/live/worship-concert-crowd-wide.png | live-worship-concert-crowd-wide-{width}w.{avif,webp} | 480, 800, 1200, 1600 |
 | 2026-brand-refresh/live/worship-night-hands-raised.png | live-worship-night-hands-raised-{width}w.{avif,webp} | 480, 800, 1200, 1254 |
 | 2026-brand-refresh/production/sound-engineer-mixing-console.png | production-sound-engineer-mixing-console-{width}w.{avif,webp} | 480, 800, 1200, 1254 |
