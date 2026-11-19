@@ -1,9 +1,10 @@
 ---
 /**
  * Footer shared by every public app. App-neutral: description, link groups, legal links, social
- * links and the status note come from the app's `ShellConfig` (`src/site.config.ts`).
+ * links, the optional updates column and the status note come from the app's `ShellConfig` (`src/site.config.ts`).
  */
 import Logo from './Logo.astro';
+import Icon from './Icon.astro';
 import type { ShellConfig } from '../shell/types';
 
 interface Props {
@@ -28,7 +29,12 @@ const socials = (footer.social ?? []).filter((s) => s.key && SOCIAL_ICONS[s.key]
     aria-hidden="true"
   ></div>
   <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-20 pb-14 sm:px-12 lg:px-[4.5%]">
-    <div class="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.65fr_1fr_1fr_1fr] lg:gap-8">
+    <div
+      class:list={[
+        'grid grid-cols-2 gap-x-6 gap-y-10 lg:gap-8',
+        footer.updates ? 'lg:grid-cols-[1.65fr_1fr_1fr_1fr_1.4fr]' : 'lg:grid-cols-[1.65fr_1fr_1fr_1fr]',
+      ]}
+    >
       <div class="col-span-2 lg:col-span-1">
         <a href={brand.href} class="inline-flex min-h-11 items-center" aria-label={`${brand.name} homepage`}>
           <Logo width="210" height="45" />
@@ -70,6 +76,19 @@ const socials = (footer.social ?? []).filter((s) => s.key && SOCIAL_ICONS[s.key]
           </ul>
         </nav>
       ))}
+      {footer.updates && (
+        <div class="col-span-2 lg:col-span-1">
+          <h2 class="mb-5 text-base font-semibold text-white">{footer.updates.title}</h2>
+          <p class="max-w-xs text-sm leading-relaxed text-cream/80">{footer.updates.body}</p>
+          <a
+            href={footer.updates.link.href}
+            class="mt-5 inline-flex min-h-11 items-center gap-2 rounded-button border border-white/25 bg-white/5 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            {footer.updates.link.label}
+            <Icon name="arrow" class="h-4 w-4" />
+          </a>
+        </div>
+      )}
     </div>
     {footer.note && (
       <p id="status" class="mt-16 max-w-3xl text-xs leading-relaxed text-cream/80">

@@ -54,6 +54,11 @@ export const shell: ShellConfig = {
         ],
       },
     ],
+    updates: {
+      title: 'Stay in the Loop',
+      body: 'Updates on programs, upcoming events and ways to get involved.',
+      link: { label: 'Contact us for updates', href: siteUrl('web', '/contact') },
+    },
     legal: [
       { label: 'Legal & Privacy', href: siteUrl('web', '/legal') },
       { label: 'Privacy Policy', href: siteUrl('web', '/legal/privacy-policy') },

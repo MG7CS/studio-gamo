@@ -55,6 +55,8 @@ export interface ShellConfig {
     social?: NavItem[];
     /** Short legal-status line shown above the copyright. */
     note?: string;
+    /** Optional "stay in touch" column after the link groups: a heading, one line and one link. */
+    updates?: { title: string; body: string; link: NavItem };
   };
   contactHref: string;
 }

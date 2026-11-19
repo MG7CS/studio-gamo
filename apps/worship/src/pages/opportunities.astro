@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import OpportunityBoard from '../components/OpportunityBoard.astro';
+---
+
+<Layout
+  title="Musician Opportunities"
+  description="Explore open Sunday and special service needs across local congregations and find a place to serve as a worship musician with Gamo Worship."
+>
+  <PageHero title="Find a place to serve." />
+  <Section spacing="tight">
+    <OpportunityBoard />
+  </Section>
+</Layout>

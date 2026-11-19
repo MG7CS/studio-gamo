@@ -1,0 +1,78 @@
+---
+/**
+ * Sample service openings with an instrument filter. Public and account-free: every card links to the
+ * main-site musician application. All openings are fictional and labelled Sample; pay is a proposal.
+ */
+import { APPLY_HREF } from '../site.config';
+import { opportunities } from '../data/worship';
+import { formatUsd } from '@studio-gamo/ui/lib/format';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+
+const roles = [...new Set(opportunities.map((o) => o.role))];
+---
+
+<div data-opportunity-board>
+  <SelectField
+    id="opportunity-role"
+    name="role"
+    label="Filter by instrument"
+    placeholder=""
+    options={[
+      { value: '', label: 'All instruments' },
+      ...roles.map((role) => ({ value: role, label: role })),
+    ]}
+    class="max-w-sm"
+  />
+  <p class="mt-4 text-body-sm text-fg-muted" aria-live="polite">
+    <span data-count>{opportunities.length}</span> sample opportunities (fictional examples of how listings
+    will look)
+  </p>
+  <FeatureGrid as="ul" max={3} class="mt-6">
+    {opportunities.map((o) => (
+      <Card as="li" padding="md" data-opportunity data-role={o.role}>
+        <div class="flex flex-wrap gap-2">
+          <Badge tone="sample">Sample · Open service</Badge>
+          {o.standby && <Badge>Standby role</Badge>}
+        </div>
+        <h2 class="mt-5 text-section-title font-semibold">{o.role}</h2>
+        <p class="mt-2 font-medium">{o.church}</p>
+        <p class="text-body-sm text-fg-muted">{o.city}</p>
+        <p class="mt-5 text-body-sm">{o.date}</p>
+        <p class="mt-1 text-body-sm text-fg-muted">
+          {o.style}
+          {o.recurring && ' · Recurring'}
+        </p>
+        <p class="mt-5 font-semibold">
+          {formatUsd(o.payCents)}{' '}
+          <span class="text-caption font-normal text-fg-muted">proposed musician pay</span>
+        </p>
+        <p class="mt-2 text-caption text-fg-muted">
+          Musician pay is always shown on its own line with no deduction.
+        </p>
+        <div class="mt-auto pt-6">
+          <ButtonLink href={APPLY_HREF} variant="secondary">
+            Apply as a musician
+          </ButtonLink>
+        </div>
+      </Card>
+    ))}
+  </FeatureGrid>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-opportunity-board]').forEach((root) => {
+    const select = root.querySelector<HTMLSelectElement>('select')!;
+    select.addEventListener('change', () => {
+      let count = 0;
+      root.querySelectorAll<HTMLElement>('[data-opportunity]').forEach((card) => {
+        card.hidden = Boolean(select.value && card.dataset.role !== select.value);
+        if (!card.hidden) count++;
+      });
+      root.querySelector('[data-count]')!.textContent = String(count);
+    });
+  });
+</script>

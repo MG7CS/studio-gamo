@@ -3,6 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -28,9 +30,17 @@ import { instruments, plannedInstruments } from '../../data/instruments';
         meta: i.ages,
       }))}
     />
-    <p class="mt-8 text-body text-fg-muted">
-      More planned as specialized instructors join local cohorts: {plannedInstruments.join(' · ')}.
-    </p>
+    <Card tone="inset" padding="lg" class="mt-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <h2 class="section-subheading">Additional instruments</h2>
+        <Badge>Planned, not yet offered</Badge>
+      </div>
+      <ul class="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 text-body text-fg sm:grid-cols-3">
+        {plannedInstruments.map((p) => (
+          <li>{p}</li>
+        ))}
+      </ul>
+    </Card>
   </Container>
   <CtaInvitation title="Find a lesson path that fits." photo="guitarMentor">
     <ButtonLink href="/lessons" size="lg" arrow>
