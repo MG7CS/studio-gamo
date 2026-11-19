@@ -2,8 +2,9 @@
 /**
  * Global homepage hero ("Worship, Learning & Community"). Clean layout rules (DESIGN.md section 11): the
  * heading comes first, then one action; no sentence under it, no label above, no glow behind, no card over the
- * photos. The three photos are one shared PhotoGrid in its `tall` shape so they fill the screen height on large
- * displays instead of leaving empty bands above and below.
+ * photos. Two photos (the worship leader and the young guitarist) stand side by side as the shared PhotoGrid `pair`
+ * in a narrower column, so their height stays close to the height of the text beside them (owner direction
+ * 2026-11-19).
  */
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -14,8 +15,8 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
   class="relative flex min-h-dvh flex-col justify-center overflow-hidden bg-surface page-intro-space text-fg"
   aria-labelledby="home-hero-title"
 >
-  <Container class="relative grid items-center gap-10 lg:grid-cols-12">
-    <div class="lg:col-span-5">
+  <Container class="relative grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_32rem] lg:gap-16">
+    <div>
       <h1 id="home-hero-title" class="display-xl max-w-[14ch] text-balance text-fg">
         Worship, Learning &amp; <span class="block text-action">Community</span>
       </h1>
@@ -26,10 +27,9 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
       </div>
     </div>
 
-    <div class="order-first lg:order-none lg:col-span-7">
+    <div class="order-first lg:order-none">
       <PhotoGrid
-        layout="trio"
-        tall
+        layout="pair"
         photos={[
           {
             photo: 'worshipLeaderGolden',
@@ -37,7 +37,6 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
             priority: true,
           },
           { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
-          { photo: 'sanctuaryCongregation', alt: 'Congregation worshipping together in a sunlit sanctuary' },
         ]}
       />
     </div>
