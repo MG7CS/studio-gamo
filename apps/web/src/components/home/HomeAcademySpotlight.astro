@@ -1,12 +1,11 @@
 ---
 /**
  * Home page Gamo Academy section (restored 2026-11-18 without the label above the heading and the sentence under
- * it, DESIGN.md section 11): heading, the instruments as flat linked rows, the planned scholarship note (labelled
- * Proposal) and two actions, beside the mentor and young pianist photos.
+ * it, DESIGN.md section 11): heading, the instruments as flat linked rows, the scholarship note (plain text, no
+ * tag; 2026-11-19) and two actions, beside the mentor and young pianist photos.
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
@@ -57,15 +56,12 @@ const instruments: { name: string; age: string; path: string; icon: IconName }[]
   </ul>
 
   <div class="mt-8 rounded-card bg-surface p-6" data-surface="inset">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <p class="text-body-sm font-semibold text-fg">
-        Music education should not depend solely on a family's budget.
-      </p>
-      <Badge tone="proposal">Planned · proposal</Badge>
-    </div>
+    <p class="text-body-sm font-semibold text-fg">
+      Music education should not depend solely on a family's budget.
+    </p>
     <p class="mt-2 text-small text-fg-muted">
-      We are planning church-hosted cohorts and scholarship-supported seats so more students can begin lessons
-      close to home. All tuition and sponsorship structures remain proposals pending program launch.
+      We are working toward church-hosted cohorts and scholarship-supported seats so more students can begin
+      lessons close to home. Tuition and sponsorship terms have not been set or approved yet.
     </p>
   </div>
 
@@ -74,7 +70,7 @@ const instruments: { name: string; age: string; path: string; icon: IconName }[]
       Choose an instrument
     </ButtonLink>
     <ButtonLink href={siteUrl('academy', '/sponsored')} variant="secondary">
-      Explore planned scholarship cohorts
+      Read about scholarship cohorts
     </ButtonLink>
   </div>
 
