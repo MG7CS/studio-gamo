@@ -4,7 +4,6 @@ import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -31,10 +30,7 @@ import { instruments, plannedInstruments } from '../../data/instruments';
       }))}
     />
     <Card tone="inset" padding="lg" class="mt-10">
-      <div class="flex flex-wrap items-center gap-3">
-        <h2 class="section-subheading">Additional instruments</h2>
-        <Badge>Planned, not yet offered</Badge>
-      </div>
+      <h2 class="section-subheading">Instruments we plan to add</h2>
       <ul class="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 text-body text-fg sm:grid-cols-3">
         {plannedInstruments.map((p) => (
           <li>{p}</li>

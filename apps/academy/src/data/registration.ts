@@ -11,15 +11,15 @@ export const faqs = [
   },
   {
     q: 'Is Gamo Academy only for church musicians?',
-    a: 'No. Anyone who wants to learn an instrument is welcome. Some lessons are hosted by churches and open to the wider community.',
+    a: 'No. Anyone who wants to learn an instrument is welcome. Church-hosted lessons, when offered, are open to the wider community.',
   },
   {
     q: 'How is tuition structured?',
-    a: 'Proposed tuition amounts and instructor pay are always shown transparently as separate line items before enrollment is confirmed.',
+    a: 'Tuition amounts are proposals until the board approves them. Tuition and instructor pay are always shown as separate line items before enrollment is confirmed.',
   },
   {
     q: 'Are scholarships or sponsored lessons available?',
-    a: 'Sponsored and scholarship-supported lessons are coordinated alongside church partners and community support based on family need.',
+    a: 'We are preparing sponsored and scholarship-supported lessons with churches and community supporters, guided by family need.',
   },
   {
     q: 'Do I need my own instrument?',

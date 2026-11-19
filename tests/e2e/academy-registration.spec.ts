@@ -50,7 +50,7 @@ for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }]) {
     await page.goto(`${ORIGIN}/lessons/${LESSON}`);
     await page.getByRole('link', { name: 'Register for this lesson' }).click();
     await expect(page).toHaveURL(`${ORIGIN}/register/${LESSON}`);
-    await expect(page.getByText('Sample lesson').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'First Piano Steps' })).toBeVisible();
     await checkPage(page, 'register form', errors);
 
     // A student under 18 without guardian details: the server lists what is missing and keeps the input.

@@ -4,7 +4,6 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import LessonCard from '../../components/shared/LessonCard.astro';
@@ -20,7 +19,6 @@ if (!found) return Astro.rewrite('/404');
 const t: Instructor = found;
 const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 const details = [
-  ['pin', t.city],
   ['users', t.teaches],
   ['video', t.formats.join(', ')],
 ] as const;
@@ -28,24 +26,18 @@ const details = [
 
 <Layout
   title={t.name}
-  description={clampDescription(`Sample Gamo Academy instructor profile: ${t.name}, ${t.teaches}. ${t.bio}`)}
+  description={clampDescription(`Gamo Academy ${t.name.toLowerCase()} profile: ${t.teaches}. ${t.bio}`)}
 >
   <Container class="page-intro-space">
     <div class="grid gap-10 lg:grid-cols-3">
       <Card as="aside" padding="lg" class="lg:sticky lg:top-28 lg:self-start">
         <span
           aria-hidden="true"
-          class:list={[
-            'grid size-28 place-items-center rounded-hero rounded-bl-lg text-4xl font-bold',
-            t.tone,
-          ]}
+          class:list={['grid size-28 place-items-center rounded-hero rounded-bl-lg', t.tone]}
         >
-          {t.initials}
+          <Icon name={t.icon} class="size-12" />
         </span>
-        <Badge tone="sample" class="mt-5 self-start">
-          Sample instructor profile
-        </Badge>
-        <h1 class="mt-4 text-3xl font-bold tracking-tight">{t.name}</h1>
+        <h1 class="mt-6 text-3xl font-bold tracking-tight">{t.name}</h1>
         <p class="mt-1 font-medium text-action-strong">{t.instruments.join(' · ')}</p>
         <ul class="mt-6 space-y-3 text-small">
           {details.map(([icon, text]) => (
@@ -56,7 +48,7 @@ const details = [
           ))}
         </ul>
         <ButtonLink href={siteUrl('academy', '/lessons')} class="mt-8 w-full justify-center" arrow>
-          Register with {t.name.split(' ')[0]}
+          Find a lesson
         </ButtonLink>
       </Card>
       <div class="min-w-0 lg:col-span-2">

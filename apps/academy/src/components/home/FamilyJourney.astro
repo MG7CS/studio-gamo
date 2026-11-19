@@ -1,7 +1,7 @@
 ---
 /**
  * Section 8: how registration really works — one short form per student, an emailed receipt and a
- * private link to view, update or cancel; no account. NumberedSteps beside a Sample form preview.
+ * private link to view, update or cancel; no account. NumberedSteps beside a sketch of the form.
  */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
@@ -12,13 +12,12 @@ import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro'
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 
-/** Fictional student shown in the Sample preview. */
+/** What the form asks about the student, described by field (no fictional person). */
 const learner = {
-  initial: 'A',
-  name: 'Ava',
-  ageGroup: 'Child · Age 9',
-  instrument: 'Piano & Keys',
-  schedule: 'In-person · Sat mornings',
+  name: "Student's first name",
+  ageGroup: 'Age group',
+  instrument: 'Instrument',
+  schedule: 'The lesson you chose: format and schedule',
 };
 const steps = [
   { title: 'Choose a lesson', body: 'Pick the instrument, format and schedule that fit your student.' },
@@ -59,13 +58,18 @@ const pills = ['No account needed', 'One form per student', 'Emailed receipt'];
     </div>
 
     <div class="mx-auto w-full max-w-xl rounded-hero bg-surface-inset p-4 shadow-float sm:p-6">
-      <FloatingPreviewCard as="figure" title="Registration form · one student" class="p-6 sm:p-8">
+      <FloatingPreviewCard
+        as="figure"
+        title="Registration form · one student"
+        badge={false}
+        class="p-6 sm:p-8"
+      >
         <div class="rounded-2xl border border-border bg-surface px-4 py-3">
           <p class="text-caption font-semibold tracking-wider text-fg-muted uppercase">
             Parent or guardian contact
           </p>
           <p class="truncate text-small font-bold">
-            Hannah · <span class="font-normal text-fg-muted">hannah@example.org</span>
+            Name · <span class="font-normal text-fg-muted">email for the receipt</span>
           </p>
         </div>
 
@@ -82,7 +86,7 @@ const pills = ['No account needed', 'One form per student', 'Emailed receipt'];
               class="grid size-10 shrink-0 place-items-center rounded-full bg-action text-small font-bold text-on-action"
               aria-hidden="true"
             >
-              {learner.initial}
+              <Icon name="user" class="size-5" />
             </span>
             <div>
               <div class="flex flex-wrap items-center gap-2">
@@ -106,7 +110,7 @@ const pills = ['No account needed', 'One form per student', 'Emailed receipt'];
         </p>
 
         <figcaption class="border-t border-border pt-5 text-caption font-medium text-fg-muted">
-          Sample data · No account needed
+          No account needed
         </figcaption>
       </FloatingPreviewCard>
     </div>

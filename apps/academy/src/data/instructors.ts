@@ -1,14 +1,16 @@
 /**
- * SAMPLE instructor profiles — fictional people for layout only.
- * No photos are used for instructors; avatars render initials.
+ * Example instructor profiles, described by role (no names, towns or photos of people): they show
+ * how a profile reads, not real instructors. The avatar renders the instrument icon.
  */
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
 export interface Instructor {
   slug: string;
+  /** The role shown as the card title, e.g. "Piano and voice instructor". */
   name: string;
-  initials: string;
+  icon: IconName;
   instruments: string[];
   instrumentSlugs: string[];
-  city: string;
   teaches: string;
   formats: ('Private' | 'Group' | 'Online')[];
   bio: string;
@@ -19,12 +21,11 @@ export interface Instructor {
 
 export const instructors: Instructor[] = [
   {
-    slug: 'maya-thompson',
-    name: 'Maya Thompson',
-    initials: 'MT',
+    slug: 'piano-and-voice',
+    name: 'Piano and voice instructor',
+    icon: 'piano',
     instruments: ['Piano', 'Vocals'],
     instrumentSlugs: ['piano', 'vocals'],
-    city: 'Dallas, TX',
     teaches: 'Kids & beginners',
     formats: ['Private', 'Online'],
     tone: 'bg-action text-on-action',
@@ -36,12 +37,11 @@ export const instructors: Instructor[] = [
     ],
   },
   {
-    slug: 'daniel-reyes',
-    name: 'Daniel Reyes',
-    initials: 'DR',
+    slug: 'guitar',
+    name: 'Guitar instructor',
+    icon: 'guitar',
     instruments: ['Acoustic guitar', 'Electric guitar'],
     instrumentSlugs: ['acoustic-guitar', 'electric-guitar'],
-    city: 'Phoenix, AZ',
     teaches: 'Teens & adults',
     formats: ['Private', 'Group'],
     tone: 'bg-surface-inverse text-fg-inverse',
@@ -49,12 +49,11 @@ export const instructors: Instructor[] = [
     approach: ['Songs first, theory woven in', 'Small-group band sessions', 'Healthy technique from day one'],
   },
   {
-    slug: 'grace-okafor',
-    name: 'Grace Okafor',
-    initials: 'GO',
+    slug: 'voice-and-choir',
+    name: 'Voice and choir instructor',
+    icon: 'mic',
     instruments: ['Vocals'],
     instrumentSlugs: ['vocals'],
-    city: 'Atlanta, GA',
     teaches: 'All ages',
     formats: ['Private', 'Group', 'Online'],
     tone: 'bg-surface-inset text-fg',
@@ -66,12 +65,11 @@ export const instructors: Instructor[] = [
     ],
   },
   {
-    slug: 'samuel-park',
-    name: 'Samuel Park',
-    initials: 'SP',
+    slug: 'drums-and-bass',
+    name: 'Drums and bass instructor',
+    icon: 'drums',
     instruments: ['Drums & percussion', 'Bass guitar'],
     instrumentSlugs: ['drums', 'bass'],
-    city: 'Seattle, WA',
     teaches: 'Kids, teens & adults',
     formats: ['Private', 'Group'],
     tone: 'bg-fg-muted text-fg-inverse',

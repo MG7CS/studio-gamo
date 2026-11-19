@@ -1,5 +1,5 @@
 ---
-/** Section 1: instrument discovery: the instruments as flat rows, and the planned ones in one plain line. */
+/** Section 1: instrument discovery: the instruments as flat rows, and the ones we plan to add in one plain line. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
@@ -16,5 +16,5 @@ import { instruments, plannedInstruments } from '../../data/instruments';
       meta: i.ages,
     }))}
   />
-  <p class="mt-6 text-small text-fg-muted">More planned: {plannedInstruments.join(' · ')}</p>
+  <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>
 </Section>

@@ -1,12 +1,11 @@
 ---
 /**
- * Sample lesson card recipe (LinkCard: the title link covers the whole card, ≥ 44 px target).
+ * Lesson card recipe (LinkCard: the title link covers the whole card, ≥ 44 px target).
  * The wrapper carries the data-* attributes the /lessons filters read; pass `hidden` to render it
  * filtered out (e.g. a filter preset from the URL).
  */
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
-import { formatTuition, type Lesson } from '../../data/lessons';
+import type { Lesson } from '../../data/lessons';
 import { instructorBySlug } from '../../data/instructors';
 
 interface Props {
@@ -20,6 +19,7 @@ const { lesson: l, headingLevel = 'h3', as: Tag = 'li', hidden = false } = Astro
 const t = instructorBySlug(l.instructorSlug);
 const facts: [string, string][] = [
   ['Schedule', l.schedule],
+  ['Length', l.length],
   ['Ages', l.ages.join(', ')],
   ['Instructor', t?.name ?? ''],
 ];
@@ -35,11 +35,6 @@ const facts: [string, string][] = [
   class="flex"
 >
   <LinkCard href={`/lessons/${l.slug}`} title={l.title} headingLevel={headingLevel} class="w-full">
-    {l.sample && (
-      <Badge tone="sample" class="mb-3">
-        Sample lesson
-      </Badge>
-    )}
     <p class="mb-2 text-small font-semibold text-fg-muted">
       {l.level} · {l.format}
     </p>
@@ -51,13 +46,6 @@ const facts: [string, string][] = [
           <dd class="font-medium text-fg">{v}</dd>
         </div>
       ))}
-      <div>
-        <dt class="text-caption">Tuition</dt>
-        <dd class="flex flex-wrap items-center gap-2 font-medium text-fg">
-          {formatTuition(l.proposedTuitionCents)}
-          <Badge tone="proposal" size="sm" />
-        </dd>
-      </div>
     </dl>
     <Fragment slot="meta">{l.instrument}</Fragment>
   </LinkCard>

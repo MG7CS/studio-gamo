@@ -1,7 +1,7 @@
-import { formatUsd } from '@studio-gamo/ui/lib/format';
 /**
- * SAMPLE lesson listings for the design phase. Tuition amounts are proposals only
- * and stored as integer minor units (cents). No booking or payment exists yet.
+ * Example lesson listings that show how lessons will be offered (not live lessons). Tuition amounts are
+ * proposals only, stored as integer minor units (cents) for the gated checkout, and never shown on public
+ * pages until the board approves them.
  */
 type Level = 'Beginner' | 'Developing' | 'Advancing';
 export type Age = 'Kids' | 'Teens' | 'Adults';
@@ -22,7 +22,7 @@ export interface Lesson {
   proposedTuitionCents: number | null;
   summary: string;
   outcomes: string[];
-  /** Fictional preview listing (all of them today): registration works in local only (D-131). */
+  /** Example listing (all of them today): registration works in local only (D-131). */
   sample: boolean;
 }
 
@@ -32,7 +32,7 @@ export const lessons: Lesson[] = [
     title: 'First Piano Steps',
     instrument: 'Piano',
     instrumentSlug: 'piano',
-    instructorSlug: 'maya-thompson',
+    instructorSlug: 'piano-and-voice',
     level: 'Beginner',
     ages: ['Kids'],
     format: 'Private',
@@ -54,11 +54,11 @@ export const lessons: Lesson[] = [
     title: 'Teen Guitar Circle',
     instrument: 'Acoustic guitar',
     instrumentSlug: 'acoustic-guitar',
-    instructorSlug: 'daniel-reyes',
+    instructorSlug: 'guitar',
     level: 'Beginner',
     ages: ['Teens'],
     format: 'Group',
-    schedule: 'Saturdays · 60 min',
+    schedule: 'Weekly · 60 min',
     length: '8 weeks',
     location: 'Community room',
     proposedTuitionCents: 1500,
@@ -71,11 +71,11 @@ export const lessons: Lesson[] = [
     title: 'Voice & Harmony Workshop',
     instrument: 'Vocals',
     instrumentSlug: 'vocals',
-    instructorSlug: 'grace-okafor',
+    instructorSlug: 'voice-and-choir',
     level: 'Developing',
     ages: ['Teens', 'Adults'],
     format: 'Church-hosted',
-    schedule: 'Tuesdays · 75 min',
+    schedule: 'Weekly · 75 min',
     length: '6 weeks',
     location: 'Host church fellowship hall',
     proposedTuitionCents: null,
@@ -92,7 +92,7 @@ export const lessons: Lesson[] = [
     title: 'Drum Foundations',
     instrument: 'Drums & percussion',
     instrumentSlug: 'drums',
-    instructorSlug: 'samuel-park',
+    instructorSlug: 'drums-and-bass',
     level: 'Beginner',
     ages: ['Kids', 'Teens'],
     format: 'Private',
@@ -109,11 +109,11 @@ export const lessons: Lesson[] = [
     title: 'Electric Guitar for Adults',
     instrument: 'Electric guitar',
     instrumentSlug: 'electric-guitar',
-    instructorSlug: 'daniel-reyes',
+    instructorSlug: 'guitar',
     level: 'Developing',
     ages: ['Adults'],
     format: 'Private',
-    schedule: 'Evenings · 45 min',
+    schedule: 'Weekly · 45 min',
     length: 'Ongoing',
     location: 'Online',
     proposedTuitionCents: 4000,
@@ -127,11 +127,11 @@ export const lessons: Lesson[] = [
     title: 'Bass Groove Lab',
     instrument: 'Bass guitar',
     instrumentSlug: 'bass',
-    instructorSlug: 'samuel-park',
+    instructorSlug: 'drums-and-bass',
     level: 'Advancing',
     ages: ['Teens', 'Adults'],
     format: 'Group',
-    schedule: 'Thursdays · 60 min',
+    schedule: 'Weekly · 60 min',
     length: '6 weeks',
     location: 'Studio',
     proposedTuitionCents: 1800,
@@ -140,10 +140,3 @@ export const lessons: Lesson[] = [
     sample: true,
   },
 ];
-
-/**
- * Tuition as plain text ("$30 / session", or "Sponsored" when no tuition is set). Every amount is a proposal:
- * callers show one `<Badge tone="proposal" />` next to it instead of repeating "(proposed)" in the text.
- */
-export const formatTuition = (cents: number | null) =>
-  cents === null ? 'Sponsored' : `${formatUsd(cents, { whole: true })} / session`;

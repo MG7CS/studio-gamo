@@ -4,12 +4,11 @@ import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import InstructorCard from '../../components/shared/InstructorCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { lessons, formatTuition, type Lesson } from '../../data/lessons';
+import { lessons, type Lesson } from '../../data/lessons';
 import { instructorBySlug } from '../../data/instructors';
 import { instrumentBySlug } from '../../data/instruments';
 
@@ -46,11 +45,6 @@ const facts = [
       </p>
       <p>{l.summary}</p>
     </Fragment>
-    {l.sample && (
-      <Badge slot="actions" tone="sample">
-        Sample lesson
-      </Badge>
-    )}
     <HeroPhoto slot="media" photo={inst?.photo ?? 'guitarMentor'} />
   </PageHero>
   <Container class="pb-16 lg:pb-24">
@@ -86,13 +80,10 @@ const facts = [
         </div>
       </div>
       <Card as="aside" padding="lg" class="shadow-float lg:sticky lg:top-32 lg:self-start">
-        <p class="flex flex-wrap items-center gap-2 text-small text-fg-muted">
-          Tuition <Badge tone="proposal" size="sm" />
-        </p>
-        <p class="mt-1 text-2xl font-bold">{formatTuition(l.proposedTuitionCents)}</p>
+        <h2 class="text-xl font-bold">Tuition</h2>
         <p class="mt-2 text-small text-fg-muted">
-          Instructor compensation and any administrative allocation are always presented on separate lines
-          before enrollment is confirmed.
+          Tuition is shown before enrollment is confirmed, with instructor compensation and any administrative
+          allocation on separate lines.
         </p>
         <ButtonLink href={`/register/${l.slug}`} class="mt-6 w-full justify-center" arrow>
           Register for this lesson

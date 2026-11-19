@@ -5,7 +5,6 @@ import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import HeroPhoto from '../components/shared/HeroPhoto.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
@@ -39,13 +38,12 @@ const qa = [
 
 <Layout
   title="Sponsored & Scholarship Programs"
-  description="Gamo Academy coordinates sponsored and scholarship-supported lessons with community partners, guided by family need and never by ability to pay."
+  description="Gamo Academy is preparing sponsored and scholarship-supported lessons with churches and community supporters, guided by family need and never by ability to pay."
 >
   <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}>
     <Fragment slot="title">
       Music for every family, <span class="block text-action">whatever the budget.</span>
     </Fragment>
-    <Badge slot="actions" tone="proposal" />
     <HeroPhoto slot="media" photo="boyGuitar" />
   </PageHero>
   <Section tone="raised">
