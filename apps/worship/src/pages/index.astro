@@ -12,6 +12,7 @@ import JoinSection from '../components/home/JoinSection.astro';
 import FaqSection from '../components/home/FaqSection.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 ---
 
 <Layout
@@ -33,6 +34,9 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </ButtonLink>
     <ButtonLink href={APPLY_HREF} variant="secondary">
       Apply as a musician
+    </ButtonLink>
+    <ButtonLink href={siteUrl('web', '/partners/interest')} variant="secondary">
+      Sponsor lessons
     </ButtonLink>
   </CtaInvitation>
 </Layout>

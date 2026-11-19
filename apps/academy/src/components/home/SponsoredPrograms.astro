@@ -1,37 +1,45 @@
 ---
-/** Section 6: sponsored & scholarship-supported programs, worded as ideas (could, would). */
+/**
+ * Section 6: lessons sponsored through partner organizations and churches. The wording stays general because the
+ * arrangement depends on each partner's offer (docs/DECISIONS.md, "Sponsorship wording"): no who-qualifies, no
+ * amounts, no counts.
+ */
 import EditorialFeatureCard, {
   type EditorialFeaturePoint,
 } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
-const ideas: EditorialFeaturePoint[] = [
-  {
-    icon: 'heart',
-    title: 'Need-Based Tuition Support',
-    body: 'Reduced or no-cost lessons for families who need it.',
-  },
+const points: EditorialFeaturePoint[] = [
   {
     icon: 'church',
-    title: 'Church-Sponsored Cohorts',
-    body: 'Groups a congregation could underwrite for its community.',
+    title: 'Church Partners',
+    body: 'Churches can sponsor lessons for their community.',
   },
   {
-    icon: 'school',
-    title: 'Instrument Lending',
-    body: 'Instruments on loan for students without one at home.',
+    icon: 'users',
+    title: 'Partner Organizations',
+    body: 'Community organizations can sponsor lessons with us.',
+  },
+  {
+    icon: 'clock',
+    title: 'Shaped with Each Partner',
+    body: 'Details are shared when they are confirmed.',
   },
 ];
 ---
 
 <EditorialFeatureCard
-  title="Lessons for Every"
-  accent="Family's Budget."
-  points={ideas}
+  title="Lessons Sponsored by"
+  accent="Partners and Churches."
+  points={points}
   photo="boyGuitar"
   tone="sand"
 >
   <ButtonLink href="/sponsored" arrow>
-    Explore sponsored programs
+    About sponsored lessons
+  </ButtonLink>
+  <ButtonLink href={siteUrl('web', '/partners/interest')} variant="secondary">
+    Become a sponsor
   </ButtonLink>
 </EditorialFeatureCard>

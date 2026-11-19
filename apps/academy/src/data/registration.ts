@@ -18,12 +18,12 @@ export const faqs = [
     a: 'Tuition amounts are proposals until the board approves them. Tuition and instructor pay are always shown as separate line items before enrollment is confirmed.',
   },
   {
-    q: 'Are scholarships or sponsored lessons available?',
-    a: 'We are preparing sponsored and scholarship-supported lessons with churches and community supporters, guided by family need.',
+    q: 'Are lessons sponsored?',
+    a: 'Lessons are sponsored through partner organizations and churches. Details depend on each partner and are shared when confirmed.',
   },
   {
     q: 'Do I need my own instrument?',
-    a: 'For most instruments, yes. Instructors can suggest beginner-friendly options, and we also coordinate instrument lending where available.',
+    a: 'For most instruments, yes. Instructors can suggest beginner-friendly options.',
   },
   {
     q: 'How do I get started?',

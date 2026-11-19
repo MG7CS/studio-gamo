@@ -1,0 +1,47 @@
+---
+import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
+/**
+ * Home page invitation to sponsors (2026-11-19, docs/DECISIONS.md "Sponsorship wording"): a heading, one plain
+ * sentence, two actions and one photo of a church setting. No label, tag, caption or price; the wording stays general
+ * because the arrangement depends on each partner's offer. Sits after the three program sections and before the
+ * ways to take part.
+ */
+import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+---
+
+<SplitHero
+  as="section"
+  spacing="section"
+  mediaSide="start"
+  tone="raised"
+  id="sponsors"
+  aria-labelledby="home-sponsors-title"
+>
+  <h2 id="home-sponsors-title" class="section-heading text-balance text-fg">
+    <TitleCase>
+      Sponsor Lessons in <span class="text-accent">Your Community.</span>
+    </TitleCase>
+  </h2>
+  <p class="mt-5 max-w-xl text-lg leading-relaxed text-fg-muted">
+    Lessons are sponsored through partner organizations and churches. Details are shaped with each partner and
+    shared when confirmed.
+  </p>
+  <div class="mt-8 flex flex-wrap gap-3">
+    <ButtonLink href="/partners/interest" arrow>
+      Become a sponsor
+    </ButtonLink>
+    <ButtonLink href={inquiryUrl('Sponsor lessons')} variant="secondary">
+      Talk with us
+    </ButtonLink>
+  </div>
+
+  <Frame
+    slot="media"
+    photo="churchModernDay"
+    sizes="half"
+    alt="Modern church building with a cross on a sunny day"
+  />
+</SplitHero>

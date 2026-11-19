@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
@@ -7,44 +7,43 @@ import HeroPhoto from '../components/shared/HeroPhoto.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+// General on purpose: the arrangement depends on each partner's offer (docs/DECISIONS.md, "Sponsorship wording").
 const principles = [
-  ['Need First', 'Support would be guided by family need, never by ability to pay.'],
-  ['Dignity & Privacy', 'Family financial information would be handled privately and minimally.'],
-  [
-    'Fair to Instructors',
-    'Instructors would be paid fully for sponsored lessons, shown as a separate line item.',
-  ],
+  ['Through Partners', 'Lessons are sponsored through partner organizations and churches.'],
+  ['Shaped with Each Partner', 'Details depend on each partner and are shared when confirmed.'],
   ['Open to All', 'Not limited to church members, worship teams or any background.'],
+  ['Fair to Instructors', 'Instructors are paid fairly, shown as a separate line item.'],
+  ['Dignity & Privacy', 'Family information is handled privately and kept to what is needed.'],
 ] as const;
 const qa = [
   {
-    q: 'How do families request tuition support?',
-    a: 'Families can note scholarship or sponsored cohort interest when registering, and our team reviews requests confidentially based on family need.',
+    q: 'How are lessons sponsored?',
+    a: 'Lessons are sponsored through partner organizations and churches. What each partner offers shapes the details, and we share them when they are confirmed.',
   },
   {
-    q: 'How can a church or supporter underwrite a cohort?',
-    a: 'Churches and community partners can inquire about hosting or underwriting a learning cohort.',
+    q: 'How can a church or organization sponsor lessons?',
+    a: 'Send a partnership inquiry and we will talk about what would suit your community.',
   },
   {
-    q: 'Do sponsored students have different instructors?',
-    a: 'No. Sponsored students learn with the same instructors and curriculum as every other student.',
+    q: 'Do sponsored lessons have different instructors?',
+    a: 'No. Sponsored lessons are taught by the same instructors and curriculum as every other lesson.',
   },
 ];
 ---
 
 <Layout
-  title="Sponsored & Scholarship Programs"
-  description="Gamo Academy is preparing sponsored and scholarship-supported lessons with churches and community supporters, guided by family need and never by ability to pay."
+  title="Sponsored Lessons"
+  description="Gamo Academy lessons are sponsored through partner organizations and churches. Details are shaped with each partner and shared when confirmed."
 >
-  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}>
+  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored lessons' }]}>
     <Fragment slot="title">
-      Music for Every Family, <span class="block text-action">Whatever the Budget.</span>
+      Lessons Sponsored by <span class="block text-action">Partners and Churches.</span>
     </Fragment>
     <HeroPhoto slot="media" photo="boyGuitar" />
   </PageHero>
   <Section tone="raised">
     <Fragment slot="title">
-      How Support is <span class="block text-action">Meant to Work.</span>
+      How Sponsored Lessons <span class="block text-action">Work.</span>
     </Fragment>
     <ul class="grid gap-x-12 border-b border-border md:grid-cols-2">
       {principles.map(([t, d]) => (
@@ -58,10 +57,10 @@ const qa = [
   <Section>
     <div class="grid gap-10 lg:grid-cols-5">
       <div class="lg:col-span-2">
-        <EditorialHeading title="How Sponsored Learning Works" />
+        <EditorialHeading title="Questions about Sponsored Lessons" />
         <div class="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
-            Apply to host lessons
+          <ButtonLink href={siteUrl('web', '/partners/interest')} arrow>
+            Become a sponsor
           </ButtonLink>
         </div>
       </div>

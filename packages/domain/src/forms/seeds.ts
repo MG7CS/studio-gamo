@@ -401,7 +401,14 @@ const contactForm = (): FormSchema =>
         dropdown(
           'topic',
           'What is your message about?',
-          ['Gamo Worship', 'Gamo Academy', 'Gamo Production', 'Partnering with us', 'Something else'],
+          [
+            'Gamo Worship',
+            'Gamo Academy',
+            'Gamo Production',
+            'Partnering with us',
+            'Sponsoring lessons',
+            'Something else',
+          ],
           { required: true },
         ),
         paragraph('message', 'Your message', { required: true }),
@@ -429,6 +436,7 @@ const partnerInterest = (): FormSchema =>
           [
             'Hosting Gamo Academy lessons at our church',
             'Inviting Gamo Worship musicians to serve',
+            'Sponsoring lessons through our church or organization',
             'Production help for our events',
             'Sharing Gamo with our community',
             'Something else',

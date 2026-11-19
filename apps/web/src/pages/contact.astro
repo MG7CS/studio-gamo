@@ -7,12 +7,13 @@ import { loadFormPage } from '../lib/form-page';
 
 export const prerender = false;
 
-/** Links such as `/contact?interest=Church-hosted lessons` pre-select the topic the form offers. */
+/** Links such as `/contact?interest=Sponsor lessons` and `/contact?interest=Church-hosted lessons` pre-select the topic the form offers. */
 const TOPICS: [RegExp, string][] = [
+  [/sponsor/i, 'Sponsoring lessons'],
   [/academy|lesson/i, 'Gamo Academy'],
   [/worship|musician/i, 'Gamo Worship'],
   [/production|sound|video/i, 'Gamo Production'],
-  [/partner|host|church|sponsor/i, 'Partnering with us'],
+  [/partner|host|church/i, 'Partnering with us'],
 ];
 const interest = Astro.url.searchParams.get('interest') ?? '';
 const topic = TOPICS.find(([pattern]) => pattern.test(interest))?.[1];

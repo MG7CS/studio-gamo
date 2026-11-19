@@ -30,6 +30,7 @@ export const shell: ShellConfig = {
           { label: 'Request a musician', href: siteUrl('web', '/worship/request') },
           { label: 'Apply as a musician', href: siteUrl('web', '/worship/apply') },
           { label: 'Partnerships', href: siteUrl('web', '/partners') },
+          { label: 'Sponsor lessons', href: siteUrl('web', '/partners/interest') },
         ],
       },
       {
