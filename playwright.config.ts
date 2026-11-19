@@ -52,7 +52,8 @@ export default defineConfig({
   // One test covers every page of an app (sitemap-driven), so allow several minutes each.
   timeout: 600_000,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL: 'http://127.0.0.1:4321' },
+  // A click or fill that cannot find its element fails after 15 s instead of waiting out the whole test timeout.
+  use: { baseURL: 'http://127.0.0.1:4321', actionTimeout: 15_000 },
   webServer: [
     ...(withAdmin
       ? [

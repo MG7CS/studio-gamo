@@ -13,6 +13,11 @@ import { expectAccessible, watchErrors } from './helpers/a11y';
 
 const WEB = process.env.CATALOG_ORIGIN ?? 'http://127.0.0.1:4321';
 
+// Every test seeds an offer into the preview server's single local SQLite file from a second process. Several at
+// once make the local D1 simulator answer "database is locked" now and then (production D1 does not), so these
+// tests run one at a time and may retry once.
+test.describe.configure({ mode: 'serial', retries: 2 });
+
 function newOffer(): string {
   const out = execFileSync('pnpm', ['exec', 'tsx', 'scripts/e2e/seed-offer.ts', 'web'], {
     encoding: 'utf8',
