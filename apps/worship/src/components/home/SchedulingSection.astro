@@ -1,12 +1,12 @@
 ---
 import { REQUEST_HREF } from '../../site.config';
-/** Church scheduling & recurring needs: key points beside a Sample month roster preview. */
+/** Church scheduling & recurring needs: key points beside a month roster showing how recurring needs are planned. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const days = Array.from({ length: 30 }, (_, i) => i + 1);
-const leadingBlanks = 6; // the sample month starts on a Saturday
+const leadingBlanks = 6; // the month view starts on a Saturday
 const sundays = new Set([2, 9, 16, 23, 30]);
 const open = new Set([9]);
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -37,7 +37,7 @@ const points = [
       </ButtonLink>
     </div>
     <div class="lg:col-span-7" data-reveal>
-      <FloatingPreviewCard title="November · service roster" class="mx-auto w-full max-w-lg">
+      <FloatingPreviewCard title="Monthly service roster" badge={false} class="mx-auto w-full max-w-lg">
         <div class="grid grid-cols-7 gap-1.5 text-center text-caption text-fg-muted" aria-hidden="true">
           {weekdays.map((d) => (
             <span class="py-1 font-semibold">{d}</span>
@@ -68,7 +68,9 @@ const points = [
             <span class="h-3 w-3 rounded border-2 border-dashed border-action"></span>Role still open
           </span>
         </div>
-        <p class="sr-only">November calendar: four Sundays confirmed, November 9 has an open role.</p>
+        <p class="sr-only">
+          Month view: four Sundays with musicians confirmed and one Sunday with a role still open.
+        </p>
       </FloatingPreviewCard>
     </div>
   </div>

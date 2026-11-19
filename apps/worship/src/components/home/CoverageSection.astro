@@ -1,5 +1,5 @@
 ---
-/** Primary & standby coordination: photo with a Sample coverage timeline preview. */
+/** Primary & standby coordination: photo with a coverage timeline showing how a Sunday is planned. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -9,7 +9,7 @@ const timeline = [
   { t: 'Tue', label: 'Set list & keys shared with primary and standby', done: true },
   { t: 'Thu', label: 'Primary confirms rehearsal attendance', done: true },
   { t: 'Sat', label: 'Standby on call with the same charts', done: true },
-  { t: 'Sun 7:30', label: 'Primary checks in at the church', done: false },
+  { t: 'Sun', label: 'Primary checks in at the church', done: false },
 ];
 ---
 
@@ -32,6 +32,7 @@ const timeline = [
     </div>
     <FloatingPreviewCard
       title="Keys coverage"
+      badge={false}
       class="relative -mt-16 ms-auto me-4 w-11/12 sm:w-80 lg:absolute lg:end-0 lg:bottom-0 lg:mt-0"
     >
       <ol class="space-y-3">

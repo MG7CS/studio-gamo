@@ -12,7 +12,12 @@ const cues = [
 ];
 ---
 
-<FloatingPreviewCard title="Service cues" as="figure" class:list={['w-full max-w-xs', className]}>
+<FloatingPreviewCard
+  title="Service cues"
+  badge={false}
+  as="figure"
+  class:list={['w-full max-w-xs', className]}
+>
   <ul class="space-y-2 text-small">
     {cues.map((c) => (
       <li

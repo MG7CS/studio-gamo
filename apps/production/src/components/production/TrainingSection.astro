@@ -1,7 +1,6 @@
 ---
 /** Technical education & volunteer training: photo collage beside the training tracks. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -28,10 +27,7 @@ const { showLink = true } = Astro.props;
       />
     </div>
     <div class="lg:col-span-7">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h3 class="text-small font-semibold text-fg">Training tracks</h3>
-        <Badge tone="proposal">Proposed tracks</Badge>
-      </div>
+      <h3 class="text-small font-semibold text-fg">Training tracks we are preparing</h3>
       <ol class="mt-4 divide-y divide-border border-y border-border">
         {trainingTracks.map((t) => (
           <li class="flex flex-wrap items-start gap-x-6 gap-y-3 py-6">

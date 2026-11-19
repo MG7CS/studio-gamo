@@ -1,7 +1,7 @@
 ---
 /**
  * Mixer channel-strip preview (illustrative product UI over photography). The frame is the shared
- * FloatingPreviewCard (with its Sample badge); the channel levels are data-driven, so each bar's
+ * FloatingPreviewCard (without a badge); the channel levels are data-driven, so each bar's
  * height stays an inline percentage.
  */
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
@@ -17,7 +17,7 @@ const channels = [
 ];
 ---
 
-<FloatingPreviewCard title="Worship mix" as="figure" class={className}>
+<FloatingPreviewCard title="Worship mix" badge={false} as="figure" class={className}>
   <div class="grid grid-cols-4 gap-3" aria-hidden="true">
     {channels.map((c) => (
       <div class="flex flex-col items-center gap-2">

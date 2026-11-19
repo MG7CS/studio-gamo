@@ -89,7 +89,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'phone',
     photo: 'softwareWebsite',
     summary:
-      'A proposed support area for the websites, mobile apps and church email that congregations rely on, helping members find information and helping staff keep it current. It is still being scoped, and its scope and any contribution remain proposals until approved.',
+      'Support for the websites, mobile apps and church email that congregations rely on, helping members find information and helping staff keep it current. Its scope is still being shaped, and any contribution is set only once the board approves it.',
     covers: [
       'A clear church website',
       'A mobile app for members',

@@ -1,7 +1,6 @@
 /**
- * Gamo Worship — SAMPLE data for the design-first phase.
- * Every person, church, service and amount below is fictional and must be labeled as sample in the UI.
- * Amounts are integer minor units (cents) and are PROPOSALS only.
+ * Gamo Worship public content. No person, church, date, town or pay amount appears here: contribution
+ * levels stay with the board until approved.
  */
 // Narrow instrument icons keep data independent of Astro component modules.
 type InstrumentIcon = 'piano' | 'guitar' | 'drums' | 'music' | 'mic' | 'sliders';
@@ -42,12 +41,13 @@ export const faqs = [
   { q: 'Are musicians paid fairly?', a: 'Fair, transparent compensation is a core principle. Musician pay is shown on its own line and is never reduced to fund other parts of the organization.' },
 ];
 
-/** SAMPLE service openings for the public /opportunities page: fictional churches, dates and proposed pay. */
-export interface Opportunity { id: string; church: string; city: string; date: string; role: string; style: string; recurring?: boolean; standby?: boolean; payCents: number }
-export const opportunities: Opportunity[] = [
-  { id: 'o1', church: 'Riverside Fellowship', city: 'Mesa, AZ', date: 'Sun · Nov 1 · 8:00 AM call', role: 'Keys', style: 'Contemporary worship', recurring: true, payCents: 15000 },
-  { id: 'o2', church: 'New Hope Chapel', city: 'Phoenix, AZ', date: 'Sun · Nov 1 · 9:30 AM call', role: 'Bass', style: 'Gospel', payCents: 12500 },
-  { id: 'o3', church: 'Grace Community', city: 'Tempe, AZ', date: 'Sat · Nov 7 · 4:00 PM call', role: 'Drums', style: 'Contemporary worship', standby: true, payCents: 6000 },
-  { id: 'o4', church: 'Cornerstone Church', city: 'Chandler, AZ', date: 'Sun · Nov 8 · 7:30 AM call', role: 'Vocals', style: 'Hymns & traditional', recurring: true, payCents: 11000 },
-  { id: 'o5', church: 'Living Water Church', city: 'Glendale, AZ', date: 'Sun · Nov 15 · 8:30 AM call', role: 'Acoustic guitar', style: 'Bilingual services', payCents: 12000 },
+/** Instruments Gamo Worship is recruiting musicians for, shown on the public /opportunities page. */
+export interface MusicianRole { instrument: string; icon: InstrumentIcon; involves: string }
+export const musicianRoles: MusicianRole[] = [
+  { instrument: 'Keys & piano', icon: 'piano', involves: 'Lead or support the band from piano, organ or synth pads, and help with music direction when a team needs it.' },
+  { instrument: 'Acoustic & electric guitar', icon: 'guitar', involves: 'Play rhythm, lead or ambient parts from shared charts, in the key and arrangement the worship leader sets.' },
+  { instrument: 'Drums & percussion', icon: 'drums', involves: 'Keep steady, room-appropriate time on kit, cajón or auxiliary percussion, from quiet hymns to full worship sets.' },
+  { instrument: 'Bass', icon: 'music', involves: 'Lock in with drums and keys on electric or upright bass, following the set list and keys shared before rehearsal.' },
+  { instrument: 'Vocals', icon: 'mic', involves: 'Lead worship or sing harmony and choir support, prepared with the set list, keys and lyrics in advance.' },
+  { instrument: 'Sound & media', icon: 'sliders', involves: 'Run front-of-house, monitors or lyrics so the congregation can hear clearly and sing along.' },
 ];
