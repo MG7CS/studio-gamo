@@ -12,17 +12,23 @@ import { programs } from '../../data/programs';
 
 interface Props {
   title: string;
+  /** Optional second line of the heading, in the accent colour. */
+  accent?: string;
   /** Heading id; also the in-page anchor ("programs" for #programs). */
   id?: string;
   tone?: 'default' | 'raised';
   /** Show the one line under each program name. Default true; the home page leaves it out. */
   lead?: boolean;
 }
-const { title, id, tone = 'default', lead = true } = Astro.props;
+const { title, accent, id, tone = 'default', lead = true } = Astro.props;
 const [featured, ...others] = programs;
 ---
 
 <Section tone={tone} title={title} id={id}>
+  <Fragment slot="title">
+    {title}
+    {accent && <span class="block text-accent">{accent}</span>}
+  </Fragment>
   <Stack gap="lg">
     {featured && (
       <MediaCard
