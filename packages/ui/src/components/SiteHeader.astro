@@ -192,27 +192,35 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       const screenId = `site-mobile-screen-${index}`;
       const rowClass =
         'flex min-h-14 items-center px-gutter text-xl font-semibold text-fg transition-colors hover:text-action-strong';
+      const linkedTiles = item.menu.tiles.filter((tile) => tile.href);
       return (
         <section id={screenId} hidden data-mobile-screen aria-labelledby={`${screenId}-title`}>
-          <div class="px-gutter">
+          <div class="flex h-14 items-center px-gutter">
             <button
               type="button"
               data-mobile-back
-              class="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-button pr-3 pl-1 text-base font-semibold text-fg-muted transition-colors hover:text-fg"
+              aria-label="Back"
+              class="-ml-3 inline-flex size-11 shrink-0 items-center justify-center rounded-button text-fg transition-colors hover:bg-surface-inset"
             >
-              <Icon name="chevron-left" class="h-5 w-5" strokeWidth={2} />
-              Back
+              <Icon name="chevron-left" class="h-6 w-6" strokeWidth={2} />
             </button>
+            <h2 id={`${screenId}-title`} class="flex-1 text-center text-lg font-semibold text-fg">
+              {item.label}
+            </h2>
+            <span class="-mr-3 size-11 shrink-0" aria-hidden="true"></span>
           </div>
-          <h2 id={`${screenId}-title`} class="px-gutter pt-4 pb-2 text-3xl font-semibold text-fg">
-            {item.label}
-          </h2>
-          <ul class="flex flex-col">
-            <li>
-              <a href={item.menu.all.href} class={rowClass}>
-                {item.menu.all.label}
-              </a>
-            </li>
+          {/* Pictures (and the divider under them) show here only for tiles that have an `href`; add hrefs to the
+              tiles in packages/config/menus.ts once the pages exist. With none, the screen is the bar and the links. */}
+          {linkedTiles.length > 0 && (
+            <ul class="flex flex-col gap-6 px-gutter pt-8 pb-8">
+              {linkedTiles.map((tile) => (
+                <li>
+                  <MenuTile tile={tile} variant="row" />
+                </li>
+              ))}
+            </ul>
+          )}
+          <ul class:list={['flex flex-col pt-2', linkedTiles.length > 0 && 'border-t border-border']}>
             {item.menu.links.map((link) => (
               <li>
                 <a href={link.href} class={rowClass}>
@@ -220,13 +228,11 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
                 </a>
               </li>
             ))}
-          </ul>
-          <ul class="flex flex-col pt-4">
-            {item.menu.tiles.map((tile) => (
-              <li class="px-gutter">
-                <MenuTile tile={tile} variant="row" />
-              </li>
-            ))}
+            <li>
+              <a href={item.menu.all.href} class={rowClass}>
+                {item.menu.all.label}
+              </a>
+            </li>
           </ul>
         </section>
       );

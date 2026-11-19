@@ -7,7 +7,7 @@
  *
  * Props
  * - tile: `NavTile` ({ label, href, photo | src }).
- * - variant: panel (square picture over the name, default) | row (48 px thumbnail beside the name, ≥ 56 px, muted text when it is not a link).
+ * - variant: panel (square picture over the name, default) | row (112 px picture on the left, bold 20 px name beside it, vertically centred; the phone menu's second screen).
  */
 import Frame from './media/Frame.astro';
 import type { PhotoKey } from '../lib/images';
@@ -30,15 +30,13 @@ const Tag = href ? 'a' : 'div';
   href={href}
   class:list={[
     'menu-tile group',
-    row
-      ? 'flex min-h-14 items-center gap-4 py-1 text-base font-semibold'
-      : 'flex flex-col gap-3 text-sm font-semibold',
-    row && !href ? 'text-fg-muted' : 'text-fg',
-    href && 'hover:text-action-strong',
+    row ? 'flex min-h-11 items-center gap-6 text-xl font-bold' : 'flex flex-col gap-3 text-sm font-semibold',
+    'text-fg',
+    href && 'rounded-button transition-colors hover:text-action-strong',
   ]}
 >
   <span
-    class:list={['menu-tile__image block shrink-0', row && 'menu-tile__image--row w-12']}
+    class:list={['menu-tile__image block shrink-0', row && 'menu-tile__image--row w-28']}
     aria-hidden="true"
   >
     {photo ? (
