@@ -13,10 +13,14 @@ export interface MenuLink {
   href: string;
 }
 
-/** Exactly one of `photo` (photo catalog key) or `src` (static image, e.g. under /illustrations). */
+/**
+ * Exactly one of `photo` (photo catalog key) or `src` (static image, e.g. under /illustrations). Without `href` the tile
+ * is a picture with its name, not a link (owner direction 2026-11-19: the tiles show what we offer; the pages behind
+ * them are not linked until the owner has reviewed them).
+ */
 export interface MenuTile {
   label: string;
-  href: string;
+  href?: string;
   photo?: string;
   src?: string;
 }
@@ -45,15 +49,9 @@ export const WORSHIP_INSTRUMENTS_ANCHOR = '/#instruments-title';
 export const CHURCH_EMAIL_ILLUSTRATION = '/illustrations/church-email.svg';
 
 export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
-  const worshipInstruments = site('worship', WORSHIP_INSTRUMENTS_ANCHOR);
-  const service = (slug: string) => site('production', `/services/${slug}`);
   return {
     academy: {
-      tiles: ACADEMY_MENU_INSTRUMENTS.map(([label, photo, slug]) => ({
-        label,
-        photo,
-        href: site('academy', `/instruments/${slug}`),
-      })),
+      tiles: ACADEMY_MENU_INSTRUMENTS.map(([label, photo]) => ({ label, photo })),
       links: [
         { label: 'Browse lessons', href: site('academy', '/lessons') },
         { label: 'Instructors', href: site('academy', '/#instructors') },
@@ -74,7 +72,7 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
           ['Choir', 'musicianChoir'],
           ['Strings', 'musicianStrings'],
         ] as const
-      ).map(([label, photo]) => ({ label, photo, href: worshipInstruments })),
+      ).map(([label, photo]) => ({ label, photo })),
       links: [
         { label: 'Request a musician', href: site('web', '/worship/request') },
         { label: 'Apply as a musician', href: site('web', '/worship/apply') },
@@ -83,13 +81,13 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
     },
     production: {
       tiles: [
-        { label: 'Audio', photo: 'techAudio', href: service('audio') },
-        { label: 'Video and livestream', photo: 'techVideoCamera', href: service('livestream-video') },
-        { label: 'Lighting', photo: 'techLighting', href: service('lighting-media') },
-        { label: 'Stage and events', photo: 'techStageSetup', href: service('event-support') },
-        { label: 'Training', photo: 'techTraining', href: service('training') },
-        { label: 'Websites and apps', photo: 'softwareWebsite', href: service('software') },
-        { label: 'Church email', src: CHURCH_EMAIL_ILLUSTRATION, href: service('software') },
+        { label: 'Audio', photo: 'techAudio' },
+        { label: 'Video and livestream', photo: 'techVideoCamera' },
+        { label: 'Lighting', photo: 'techLighting' },
+        { label: 'Stage and events', photo: 'techStageSetup' },
+        { label: 'Training', photo: 'techTraining' },
+        { label: 'Websites and apps', photo: 'softwareWebsite' },
+        { label: 'Church email', src: CHURCH_EMAIL_ILLUSTRATION },
       ],
       links: [
         { label: 'Request support', href: site('web', '/production/request') },

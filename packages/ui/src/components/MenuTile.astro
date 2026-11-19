@@ -1,8 +1,9 @@
 ---
 /**
- * MenuTile: one image-led entry of a header panel or of the mobile menu. The link wraps the picture and
- * the name, so the picture is decorative (`alt=""`: the link text names it). App-neutral: the photo key
- * or image path comes from the app's `NavTile`.
+ * MenuTile: one image-led entry of a header panel or of the mobile menu. With an `href` the link wraps the picture and
+ * the name; without one it is a plain picture with its name (no link, no hover, not focusable). Either way the picture
+ * is decorative (`alt=""`: the name next to it names it). App-neutral: the photo key or image path comes from the
+ * app's `NavTile`.
  *
  * Props
  * - tile: `NavTile` ({ label, href, photo | src }).
@@ -22,15 +23,17 @@ if (Boolean(photo) === Boolean(src)) {
   throw new Error(`MenuTile "${label}": give exactly one of photo or src.`);
 }
 const row = variant === 'row';
+const Tag = href ? 'a' : 'div';
 ---
 
-<a
+<Tag
   href={href}
   class:list={[
     'menu-tile group',
     row
-      ? 'flex min-h-12 items-center gap-4 py-1 text-base font-semibold text-fg hover:text-action-strong'
-      : 'flex flex-col gap-3 text-sm font-semibold text-fg hover:text-action-strong',
+      ? 'flex min-h-12 items-center gap-4 py-1 text-base font-semibold text-fg'
+      : 'flex flex-col gap-3 text-sm font-semibold text-fg',
+    href && 'hover:text-action-strong',
   ]}
 >
   <span
@@ -44,7 +47,7 @@ const row = variant === 'row';
     )}
   </span>
   <span>{label}</span>
-</a>
+</Tag>
 
 <style>
   .menu-tile__image--row {

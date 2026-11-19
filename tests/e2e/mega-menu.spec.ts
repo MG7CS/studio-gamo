@@ -32,7 +32,9 @@ test.describe('desktop', () => {
       await button(page, name).click();
       await expect(button(page, name)).toHaveAttribute('aria-expanded', 'true');
       await expect(panel(page, name)).toBeVisible();
-      await expect(panel(page, name).locator('ul').first().locator('li a')).toHaveCount(TILES[name]);
+      // Tiles are pictures with names, not links (2026-11-19); the side links still work.
+      await expect(panel(page, name).locator('ul').first().locator('li')).toHaveCount(TILES[name]);
+      await expect(panel(page, name).locator('ul').first().locator('li a')).toHaveCount(0);
       await expect(panel(page, name).getByRole('link', { name: `All of ${name}` })).toBeVisible();
 
       // The panel fades in; axe must not measure contrast against a half-transparent panel.
