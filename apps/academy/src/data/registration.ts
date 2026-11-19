@@ -18,10 +18,6 @@ export const faqs = [
     a: 'Tuition amounts are proposals until the board approves them. Tuition and instructor pay are always shown as separate line items before enrollment is confirmed.',
   },
   {
-    q: 'Are lessons sponsored?',
-    a: 'Lessons are sponsored through partner organizations and churches. Details depend on each partner and are shared when confirmed.',
-  },
-  {
     q: 'Do I need my own instrument?',
     a: 'For most instruments, yes. Instructors can suggest beginner-friendly options.',
   },

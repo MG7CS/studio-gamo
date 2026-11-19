@@ -54,7 +54,6 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
         { label: 'Browse lessons', href: site('academy', '/lessons') },
         { label: 'Instructors', href: site('academy', '/#instructors') },
         { label: 'Find my registration', href: site('academy', '/registrations/find') },
-        { label: 'Sponsor lessons', href: site('academy', '/sponsored') },
       ],
       all: { label: 'All of Academy', href: site('academy') },
     },

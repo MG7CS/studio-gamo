@@ -2,9 +2,9 @@
 import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
 /**
  * Home page Gamo Academy section (restored 2026-11-18 without the label above the heading and the sentence under
- * it, DESIGN.md section 11): heading, the instruments as flat linked rows, the sponsored-lessons link (no
- * tag; 2026-11-19) and two actions, beside one portrait photo of the young pianist (2026-11-19: one larger photo
- * instead of two small ones, at least as tall as the text; the mentor photo already leads the programs block).
+ * it, DESIGN.md section 11): heading, the instruments as flat linked rows and one action, beside one portrait photo
+ * of the young pianist (2026-11-19: one larger photo instead of two small ones, at least as tall as the text; the mentor
+ * photo already leads the programs block).
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -65,9 +65,6 @@ const instruments = ACADEMY_INSTRUMENTS.map((i) => ({
   <div class="mt-8 flex flex-wrap gap-3">
     <ButtonLink href={siteUrl('academy', '/instruments')} arrow>
       Choose an instrument
-    </ButtonLink>
-    <ButtonLink href={siteUrl('academy', '/sponsored')} variant="secondary">
-      Lessons sponsored by partners
     </ButtonLink>
   </div>
 

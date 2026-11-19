@@ -8,7 +8,6 @@ import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { productionFaq } from '../../data/production';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
 ---
 
 <Layout
@@ -28,9 +27,6 @@ import { siteUrl } from '@studio-gamo/ui/lib/sites';
   <CtaInvitation title="Start with a needs assessment." photo="sanctuaryCongregation">
     <ButtonLink href={REQUEST_HREF} arrow>
       Request a consultation
-    </ButtonLink>
-    <ButtonLink href={siteUrl('web', '/partners/interest')} variant="secondary">
-      Sponsor lessons
     </ButtonLink>
   </CtaInvitation>
 </Layout>

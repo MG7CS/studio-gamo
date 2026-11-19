@@ -12,7 +12,6 @@ export const GET: APIRoute = () =>
       { path: '/', priority: '1.0', changefreq: 'weekly' },
       { path: '/instruments', priority: '0.9', changefreq: 'monthly' },
       { path: '/lessons', priority: '0.9', changefreq: 'monthly' },
-      { path: '/sponsored', priority: '0.7', changefreq: 'monthly' },
       ...instruments.map((i) => ({
         path: `/instruments/${i.slug}`,
         priority: '0.8',

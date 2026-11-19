@@ -60,11 +60,11 @@ export const participation: ParticipationPath[] = [
     photo: 'soundEngineer',
   },
   {
-    title: 'Sponsors & partners',
+    title: 'Partners & supporters',
     area: 'Gamo Studios',
-    next: 'Sponsor lessons through your church or organization.',
-    body: 'Sponsor lessons through your church or organization, or share a space, instruments, skills or time.',
-    href: '/partners/interest',
+    next: 'Share a space, instruments, skills or time.',
+    body: 'Offer your time, a learning space, instruments or practical skills, or explore a church partnership.',
+    href: '/support',
     photo: 'sanctuaryCongregation',
   },
 ];
@@ -74,7 +74,6 @@ export const generalFaq = [
   { q: 'How can our church or family participate?', a: 'Families, churches and musicians can send a program inquiry for review. An inquiry does not enroll a student or approve an application.' },
   { q: 'What kind of organization is Gamo Studios?', a: 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.' },
   { q: 'Do churches need a partnership to participate?', a: 'Partnership is never a requirement for ordinary program participation. Contributions and partnerships never influence musician vetting or rankings.' },
-  { q: 'Are lessons sponsored?', a: 'Lessons are sponsored through partner organizations and churches. Details are shaped with each partner and shared when confirmed.' },
   { q: 'Where do programs operate?', a: 'Academy, Worship and Production begin in the Phoenix metropolitan area, Arizona.' },
   { q: 'How do I get in touch with the team?', a: 'Email us at hello@gamostudio.org. Our team reads every message and replies by email.' },
 ];
