@@ -1,7 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import HomeEditorialHero from '../components/home/HomeEditorialHero.astro';
-import ProgramsShowcase from '../components/organization/ProgramsShowcase.astro';
+import ProgramSections from '../components/organization/ProgramSections.astro';
 import PathChooser from '../components/organization/PathChooser.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -30,7 +30,10 @@ const organizationJsonLd = {
   description="Gamo Studios connects Academy, Worship and Production to serve students, families, churches and musicians through music and worship."
 >
   <HomeEditorialHero />
-  <ProgramsShowcase id="programs" title="Three connected ways we serve together." lead={false} />
+  <ProgramSections
+    id="programs"
+    photos={{ academy: 'illustrationPianoHeadphones', worship: 'illustrationWorshipService' }}
+  />
   <Section title="Find your place in the mission.">
     <PathChooser detail="none" />
   </Section>

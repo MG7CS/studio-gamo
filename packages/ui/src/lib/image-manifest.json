@@ -83,6 +83,39 @@
       1448
     ]
   },
+  "illustrations-piano-headphones-purple": {
+    "source": "2026-brand-refresh/illustrations/piano-headphones-purple.png",
+    "width": 1774,
+    "height": 887,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "illustrations-singer-close-up": {
+    "source": "2026-brand-refresh/illustrations/singer-close-up.png",
+    "width": 1774,
+    "height": 887,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "illustrations-worship-service-purple": {
+    "source": "2026-brand-refresh/illustrations/worship-service-purple.png",
+    "width": 1774,
+    "height": 887,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
   "instruments-acoustic-guitar": {
     "source": "2026-brand-refresh/instruments/acoustic-guitar.jpg",
     "width": 2400,

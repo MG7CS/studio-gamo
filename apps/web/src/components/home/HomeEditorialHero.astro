@@ -1,45 +1,33 @@
 ---
 /**
- * Global homepage hero ("Worship, Learning & Community"). Clean layout rules (DESIGN.md section 11): the
- * heading comes first, then one action; no sentence under it, no label above, no glow behind, no card over the
- * photos. The three photos are one shared PhotoGrid in its `tall` shape so they fill the screen height on large
- * displays instead of leaving empty bands above and below.
+ * Global homepage hero ("Worship, Learning & Community"). Clean layout rules (DESIGN.md section 11): a heading
+ * and one action over a full-width photo; no sentence, no label, no card. The photo is an owner-supplied
+ * illustration (docs/ASSET_MANIFEST.md), so it is never captioned as a real person. Two stacked scrims
+ * (token `scrim`) darken the left and bottom edges, where the text sits, to keep the contrast at AA.
  */
-import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 ---
 
 <section
-  class="relative flex min-h-dvh flex-col justify-center overflow-hidden bg-surface page-intro-space text-fg"
+  class="relative flex min-h-dvh flex-col justify-end overflow-hidden bg-ink page-intro-space text-cream"
   aria-labelledby="home-hero-title"
 >
-  <Container class="relative grid items-center gap-10 lg:grid-cols-12">
-    <div class="lg:col-span-5">
-      <h1 id="home-hero-title" class="display-xl max-w-[14ch] text-balance text-fg">
-        Worship, Learning &amp; <span class="block text-action">Community</span>
-      </h1>
-      <div class="mt-10">
-        <ButtonLink href="#programs" size="lg" arrow>
-          Explore our programs
-        </ButtonLink>
-      </div>
-    </div>
+  <div class="absolute inset-0">
+    <Photo name="illustrationSingerCloseUp" sizes="100vw" priority />
+  </div>
+  <div class="absolute inset-0 bg-linear-to-t from-scrim via-scrim to-transparent" aria-hidden="true"></div>
+  <div class="absolute inset-0 bg-linear-to-r from-scrim via-scrim to-transparent" aria-hidden="true"></div>
 
-    <div class="order-first lg:order-none lg:col-span-7">
-      <PhotoGrid
-        layout="trio"
-        tall
-        photos={[
-          {
-            photo: 'worshipLeaderGolden',
-            alt: 'Gospel worship leader singing with eyes closed in warm golden light',
-            priority: true,
-          },
-          { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
-          { photo: 'sanctuaryCongregation', alt: 'Congregation worshipping together in a sunlit sanctuary' },
-        ]}
-      />
+  <Container class="relative">
+    <h1 id="home-hero-title" class="display-xl max-w-[14ch] text-balance text-cream">
+      Worship, Learning &amp; Community
+    </h1>
+    <div class="mt-8">
+      <ButtonLink href="#programs" variant="light" size="lg" arrow>
+        Explore our programs
+      </ButtonLink>
     </div>
   </Container>
 </section>
