@@ -6,6 +6,7 @@
  * `site` maps an app and a path to a URL (apps pass `siteUrl` from `@studio-gamo/ui/lib/sites`).
  */
 import type { AppName } from './apps.ts';
+import { ACADEMY_INSTRUMENTS } from './academy-instruments.ts';
 import { PROGRAMS, type ProgramId, type ProgramNavItem } from './programs.ts';
 
 export interface MenuLink {
@@ -33,16 +34,6 @@ export interface ProgramMenu {
 
 export type SiteUrl = (app: AppName, path?: string) => string;
 
-/** Tile order and slugs match `apps/academy/src/data/instruments.ts` (checked by a test). */
-export const ACADEMY_MENU_INSTRUMENTS = [
-  ['Piano', 'instrumentPianoKeyboard', 'piano'],
-  ['Acoustic guitar', 'instrumentAcousticGuitar', 'acoustic-guitar'],
-  ['Electric guitar', 'instrumentElectricGuitar', 'electric-guitar'],
-  ['Bass', 'instrumentBassGuitar', 'bass'],
-  ['Drums', 'instrumentDrums', 'drums'],
-  ['Vocals', 'instrumentVocals', 'vocals'],
-] as const;
-
 /** Worship has one page; the tiles lead to its section that lists the instruments. */
 export const WORSHIP_INSTRUMENTS_ANCHOR = '/#instruments-title';
 
@@ -54,8 +45,8 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
       // The instrument pages are reviewed (2026-11-19), so these tiles link to them: on desktop the picture is a link, on
       // phone and iPad the picture list appears on the second screen. Worship and Production tiles stay pictures only
       // until their pages are reviewed.
-      tiles: ACADEMY_MENU_INSTRUMENTS.map(([label, photo, slug]) => ({
-        label,
+      tiles: ACADEMY_INSTRUMENTS.map(({ name, photo, slug }) => ({
+        label: name,
         photo,
         href: site('academy', `/instruments/${slug}`),
       })),
@@ -76,7 +67,6 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
           ['Keys', 'musicianKeysPlayer'],
           ['Drums', 'musicianDrummer'],
           ['Bass', 'musicianBassist'],
-          ['Choir', 'musicianChoir'],
           ['Strings', 'musicianStrings'],
         ] as const
       ).map(([label, photo]) => ({ label, photo })),

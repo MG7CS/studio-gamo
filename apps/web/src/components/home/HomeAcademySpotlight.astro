@@ -10,22 +10,26 @@ import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { ACADEMY_INSTRUMENTS } from '@gamo/config/academy-instruments';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { IconName } from '@studio-gamo/ui/lib/icons';
 
-const instruments: { name: string; age: string; path: string; icon: IconName }[] = [
-  { name: 'Piano & Keys', age: 'Ages 6 to adult', path: '/instruments/piano', icon: 'piano' },
-  {
-    name: 'Acoustic & Electric Guitar',
-    age: 'Ages 7 to adult',
-    path: '/instruments/acoustic-guitar',
-    icon: 'guitar',
-  },
-  { name: 'Voice & Worship Vocals', age: 'Ages 8 to adult', path: '/instruments/vocals', icon: 'mic' },
-  { name: 'Drums & Rhythm', age: 'Ages 7 to adult', path: '/instruments/drums', icon: 'drums' },
-  { name: 'Bass Guitar', age: 'Ages 9 to adult', path: '/instruments/bass', icon: 'music' },
-  { name: 'Ensemble & Group Labs', age: 'Youth & families', path: '/instruments', icon: 'users' },
-];
+// The instruments, names and ages come from the shared list (the same one the header panel and the Academy use);
+// only the icon is chosen here.
+const icons: Record<string, IconName> = {
+  piano: 'piano',
+  'acoustic-guitar': 'guitar',
+  'electric-guitar': 'guitar',
+  bass: 'music',
+  drums: 'drums',
+  vocals: 'mic',
+};
+const instruments = ACADEMY_INSTRUMENTS.map((i) => ({
+  name: i.name,
+  age: i.ages,
+  path: `/instruments/${i.slug}`,
+  icon: icons[i.slug] ?? 'music',
+}));
 ---
 
 <SplitHero
