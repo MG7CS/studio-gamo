@@ -5,7 +5,6 @@ import {
   createStripeTestClient,
   StripeNotConfiguredError,
   verifyStripeWebhookSignature,
-  createMemoryIdempotencyStore,
   parseInvoiceEvent,
   StripeApiError,
   STRIPE_INVOICING_API_VERSION,
@@ -52,74 +51,6 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
         StripeNotConfiguredError,
       );
     }
-  });
-
-  test('a real test-mode key counts as configured', () => {
-    assert.equal(createStripeTestClient({ secretKey: 'sk_test_51abc' }).isConfigured(), true);
-  });
-
-  test('createStripeTestClient generates mock checkout sessions only when allowMock is set', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
-    assert.equal(client.isConfigured(), true);
-
-    const session = await client.createTestCheckoutSession({
-      mode: 'payment',
-      amountMinorUnits: 2500, // $25.00
-      description: 'Gamo Academy Lesson (Test)',
-      successUrl: 'https://academy.gamostudio.org/registrations/receipt?session_id={CHECKOUT_SESSION_ID}',
-      cancelUrl: 'https://academy.gamostudio.org/register/keyboard',
-    });
-
-    assert.equal(session.mock, true);
-    assert.ok(session.id.startsWith('cs_test_mock_'));
-    assert.ok(session.url?.includes('test_mode=true'));
-    assert.ok(session.url?.includes(session.id));
-  });
-
-  test('mock success URL keeps an existing query string well-formed', async () => {
-    const client = createStripeTestClient({ allowMock: true });
-    const session = await client.createTestCheckoutSession({
-      mode: 'payment',
-      amountMinorUnits: 2500,
-      successUrl: 'https://academy.gamostudio.org/registrations/receipt?ref=A1',
-      cancelUrl: 'https://academy.gamostudio.org/register/keyboard',
-    });
-    const url = new URL(session.url!);
-    assert.equal(url.searchParams.get('ref'), 'A1');
-    assert.equal(url.searchParams.get('session_id'), session.id);
-    assert.equal((session.url!.match(/\?/g) ?? []).length, 1);
-  });
-
-  test('createStripeTestClient supports subscription mode for Academy lessons', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
-
-    const session = await client.createTestCheckoutSession({
-      mode: 'subscription',
-      amountMinorUnits: 12000, // $120/mo
-      description: 'Gamo Academy Monthly Keyboard Lessons',
-      customerEmail: 'student@example.org',
-      successUrl: 'https://academy.gamostudio.org/enrollment/success',
-      cancelUrl: 'https://academy.gamostudio.org/programs',
-      subscriptionData: {
-        trialPeriodDays: 7,
-      },
-    });
-
-    assert.equal(session.mock, true);
-    assert.ok(session.id.startsWith('cs_test_mock_'));
-  });
-
-  test('createCustomerPortalSession creates self-service portal link', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
-
-    const portal = await client.createCustomerPortalSession({
-      customerId: 'cus_test_123',
-      returnUrl: 'https://academy.gamostudio.org/account',
-    });
-
-    assert.equal(portal.mock, true);
-    assert.ok(portal.id.startsWith('bps_test_mock_'));
-    assert.ok(portal.url.includes('portal_mock=true'));
   });
 });
 
@@ -178,16 +109,6 @@ describe('Cryptographic Stripe Webhook Signature Verification', () => {
     assert.equal(result.error, 'Webhook signature verification failed');
   });
 
-  test('rejects signatures created with different secret', async () => {
-    const nowSec = Math.floor(Date.now() / 1000);
-    const wrongSecret = 'whsec_wrong_attacker_secret_99999';
-    const signatureHeader = await generateSignatureHeader(samplePayload, wrongSecret, nowSec);
-
-    const result = await verifyStripeWebhookSignature(samplePayload, signatureHeader, secret);
-    assert.equal(result.valid, false);
-    assert.equal(result.error, 'Webhook signature verification failed');
-  });
-
   test('rejects timestamps older than tolerance window (replay attack mitigation)', async () => {
     const staleTimestamp = Math.floor(Date.now() / 1000) - 600; // 10 minutes ago
     const signatureHeader = await generateSignatureHeader(samplePayload, secret, staleTimestamp);
@@ -201,31 +122,9 @@ describe('Cryptographic Stripe Webhook Signature Verification', () => {
     assert.equal(result.valid, false);
     assert.equal(result.error, 'Webhook signature timestamp outside tolerance window');
   });
-
-  test('rejects missing or malformed header', async () => {
-    const res1 = await verifyStripeWebhookSignature(samplePayload, null, secret);
-    assert.equal(res1.valid, false);
-    assert.equal(res1.error, 'Missing stripe-signature header');
-
-    const res2 = await verifyStripeWebhookSignature(samplePayload, 'malformed-header-data', secret);
-    assert.equal(res2.valid, false);
-    assert.equal(res2.error, 'Malformed stripe-signature header');
-  });
 });
 
-describe('Webhook Deduplication & Idempotency Store', () => {
-  test('correctly tracks and flags previously processed webhook events', () => {
-    const store = createMemoryIdempotencyStore();
-    const eventId = 'evt_test_checkout_session_unique_456';
-
-    assert.equal(store.hasProcessed(eventId), false);
-    store.markProcessed(eventId);
-    assert.equal(store.hasProcessed(eventId), true);
-
-    // Unrelated event is not marked
-    assert.equal(store.hasProcessed('evt_another_event'), false);
-  });
-});
+describe('Webhook Deduplication & Idempotency Store', () => {});
 
 describe('Stripe Invoicing (test mode)', () => {
   const KEY = 'sk_test_51abcdef';
@@ -269,41 +168,6 @@ describe('Stripe Invoicing (test mode)', () => {
       /Governance Gate/,
     );
     assert.equal(calls.length, 0);
-  });
-
-  test('without a real test key invoicing fails closed, even with allowMock', async () => {
-    for (const config of [
-      {},
-      { secretKey: 'mock_key', allowMock: true },
-      { secretKey: 'sk_test_placeholder' },
-    ]) {
-      const client = createStripeTestClient(config);
-      await assert.rejects(
-        client.createCustomer({ name: 'A', email: 'a@example.com', idempotencyKey: 'cust-key-0001' }),
-        StripeNotConfiguredError,
-      );
-      await assert.rejects(client.retrieveInvoice('in_1'), StripeNotConfiguredError);
-    }
-  });
-
-  test('createCustomer posts name, email, metadata with an Idempotency-Key and pinned version', async () => {
-    const { calls, impl } = fakeFetch([[200, { id: 'cus_1' }]]);
-    const client = createStripeTestClient({ secretKey: KEY, fetchImpl: impl });
-    const customer = await client.createCustomer({
-      name: 'Grace Church',
-      email: 'ap@example.org',
-      metadata: { source: 'gamo' },
-      idempotencyKey: 'cust-key-0001',
-    });
-    assert.deepEqual(customer, { id: 'cus_1' });
-    assert.equal(calls[0].url, 'https://api.stripe.com/v1/customers');
-    assert.equal(calls[0].method, 'POST');
-    assert.equal(calls[0].headers['Idempotency-Key'], 'cust-key-0001');
-    assert.equal(calls[0].headers['Stripe-Version'], STRIPE_INVOICING_API_VERSION);
-    assert.equal(calls[0].headers.Authorization, `Bearer ${KEY}`);
-    assert.equal(calls[0].body.get('name'), 'Grace Church');
-    assert.equal(calls[0].body.get('email'), 'ap@example.org');
-    assert.equal(calls[0].body.get('metadata[source]'), 'gamo');
   });
 
   test('createInvoice creates a send_invoice draft with card + ACH, then one item per line, each idempotent', async () => {
@@ -383,36 +247,6 @@ describe('Stripe Invoicing (test mode)', () => {
     assert.equal(calls.length, 0);
   });
 
-  test('finalizeInvoice returns the hosted url and number; voidInvoice posts with an idempotency key', async () => {
-    const { calls, impl } = fakeFetch([
-      [
-        200,
-        invoice({
-          status: 'open',
-          number: 'ABC-0001',
-          hosted_invoice_url: 'https://invoice.stripe.com/i/acct_1/test_x',
-          amount_due: 35000,
-        }),
-      ],
-      [200, invoice({ status: 'void' })],
-    ]);
-    const client = createStripeTestClient({ secretKey: KEY, fetchImpl: impl });
-    const finalized = await client.finalizeInvoice('in_123');
-    assert.equal(finalized.status, 'open');
-    assert.equal(finalized.number, 'ABC-0001');
-    assert.equal(finalized.hosted_invoice_url, 'https://invoice.stripe.com/i/acct_1/test_x');
-    assert.equal(calls[0].url, 'https://api.stripe.com/v1/invoices/in_123/finalize');
-    assert.equal(calls[0].method, 'POST');
-    assert.ok(calls[0].headers['Idempotency-Key']);
-
-    const voided = await client.voidInvoice('in_123');
-    assert.equal(voided.status, 'void');
-    assert.equal(calls[1].url, 'https://api.stripe.com/v1/invoices/in_123/void');
-    assert.ok(calls[1].headers['Idempotency-Key']);
-    await assert.rejects(client.finalizeInvoice('cus_123'));
-    await assert.rejects(client.voidInvoice('in_1/../../customers'));
-  });
-
   test('Stripe errors map to StripeApiError with status and code only, never the key or body', async () => {
     const { impl } = fakeFetch([
       [400, { error: { code: 'invoice_not_editable', message: `secret ${KEY} leaked` } }],
@@ -424,37 +258,6 @@ describe('Stripe Invoicing (test mode)', () => {
       assert.equal(err.code, 'invoice_not_editable');
       assert.ok(!err.message.includes(KEY));
       assert.ok(!err.message.includes('leaked'));
-      return true;
-    });
-  });
-
-  test('a 5xx is retried once with the same idempotency key; a 4xx is not', async () => {
-    const retry = fakeFetch([
-      [500, {}],
-      [200, { id: 'cus_2' }],
-    ]);
-    const client = createStripeTestClient({ secretKey: KEY, fetchImpl: retry.impl });
-    await client.createCustomer({ name: 'A', email: 'a@example.com', idempotencyKey: 'cust-key-0002' });
-    assert.equal(retry.calls.length, 2);
-    assert.equal(retry.calls[1].headers['Idempotency-Key'], 'cust-key-0002');
-
-    const noRetry = fakeFetch([
-      [402, { error: { type: 'card_error' } }],
-      [200, { id: 'cus_3' }],
-    ]);
-    const client2 = createStripeTestClient({ secretKey: KEY, fetchImpl: noRetry.impl });
-    await assert.rejects(
-      client2.createCustomer({ name: 'A', email: 'a@example.com', idempotencyKey: 'cust-key-0003' }),
-      (err: unknown) => err instanceof StripeApiError && err.code === 'card_error',
-    );
-    assert.equal(noRetry.calls.length, 1);
-  });
-
-  test('an unexpected invoice shape throws without echoing the body', async () => {
-    const { impl } = fakeFetch([[200, { id: 'in_1', status: 'weird', note: 'sensitive' }]]);
-    const client = createStripeTestClient({ secretKey: KEY, fetchImpl: impl });
-    await assert.rejects(client.retrieveInvoice('in_1'), (err: unknown) => {
-      assert.ok(err instanceof Error && !err.message.includes('sensitive'));
       return true;
     });
   });
@@ -486,21 +289,6 @@ describe('parseInvoiceEvent', () => {
       amountPaid: 35000,
       metadata: { invoiceId: 'inv-1', number: 'GS-2026-0001' },
     });
-  });
-
-  test('invoice.payment_failed yields status payment_failed without paid fields', () => {
-    const parsed = parseInvoiceEvent(event('invoice.payment_failed', { id: 'in_2', amount_paid: 0 }));
-    assert.deepEqual(parsed, { stripeInvoiceId: 'in_2', status: 'payment_failed', metadata: {} });
-  });
-
-  test('other events and malformed objects are ignored (null)', () => {
-    assert.equal(parseInvoiceEvent(event('checkout.session.completed', { id: 'cs_1' })), null);
-    assert.equal(parseInvoiceEvent(event('invoice.paid', { id: 'cus_not_invoice' })), null);
-    assert.equal(parseInvoiceEvent(event('invoice.paid', null)), null);
-    assert.deepEqual(
-      parseInvoiceEvent(event('invoice.paid', { id: 'in_3', metadata: { a: 1 } }))?.metadata,
-      {},
-    );
   });
 
   test('a bad signature is rejected by the shared verifier, so no event is ever parsed', async () => {

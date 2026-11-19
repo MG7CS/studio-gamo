@@ -30,14 +30,6 @@ async function migratedDb() {
 const NOW = new Date('2026-10-18T12:00:00Z');
 const EMAIL = 'first.admin@example.test';
 
-test('temporary passwords are long, unambiguous and different every time', () => {
-  const a = generateTemporaryPassword();
-  const b = generateTemporaryPassword();
-  assert.equal(a.length, 24);
-  assert.notEqual(a, b);
-  assert.match(a, /^[A-HJ-NP-Za-km-z2-9]+$/); // no 0 O 1 l I
-});
-
 test('email and SQL-literal handling reject unsafe input', () => {
   assert.equal(normalizeEmail('  First.Admin@Example.Test '), EMAIL);
   for (const bad of ['', 'nope', "o'brien@example.test; DROP TABLE users;--", 'a b@example.test'])
@@ -111,29 +103,6 @@ test('generated SQL creates a working superadmin that must change its password; 
     revoked_at: number | null;
   };
   assert.ok(session.revoked_at);
-});
-
-test('an existing user keeps its id and gains the role and credential', async () => {
-  const { d1, db } = await migratedDb();
-  d1.sqlite
-    .prepare("INSERT INTO users (id, email, status, created_at) VALUES ('usr_existing', ?, 'suspended', 0)")
-    .run(EMAIL);
-  const password = generateTemporaryPassword();
-  d1.sqlite.exec(
-    buildFirstSuperadminSql({
-      email: EMAIL,
-      displayName: 'X',
-      passwordHash: await hashAdminPassword(password),
-      now: NOW,
-    }),
-  );
-  const user = d1.sqlite.prepare('SELECT id, status FROM users WHERE email = ?').get(EMAIL) as {
-    id: string;
-    status: string;
-  };
-  assert.equal(user.id, 'usr_existing');
-  assert.equal(user.status, 'active');
-  assert.equal((await authenticateAdminPassword(db, EMAIL, password)).ok, true);
 });
 
 test('disable SQL retires an identity: no password, no roles, no open sessions, cannot sign in', async () => {

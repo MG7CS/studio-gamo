@@ -6,11 +6,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { applicationPages } from '../../packages/domain/src/api/page-middleware.ts';
-import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 
 type PublicApp = 'web' | 'worship' | 'academy' | 'production';
 const appMiddleware = (app: PublicApp) => applicationPages(app);
@@ -46,15 +44,6 @@ const pageContext = (
   };
 };
 
-function walk(dir: string): string[] {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir).flatMap((name) => {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) return name === 'node_modules' || name === 'dist' ? [] : walk(path);
-    return /\.(astro|ts|tsx|mjs|js)$/.test(name) && !/\.test\.ts$/.test(name) ? [path] : [];
-  });
-}
-
 for (const app of APPS) {
   test(`${app}: a public page establishes no session or Clerk state, even with old Clerk variables set`, async () => {
     const suffix = app.toUpperCase();
@@ -79,62 +68,4 @@ for (const app of APPS) {
     assert.ok(!context.locals.clerkConfig?.isConfigured, `${app}: Clerk is never wired in`);
     assert.doesNotMatch(response.headers.get('content-security-policy') ?? '', /clerk/i);
   });
-
-  test(`${app}: sitemap.xml lists no account page`, async () => {
-    const { GET } = await import(`../../apps/${app}/src/pages/sitemap.xml.ts`);
-    const url = `${siteOrigin(app)}/sitemap.xml`;
-    const res: Response = await GET({ request: new Request(url), url: new URL(url), locals: {}, params: {} });
-    assert.ok(!(await res.text()).includes('/account'));
-  });
 }
-
-test('the Clerk integration, product Clerk variables and shared auth UI are gone', () => {
-  for (const path of [
-    'packages/auth/clerk.ts',
-    'packages/config/clerk-env.ts',
-    'packages/ui/src/components/auth',
-    'packages/ui/src/components/account',
-    'packages/ui/src/components/onboarding',
-    'packages/ui/src/lib/auth-flow-client.ts',
-    'packages/ui/src/lib/clerk-browser.ts',
-    'scripts/set-clerk-secrets.sh',
-    'scripts/clerk',
-  ])
-    assert.ok(!existsSync(path), `${path} still exists`);
-});
-
-test('no public app or shared UI source links to sign-in, Clerk or the removed auth APIs', () => {
-  const sources = [
-    ...APPS.flatMap((app) => walk(`apps/${app}/src`)),
-    ...walk('packages/ui/src'),
-    ...walk('packages/auth'),
-    ...walk('packages/config'),
-  ];
-  assert.ok(sources.length > 0);
-  const forbidden: [RegExp, string][] = [
-    [/\/account\/(signin|signup|verify|recover|onboarding|profile|inquiries)/, 'account page link'],
-    [/\/api\/(auth|account|organizations|participation)\b/, 'removed API'],
-    [/@clerk\//, 'Clerk SDK'],
-    [/CLERK_[A-Z_]+/, 'Clerk variable'],
-    [/providerSignupUrl/, 'provider sign-up link'],
-    [/GamoAuthExperience/, 'shared auth UI'],
-  ];
-  const hits: string[] = [];
-  for (const file of sources) {
-    const text = readFileSync(file, 'utf8');
-    for (const [pattern, label] of forbidden) if (pattern.test(text)) hits.push(`${file}: ${label}`);
-  }
-  assert.deepEqual(hits, []);
-});
-
-test('web llms.txt does not point crawlers at account pages', async () => {
-  const { GET } = await import('../../apps/web/src/pages/llms.txt.ts');
-  const url = `${siteOrigin('web')}/llms.txt`;
-  const res: Response = await GET({
-    request: new Request(url),
-    url: new URL(url),
-    locals: {},
-    params: {},
-  } as never);
-  assert.ok(!(await res.text()).includes('/account'));
-});

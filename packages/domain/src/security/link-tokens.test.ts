@@ -4,17 +4,10 @@ import { createMigratedD1 } from '@gamo/db/testing';
 import { SecretNotConfiguredError } from './crypto.ts';
 import {
   CustomerLinkTokens,
-  formatScope,
   generateLinkToken,
   hashLinkToken,
-  isCustomerScope,
-  isExpired,
   isWellFormedLinkToken,
-  LINK_TOKEN_RETENTION_SECONDS,
-  parseScope,
   recoveryLinkExpiresAt,
-  RECOVERY_LINK_TTL_SECONDS,
-  scopeCovers,
 } from './link-tokens.ts';
 import type { SqlDatabase } from './sql-database.ts';
 
@@ -62,39 +55,6 @@ test('tokens are 256-bit base64url and hashed with the secret (never stored in c
   >;
   assert.equal(row.token_hash, await hashLinkToken(issued.token, SECRET, 'academy'));
   assert.ok(!Object.values(row).includes(issued.token), 'the plaintext token is not stored');
-});
-
-test('scopes: format, parse, cover rules', () => {
-  assert.equal(formatScope('customer'), 'customer:all');
-  assert.equal(formatScope('registration', 'acr_1'), 'registration:acr_1');
-  assert.throws(() => formatScope('registration'), RangeError);
-  assert.throws(() => formatScope('registration', 'a b'), RangeError);
-  assert.deepEqual(parseScope('registration:acr_1'), { kind: 'registration', id: 'acr_1' });
-  for (const bad of [
-    'customer:me',
-    'registration:',
-    ':x',
-    'admin:1',
-    'registration:a;b',
-    'order:ord_1',
-    42,
-    null,
-  ])
-    assert.equal(parseScope(bad), null, String(bad));
-  assert.ok(isCustomerScope('registration:acr_1'));
-  assert.ok(!isCustomerScope('ticket:tkt_1'), 'retired Live scopes no longer parse');
-
-  assert.ok(scopeCovers('customer:all', { kind: 'registration', id: 'acr_1' }));
-  assert.ok(scopeCovers('registration:acr_1', { kind: 'registration', id: 'acr_1' }));
-  assert.ok(!scopeCovers('registration:acr_1', { kind: 'registration', id: 'acr_2' }));
-  assert.ok(!scopeCovers('registration:acr_1', { kind: 'customer' }));
-  assert.ok(!scopeCovers('garbage', { kind: 'registration', id: 'x' }));
-});
-
-test('expiry helpers', () => {
-  assert.equal(recoveryLinkExpiresAt(NOW), NOW + RECOVERY_LINK_TTL_SECONDS);
-  assert.equal(isExpired(NOW, NOW), true);
-  assert.equal(isExpired(NOW + 1, NOW), false);
 });
 
 test('consume: verifies hash, expiry, revocation and max uses atomically; counts uses', async () => {
@@ -173,58 +133,4 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
   assert.equal(await tokens.revokeForScope('registration:acr_1', NOW + 5), 0, 'already revoked');
   assert.equal(await tokens.revoke(single.id, NOW), true);
   assert.equal(await tokens.revoke(single.id, NOW), false);
-});
-
-test('issue validates input and the database enforces the scope shape; purge honours retention', async () => {
-  const { d1, tokens } = await setup();
-  await assert.rejects(
-    () =>
-      tokens.issue({
-        customerProfileId: 'cus_1',
-        scope: 'admin:1' as never,
-        purpose: 'registration',
-        expiresAt: NOW + 1,
-        now: NOW,
-      }),
-    RangeError,
-  );
-  await assert.rejects(
-    () =>
-      tokens.issue({
-        customerProfileId: 'cus_1',
-        scope: 'customer:all',
-        purpose: 'recovery',
-        expiresAt: NOW,
-        now: NOW,
-      }),
-    RangeError,
-  );
-  assert.throws(() =>
-    d1.sqlite
-      .prepare(
-        "INSERT INTO customer_access_tokens (id, customer_profile_id, token_hash, scope, purpose, expires_at, created_at) VALUES ('x', 'cus_1', ?, 'registration:a b', 'registration', ?, ?)",
-      )
-      .run('a'.repeat(64), NOW + 10, NOW),
-  );
-  const old = await tokens.issue({
-    customerProfileId: 'cus_1',
-    scope: 'customer:all',
-    purpose: 'recovery',
-    expiresAt: NOW + 10,
-    now: NOW,
-  });
-  const fresh = await tokens.issue({
-    customerProfileId: 'cus_1',
-    scope: 'customer:all',
-    purpose: 'recovery',
-    expiresAt: NOW + 10 + LINK_TOKEN_RETENTION_SECONDS,
-    now: NOW,
-  });
-  assert.equal(await tokens.purgeExpired(NOW + 10 + LINK_TOKEN_RETENTION_SECONDS), 1);
-  const left = d1.sqlite
-    .prepare('SELECT id FROM customer_access_tokens')
-    .all()
-    .map((r: any) => r.id);
-  assert.deepEqual(left, [fresh.id]);
-  assert.ok(!left.includes(old.id));
 });

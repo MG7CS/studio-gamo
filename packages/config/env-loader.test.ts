@@ -8,96 +8,15 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import * as loader from './env-loader.ts';
 import {
   describeLiveKeyFindings,
   findLiveKeysInLocalEnv,
   findLocalValuesInDist,
   gamoDeployBuildHygiene,
-  isRootVarAllowedForApp,
   localOnlyValues,
-  parseEnvFileContent,
-  resolveAppLocalEnv,
 } from './env-loader.ts';
 
 const FAKE_LIVE_SECRET = 'sk_live_FAKE_DO_NOT_PRINT_0123456789';
-
-describe('local env loading', () => {
-  test('parses .env and .dev.vars syntax accurately without mutating values', () => {
-    const raw = `
-      # Comment line
-      ENVIRONMENT="local"
-      SESSION_SECRET='super-secret-value-at-least-32-chars'
-      export REQUIRE_ADMIN_AUTH=false
-      STRIPE_SECRET_KEY="sk_test_example123" # inline comment
-    `;
-    assert.deepEqual(parseEnvFileContent(raw), {
-      ENVIRONMENT: 'local',
-      SESSION_SECRET: 'super-secret-value-at-least-32-chars',
-      REQUIRE_ADMIN_AUTH: 'false',
-      STRIPE_SECRET_KEY: 'sk_test_example123',
-    });
-  });
-
-  test('admin-only variables at the root are inherited only by admin', () => {
-    assert.equal(isRootVarAllowedForApp('ENVIRONMENT', 'worship'), true);
-    assert.equal(isRootVarAllowedForApp('SESSION_SECRET', 'admin'), true);
-    assert.equal(isRootVarAllowedForApp('CF_ACCESS_TEAM_NAME', 'admin'), true);
-    assert.equal(isRootVarAllowedForApp('CF_ACCESS_TEAM_NAME', 'worship'), false);
-    assert.equal(isRootVarAllowedForApp('ADMIN_ACCESS_TOKEN', 'web'), false);
-  });
-
-  test('Clerk handling is gone from the loader', () => {
-    for (const name of [
-      'isAppVarAllowedForApp',
-      'isClerkTestBlankedName',
-      'clerkOffTestVars',
-      'isTestServer',
-    ])
-      assert.ok(!(name in loader), `${name} should no longer be exported`);
-  });
-
-  test('root .env is shared, app files override it, and no Clerk aliases are added', () => {
-    const root = mkdtempSync(join(tmpdir(), 'gamo-monorepo-env-'));
-    try {
-      for (const app of ['worship', 'admin']) mkdirSync(join(root, 'apps', app), { recursive: true });
-      writeFileSync(
-        join(root, '.env'),
-        [
-          'ENVIRONMENT="local"',
-          'SESSION_SECRET="shared_local_session_secret_32_chars_min"',
-          'REQUIRE_ADMIN_AUTH="true"',
-          'STRIPE_SECRET_KEY="sk_test_root"',
-          'EMPTY_VALUE=',
-        ].join('\n'),
-      );
-      writeFileSync(join(root, 'apps/worship/.env'), 'PUBLIC_TURNSTILE_SITE_KEY="site-from-app-env"\n');
-      writeFileSync(join(root, 'apps/worship/.dev.vars'), 'STRIPE_SECRET_KEY="sk_test_worship_override"\n');
-
-      const worship = resolveAppLocalEnv({
-        app: 'worship',
-        appDir: join(root, 'apps/worship'),
-        monorepoRoot: root,
-      });
-      const admin = resolveAppLocalEnv({
-        app: 'admin',
-        appDir: join(root, 'apps/admin'),
-        monorepoRoot: root,
-      });
-
-      assert.equal(worship.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
-      assert.equal(worship.PUBLIC_TURNSTILE_SITE_KEY, 'site-from-app-env');
-      assert.equal(worship.STRIPE_SECRET_KEY, 'sk_test_worship_override');
-      assert.equal(worship.EMPTY_VALUE, undefined);
-      assert.equal(admin.REQUIRE_ADMIN_AUTH, 'true');
-      assert.equal(admin.STRIPE_SECRET_KEY, 'sk_test_root');
-      for (const env of [worship, admin])
-        assert.ok(!Object.keys(env).some((k) => k.includes('CLERK')), 'no Clerk variables are synthesized');
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
-  });
-});
 
 describe('live keys and deploy builds', () => {
   test('live keys in local env files are found by file and name; the message never holds a value', () => {

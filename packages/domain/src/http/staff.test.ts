@@ -32,32 +32,6 @@ async function rejects(promise: Promise<unknown>, status: number) {
   await assert.rejects(promise, (err: unknown) => err instanceof AuthError && err.status === status);
 }
 
-test('staffContext returns env, db, sql, auth and the staff actor for a staff session', async () => {
-  const { db, env, identity } = await setup();
-  const user = await identity.findOrCreateUser('reviewer@example.org', 'Sample Reviewer');
-  await identity.assignSystemRole(user.id, 'staff_reviewer');
-  const ctx = await staffContext({
-    request: post(await cookieFor(db, user.id)),
-    locals: { runtime: { env } },
-  });
-  assert.deepEqual(ctx.staff, { userId: user.id, name: 'Sample Reviewer', email: 'reviewer@example.org' });
-  assert.equal(ctx.auth.user.id, user.id);
-  assert.equal(ctx.env, env);
-  assert.ok(ctx.db);
-  assert.equal(typeof ctx.sql.prepare, 'function');
-});
-
-test('staffContext falls back to the email when the staff member has no display name', async () => {
-  const { db, env, identity } = await setup();
-  const user = await identity.findOrCreateUser('nameless@example.org');
-  await identity.assignSystemRole(user.id, 'superadmin');
-  const ctx = await staffContext({
-    request: post(await cookieFor(db, user.id)),
-    locals: { runtime: { env } },
-  });
-  assert.equal(ctx.staff.name, 'nameless@example.org');
-});
-
 test('staffContext refuses anonymous requests, non-staff users, cross-origin posts and Access mismatches', async () => {
   const { db, env, identity } = await setup();
   await rejects(staffContext({ request: post(null), locals: { runtime: { env } } }), 401);

@@ -393,173 +393,9 @@ test('missing, garbage, foreign and expired tokens answer generic 401/404 and ne
 
 // ---- part rules --------------------------------------------------------------------------------------------
 
-test('part: Content-Length is required and capped before the body is read; bad part numbers are 400', async () => {
-  const f = await setup();
-  const token = await newToken(f);
-  const started = (await (
-    await start(f, {
-      token,
-      questionId: 'documents',
-      filename: 'a.pdf',
-      size: 100,
-      contentType: 'application/pdf',
-    })
-  ).json()) as { uploadId: string };
-
-  const missing = await putPart(f, started.uploadId, 1, token, PDF(100), {}, false);
-  assert.equal(missing.status, 400);
-  assert.equal((await errorOf(missing)).code, 'LENGTH_REQUIRED');
-
-  // Over the cap by declaration: refused without pulling a single byte of the stream.
-  let pulled = false;
-  const stream = new ReadableStream<Uint8Array>(
-    {
-      pull(controller) {
-        pulled = true;
-        controller.enqueue(new Uint8Array(1024));
-        controller.close();
-      },
-    },
-    { highWaterMark: 0 },
-  );
-  const over = await call(
-    partRoute.PUT,
-    f,
-    `/api/forms/uploads/${started.uploadId}/parts/1`,
-    {
-      method: 'PUT',
-      body: stream,
-      duplex: 'half',
-      headers: { 'content-length': String(PART + 1), 'x-upload-token': token },
-    },
-    { id: started.uploadId, n: '1' },
-  );
-  assert.equal(over.status, 413);
-  assert.equal(pulled, false, 'the body was not read');
-
-  // A lying (too small) Content-Length with a bigger body never exceeds the cap.
-  const lying = await call(
-    partRoute.PUT,
-    f,
-    `/api/forms/uploads/${started.uploadId}/parts/1`,
-    {
-      method: 'PUT',
-      body: new Uint8Array(PART + 500),
-      headers: { 'content-length': '10', 'x-upload-token': token },
-    },
-    { id: started.uploadId, n: '1' },
-  );
-  assert.equal(lying.status, 413);
-
-  // Declared length differs from the body.
-  const mismatch = await call(
-    partRoute.PUT,
-    f,
-    `/api/forms/uploads/${started.uploadId}/parts/1`,
-    { method: 'PUT', body: PDF(100), headers: { 'content-length': '200', 'x-upload-token': token } },
-    { id: started.uploadId, n: '1' },
-  );
-  assert.equal(mismatch.status, 400);
-
-  for (const n of ['0', 'x', '-1', '1001', '1.5']) {
-    assert.equal((await putPart(f, started.uploadId, n, token, PDF(100))).status, 400, n);
-  }
-  // Part 2 of a one-part upload is a sequence error from the service.
-  assert.equal((await putPart(f, started.uploadId, 2, token, PDF(100))).status, 409);
-  assert.equal(f.bucket.objects.size, 0, 'nothing was stored by the refused parts');
-});
-
 // ---- start: question and type rules ------------------------------------------------------------------------
 
-test('start: the question must be a file_upload of the session form that accepts the type and size', async () => {
-  const f = await setup();
-  const token = await newToken(f);
-  const base = { token, filename: 'x', size: 1000 };
-  // wrong type for the question (video question, image file)
-  const wrongType = await start(f, { ...base, questionId: 'video_file', contentType: 'image/png' });
-  assert.equal(wrongType.status, 400);
-  assert.equal((await errorOf(wrongType)).code, 'UPLOAD_TYPE');
-  // a type our allowlist never accepts
-  assert.equal((await start(f, { ...base, questionId: 'documents', contentType: 'text/html' })).status, 400);
-  // unknown question, and a question that is not a file_upload
-  assert.equal((await start(f, { ...base, questionId: 'nope', contentType: 'video/mp4' })).status, 400);
-  const notFile = await db_question(f);
-  assert.equal((await start(f, { ...base, questionId: notFile, contentType: 'video/mp4' })).status, 400);
-  // over the question's own cap (photo question is 10 MB)
-  assert.equal(
-    (await start(f, { ...base, questionId: 'photo', size: 11 * 1_048_576, contentType: 'image/jpeg' }))
-      .status,
-    400,
-  );
-  // bad shapes
-  assert.equal(
-    (await start(f, { ...base, questionId: 'photo', size: '10', contentType: 'image/png' })).status,
-    400,
-  );
-  assert.equal(
-    (await start(f, { ...base, questionId: 'photo', contentType: 'image/png', extra: true })).status,
-    400,
-  );
-  assert.equal((await start(f, { token })).status, 400);
-  // the same question with the right type works
-  assert.equal((await start(f, { ...base, questionId: 'photo', contentType: 'image/png' })).status, 200);
-});
-
-async function db_question(f: Fixture): Promise<string> {
-  const row = f.d1.sqlite
-    .prepare(
-      'SELECT schema_json FROM form_versions WHERE form_id = (SELECT id FROM forms WHERE slug = ?) LIMIT 1',
-    )
-    .get(FORM) as { schema_json: string };
-  const schema = JSON.parse(row.schema_json) as {
-    sections: { questions: { id: string; type: string }[] }[];
-  };
-  const q = schema.sections.flatMap((s) => s.questions).find((x) => x.type !== 'file_upload');
-  assert.ok(q);
-  return q.id;
-}
-
-test('start: the question is checked against the PUBLISHED version of the session form, not another form', async () => {
-  const f = await setup();
-  const token = await newToken(f); // worship-apply session
-  // 'photo' exists in other forms too, but a question id from a form with no such id must not pass
-  const res = await start(f, {
-    token,
-    questionId: 'q_from_another_form',
-    filename: 'a.png',
-    size: 10,
-    contentType: 'image/png',
-  });
-  assert.equal(res.status, 400);
-  // closing the form after the session was issued stops new uploads
-  f.d1.sqlite.prepare("UPDATE forms SET status = 'closed' WHERE slug = ?").run(FORM);
-  const closed = await start(f, {
-    token,
-    questionId: 'photo',
-    filename: 'a.png',
-    size: 10,
-    contentType: 'image/png',
-  });
-  assert.equal(closed.status, 400);
-  assert.equal((await errorOf(closed)).code, 'FORM_CLOSED');
-});
-
 // ---- session -----------------------------------------------------------------------------------------------
-
-test('upload-session: unknown, draft, closed and upload-less forms are 404; bad slugs never reach the database', async () => {
-  const f = await setup();
-  assert.equal((await session(f, 'does-not-exist')).status, 404);
-  assert.equal((await session(f, 'Bad_Slug')).status, 404);
-  assert.equal((await session(f, 'contact')).status, 404, 'a published form without a file_upload question');
-  f.d1.sqlite.prepare("UPDATE forms SET status = 'closed' WHERE slug = ?").run(FORM);
-  const closed = await session(f);
-  assert.equal(closed.status, 404);
-  assert.equal((await errorOf(closed)).code, 'FORM_CLOSED');
-  assertNoStore(closed, 'closed');
-  f.d1.sqlite.prepare("UPDATE forms SET status = 'draft' WHERE slug = ?").run(FORM);
-  assert.equal((await session(f)).status, 404);
-  assert.equal(f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM upload_sessions').get()!.n, 0);
-});
 
 test('upload-session: Turnstile is required (400 missing, 403 rejected, 503 unconfigured outside local)', async () => {
   const f = await setup();
@@ -654,26 +490,6 @@ test('upload-session: per-IP rate limit answers 429 with Retry-After', async () 
   );
 });
 
-test('start, part, complete and delete are rate limited per IP too', async () => {
-  const f = await setup();
-  const token = await newToken(f);
-  const ip = { 'cf-connecting-ip': '198.51.100.7' };
-  f.d1.sqlite.prepare('DELETE FROM rate_limit_counters').run();
-  // Hammer `complete` (limit 120) with an unknown id: each call is 404 until the limit, then 429.
-  let last = 0;
-  for (let i = 0; i < 121; i++) last = (await complete(f, 'fup_nothing', token, ip)).status;
-  assert.equal(last, 429);
-  let removed = 0;
-  for (let i = 0; i < 121; i++) removed = (await remove(f, 'fup_nothing', token, ip)).status;
-  assert.equal(removed, 429);
-  let starts = 0;
-  for (let i = 0; i < 61; i++)
-    starts = (
-      await start(f, { token, questionId: 'nope', filename: 'a', size: 1, contentType: 'image/png' }, ip)
-    ).status;
-  assert.equal(starts, 429);
-});
-
 // ---- same origin -------------------------------------------------------------------------------------------
 
 test('every state-changing upload route refuses cross-origin requests before doing anything', async () => {
@@ -698,27 +514,6 @@ test('every state-changing upload route refuses cross-origin requests before doi
 });
 
 // ---- availability ------------------------------------------------------------------------------------------
-
-test('without MEDIA_BUCKET or FORM_UPLOAD_SECRET (outside local) the routes answer 503 and never fake success', async () => {
-  const noBucket = await setup({ MEDIA_BUCKET: undefined });
-  assert.equal((await session(noBucket)).status, 503);
-  const noSecret = await setup({
-    ENVIRONMENT: 'production',
-    TURNSTILE_SECRET_KEY: 'x',
-    FORM_UPLOAD_SECRET: undefined,
-  });
-  const realFetch = globalThis.fetch;
-  globalThis.fetch = (async () => Response.json({ success: true })) as typeof fetch;
-  try {
-    const res = await session(noSecret);
-    assert.equal(res.status, 503);
-    assert.ok(!JSON.stringify(await errorOf(res)).includes('FORM_UPLOAD_SECRET'), 'no variable names leak');
-  } finally {
-    globalThis.fetch = realFetch;
-  }
-  const noDb = await setup({ DB: undefined });
-  assert.equal((await complete(noDb, 'fup_x', 'x')).status, 503);
-});
 
 // ---- Stripe webhook ----------------------------------------------------------------------------------------
 

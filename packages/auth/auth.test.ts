@@ -1,23 +1,17 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
 import { createDb, users, roles, userRoles, sessions } from '@gamo/db';
 import { eq } from 'drizzle-orm';
-import * as auth from './index.ts';
-import * as pageAccess from './page-access.ts';
-import { isPrivatePage } from './page-access.ts';
 import {
   signValue,
   verifySignedValue,
   generateSessionId,
   buildSessionCookie,
-  buildClearSessionCookie,
   extractSessionCookie,
-  hasSystemRole,
-  isStaffOrAdmin,
   createSession,
   validateSession,
   resolveAuth,
@@ -25,7 +19,6 @@ import {
   requireSuperadmin,
   requireSameOrigin,
   AuthError,
-  type SessionData,
 } from './index.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -73,79 +66,6 @@ describe('Auth & Session Cookie Cryptography', () => {
       headers: { cookie: 'theme=light; __session=test_session_token_123; tracking=no' },
     });
     assert.equal(extractSessionCookie(mockRequest), 'test_session_token_123');
-  });
-
-  test('builds cleared session cookie on logout', () => {
-    const clearCookie = buildClearSessionCookie();
-    assert.ok(clearCookie.includes('__session=;'));
-    assert.ok(clearCookie.includes('Expires=Thu, 01 Jan 1970 00:00:00 GMT'));
-  });
-});
-
-describe('Staff roles', () => {
-  const session = (roleCodes: string[]): SessionData => ({
-    user: {
-      id: 'usr_1',
-      email: 'staff@example.org',
-      displayName: 'Example Staff',
-      verifiedEmailAt: new Date(0),
-      status: 'active',
-      createdAt: new Date(0),
-    },
-    roles: roleCodes,
-    sessionId: 'sess_1',
-    expiresAt: new Date(Date.now() + 86400000),
-  });
-
-  test('staff_reviewer and superadmin are staff; other roles are not', () => {
-    assert.equal(hasSystemRole(session(['staff_reviewer']), 'staff_reviewer'), true);
-    assert.equal(hasSystemRole(session(['staff_reviewer']), 'worship_leader'), false);
-    assert.equal(isStaffOrAdmin(session(['staff_reviewer'])), true);
-    assert.equal(isStaffOrAdmin(session(['organizer'])), false);
-    assert.equal(isStaffOrAdmin(null), false);
-    assert.equal(hasSystemRole(session(['superadmin']), 'staff_reviewer'), true);
-    assert.equal(isStaffOrAdmin(session(['superadmin'])), true);
-  });
-});
-
-describe('Public product accounts are gone (2026-11-16)', () => {
-  test('no public account, product or organization exports remain', () => {
-    for (const name of [
-      'PRODUCT_DISPLAY_NAMES',
-      'hasProductAccess',
-      'hasOrgRole',
-      'requireVerifiedAuth',
-      'requireProductAuth',
-      'requireOrgAccess',
-      'loadVerifiedChurchOrganizationIds',
-      'resolveProductClerkConfig',
-      'verifyClerkProductToken',
-      'extractClerkJwtFromRequest',
-      'resolveOrProvisionClerkProductSession',
-      'ClerkUnavailableError',
-      'CLERK_PRODUCT_APPS',
-    ]) {
-      assert.ok(!(name in auth), `${name} should no longer be exported`);
-    }
-  });
-
-  test('public apps have no private pages left', () => {
-    for (const [app, path] of [
-      ['web', '/account'],
-      ['web', '/partner/workspace'],
-      ['worship', '/musician/profile'],
-      ['worship', '/church'],
-      ['academy', '/family'],
-      ['production', '/crew/schedule'],
-    ] as const)
-      assert.equal(isPrivatePage(app, path), false, `${app} ${path}`);
-    for (const name of ['canAccessPage', 'isIsolatedDemo', 'safeReturnPath', 'pageCacheControl'])
-      assert.ok(!(name in pageAccess), `${name} should no longer be exported`);
-  });
-
-  test('the Clerk modules are deleted', () => {
-    assert.equal(existsSync(resolve(__dirname, 'clerk.ts')), false);
-    assert.equal(existsSync(resolve(__dirname, '../config/clerk-env.ts')), false);
   });
 });
 

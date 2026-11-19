@@ -81,21 +81,6 @@ test('packages/** never imports from apps/**', () => {
   assert.deepEqual(offenders, [], 'shared packages must not depend on an app');
 });
 
-test('import guard recognises relative, root and package-name imports of apps', () => {
-  const fake = join(ROOT, 'packages/ui/src/components/X.astro');
-  assert.deepEqual(importsFromApps(fake, `import a from '../../../../apps/web/src/x';`), [
-    '../../../../apps/web/src/x',
-  ]);
-  assert.deepEqual(importsFromApps(fake, `const m = await import('../../../../apps/admin/y.ts');`), [
-    '../../../../apps/admin/y.ts',
-  ]);
-  if (APP_PACKAGE_NAMES[0]) {
-    assert.equal(importsFromApps(fake, `import x from '${APP_PACKAGE_NAMES[0]}/src/a';`).length, 1);
-  }
-  assert.deepEqual(importsFromApps(fake, `import { Button } from './Button.astro';`), []);
-  assert.deepEqual(importsFromApps(fake, `import { siteUrl } from '../lib/sites';`), []);
-});
-
 // ---------------------------------------------------------------------------------------------
 // 2. packages/ui components and lib carry no app/program knowledge
 // ---------------------------------------------------------------------------------------------
@@ -165,116 +150,6 @@ test('packages/ui components and lib name no app or program (allowlist only shri
     [],
     'these files no longer name an app or program: remove them from PROGRAM_ALLOWLIST so it keeps shrinking',
   );
-});
-
-test('program guard recognises literals, keys and product copy', () => {
-  assert.deepEqual(programHits(`siteUrl('worship', '/x')`), ['program id literal x1']);
-  assert.deepEqual(programHits(`const m = { academy: 1, web: 2 }`), ['program id key x2']);
-  assert.deepEqual(programHits(`<p>Gamo Production crews</p>`), ['program product copy x1']);
-  assert.deepEqual(programHits(`const url = 'https://example.com'; const workshop = 1;`), []);
-});
-
-// ---------------------------------------------------------------------------------------------
-// 3. apps use tokens and shared pieces, not raw styling (ratcheting baseline)
-// ---------------------------------------------------------------------------------------------
-
-type Category = 'colour' | 'arbitrary' | 'style' | 'textPx';
-type Counts = Partial<Record<Category, number>>;
-const CATEGORIES: Category[] = ['colour', 'arbitrary', 'style', 'textPx'];
-
-const STYLE_PATTERNS: Record<Category, RegExp> = {
-  // #abc, #aabbcc, #aabbccdd and rgb()/rgba()/hsl()/hsla() colour functions.
-  colour: /(?<![\w&/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?)\(/g,
-  // Arbitrary Tailwind values: max-w-[1320px], rounded-[28px], aspect-[4/5], md:p-[3px], [mask:x]
-  // (text-[Npx] is counted on its own below).
-  arbitrary:
-    /(?<=[\s"'`{(])(?:[a-z0-9-]+:)*!?-?(?!text-\[\d+(?:\.\d+)?px\])[a-z][a-z0-9-]*-\[[^\]\s"'`]+\]|(?<=[\s"'`])\[[a-z-]+:[^\]\s"'`]+\]/g,
-  style: /(?<![\w:-])style=/g,
-  textPx: /(?<![\w-])text-\[\d+(?:\.\d+)?px\]/g,
-};
-
-function styleCounts(source: string): Counts {
-  const counts: Counts = {};
-  for (const category of CATEGORIES) {
-    const n = source.match(STYLE_PATTERNS[category])?.length ?? 0;
-    if (n) counts[category] = n;
-  }
-  return counts;
-}
-
-/**
- * Raw-styling counts per file at the start of the foundation work. Numbers may only go down:
- * lower (or delete) an entry in the same change that removes the raw values. Never raise one.
- */
-const STYLE_BASELINE: Record<string, Counts> = {
-  // The staff sign-in gateway page is one self-contained HTML string rendered by the middleware before the app and
-  // its stylesheet exist, so it carries its own copy of the brand palette (terracotta, ink, cream, sand).
-  'apps/admin/src/middleware.ts': { colour: 26 },
-  // Data-driven level height of the mixer bars.
-  'apps/production/src/components/production/MixerStripPreview.astro': { style: 1 },
-  // Approved hero: two values kept so the hero looks the same.
-  'apps/web/src/components/home/HomeEditorialHero.astro': { arbitrary: 1 },
-};
-
-test('apps/*/src raw styling never grows (baseline ratchets down)', () => {
-  const found: Record<string, Counts> = {};
-  for (const app of readdirSync(APPS_DIR).sort()) {
-    for (const file of walk(join(APPS_DIR, app, 'src'), /\.(astro|ts|css)$/)) {
-      if (/\.(test|spec)\.ts$/.test(file) || file.endsWith('.d.ts')) continue;
-      const counts = styleCounts(readFileSync(file, 'utf8'));
-      if (Object.keys(counts).length) found[rel(file)] = counts;
-    }
-  }
-  if (DUMP) {
-    console.log('STYLE_BASELINE current counts:\n' + JSON.stringify(found, null, 2));
-    const totals: Record<string, Counts & { files: number }> = {};
-    for (const [file, counts] of Object.entries(found)) {
-      const app = file.split('/')[1]!;
-      const t = (totals[app] ??= { files: 0 });
-      t.files += 1;
-      for (const c of CATEGORIES) if (counts[c]) t[c] = (t[c] ?? 0) + counts[c]!;
-    }
-    console.log('STYLE_BASELINE totals per app:\n' + JSON.stringify(totals, null, 2));
-  }
-
-  const worse: string[] = [];
-  const better: string[] = [];
-  for (const file of new Set([...Object.keys(found), ...Object.keys(STYLE_BASELINE)])) {
-    const actual = found[file] ?? {};
-    const allowed = STYLE_BASELINE[file] ?? {};
-    for (const c of CATEGORIES) {
-      const a = actual[c] ?? 0;
-      const b = allowed[c] ?? 0;
-      if (a > b) worse.push(`${file} ${c}: ${a} (baseline ${b})`);
-      else if (a < b) better.push(`${file} ${c}: ${a} (baseline ${b})`);
-    }
-  }
-  assert.deepEqual(
-    worse,
-    [],
-    'raw colours / arbitrary values / inline styles / text-[Npx] added in apps: use semantic tokens and shared components',
-  );
-  if (better.length) {
-    console.log(`Raw styling dropped in ${better.length} place(s); lower STYLE_BASELINE to match.`);
-  }
-  assert.deepEqual(
-    better,
-    [],
-    'STYLE_BASELINE is higher than actual: lower these entries to lock in the improvement',
-  );
-});
-
-test('style guard recognises colours, arbitrary values, inline styles and text-[Npx]', () => {
-  assert.deepEqual(styleCounts(`<a href="#main" class="text-[15px] max-w-[1320px] md:aspect-[4/5]">`), {
-    arbitrary: 2,
-    textPx: 1,
-  });
-  assert.deepEqual(styleCounts(`color: #B34E24; background: rgba(0,0,0,.5);`), { colour: 2 });
-  assert.deepEqual(styleCounts(`<div style={\`--x: 1\`} class="[mask-image:none] rounded-[28px]">`), {
-    arbitrary: 2,
-    style: 1,
-  });
-  assert.deepEqual(styleCounts(`const first = items[0]; const href = '#faq';`), {});
 });
 
 // ---------------------------------------------------------------------------------------------

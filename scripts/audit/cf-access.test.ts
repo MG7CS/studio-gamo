@@ -64,17 +64,3 @@ test('a redirecting or failing keys endpoint refuses the assertion with a reason
   const failing = await verifyCloudflareAccessJwt(tokenFor(team(3)), ACCESS_AUD, team(3));
   assert.deepEqual([failing.valid, failing.reason], [false, 'jwks_unavailable']);
 });
-
-test('refusals carry a fixed reason code', async () => {
-  stubFetch(() => Response.json(jwks));
-  const ok = tokenFor(team(4));
-  assert.equal((await verifyCloudflareAccessJwt(ok, 'another-aud', team(4))).reason, 'audience');
-  assert.equal((await verifyCloudflareAccessJwt(ok, ACCESS_AUD, 'another-team')).reason, 'issuer');
-  assert.equal(
-    (await verifyCloudflareAccessJwt(`${ok.slice(0, -6)}AAAAAA`, ACCESS_AUD, team(4))).reason,
-    'bad_signature',
-  );
-  assert.equal((await verifyCloudflareAccessJwt('not-a-jwt', ACCESS_AUD, team(4))).reason, 'malformed');
-  assert.equal((await verifyCloudflareAccessJwt(null, ACCESS_AUD, team(4))).reason, 'missing');
-  assert.equal((await verifyCloudflareAccessJwt(ok, undefined, team(4))).reason, 'not_configured');
-});

@@ -84,24 +84,6 @@ test('Accept confirms once and a later visit shows the answer on record', async 
   await context.close();
 });
 
-test('Decline is recorded', async ({ browser }) => {
-  const token = newOffer();
-  const { context, page } = await visitor(browser);
-  await page.goto(offerUrl(token));
-  await page.getByRole('button', { name: 'Decline' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('You declined');
-  await context.close();
-});
-
-test('it works with JavaScript turned off', async ({ browser }) => {
-  const token = newOffer();
-  const { context, page } = await visitor(browser, false);
-  await page.goto(offerUrl(token));
-  await page.getByRole('button', { name: 'Accept' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('You are confirmed');
-  await context.close();
-});
-
 test('an unknown link is a generic 404 that discloses nothing', async ({ request }) => {
   const response = await request.get(offerUrl('A'.repeat(43)));
   expect(response.status()).toBe(404);

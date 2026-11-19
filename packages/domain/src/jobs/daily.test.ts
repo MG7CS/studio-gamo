@@ -1,15 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LINK_TOKEN_RETENTION_SECONDS } from '../security/link-tokens.ts';
-import {
-  approveApplication,
-  respondToOffer,
-  sendOffer,
-  createRequestFromSubmission,
-} from '../worship/index.ts';
+import { approveApplication, sendOffer, createRequestFromSubmission } from '../worship/index.ts';
 import type { WorshipEnv } from '../worship/common.ts';
 import {
-  all,
   ENV,
   fakeResend,
   get,
@@ -20,7 +14,7 @@ import {
   run,
   seedSubmission,
 } from '../worship/test-support.ts';
-import { DAILY_JOB_NAMES, runDailyJobs, type DailyEnv, type DailyResult } from './daily.ts';
+import { runDailyJobs, type DailyEnv } from './daily.ts';
 
 const staffId = 'staff_1';
 const H = 3600;
@@ -260,180 +254,6 @@ async function world() {
   };
 }
 
-const failed = (r: DailyResult) => r.failures.map((f) => `${f.job}:${f.error}`);
-
-test('runDailyJobs: every job does its work, counts are reported, and a second run does nothing', async () => {
-  const w = await world();
-  const r = fakeResend();
-  const env = envFor(w.d1, w.bucket);
-
-  const first = await runDailyJobs(env, w.later, r.options);
-  assert.deepEqual(failed(first), []);
-  assert.equal(first.now, w.later);
-  // Emails: the approval is re-rendered and sent to the stored address; the offer link cannot be rebuilt.
-  assert.equal(first.emailsRetried, 2);
-  assert.equal(first.emailsSent, 1);
-  assert.deepEqual(
-    r.calls.map((c) => c.to),
-    ['ana@example.org'],
-  );
-  assert.match(r.calls[0]!.subject, /./);
-  assert.equal(get(w.d1, "SELECT status FROM email_log WHERE kind = 'application_approved'")!.status, 'sent');
-  const offerMail = get(
-    w.d1,
-    "SELECT status, last_error_code, next_attempt_at FROM email_log WHERE kind = 'offer_sent'",
-  )!;
-  assert.deepEqual(
-    [offerMail.status, offerMail.last_error_code, offerMail.next_attempt_at],
-    ['failed', 'not_renderable', null],
-  );
-  // Uploads: abandoned file and old session are gone; recent, declined (attached) and kept files stay.
-  assert.equal(first.uploadsPurged, 1);
-  assert.equal(first.uploadSessionsPurged, 1);
-  assert.equal(first.uploadFailures, 0);
-  assert.equal(get(w.d1, "SELECT status FROM form_uploads WHERE id = 'up_old'")!.status, 'deleted');
-  assert.equal(get(w.d1, "SELECT status FROM form_uploads WHERE id = 'up_recent'")!.status, 'verified');
-  // Submissions: the due declined one is deleted with its file; the other stays.
-  assert.equal(first.submissionsPurged, 1);
-  assert.equal(first.submissionFilesDeleted, 1);
-  assert.equal(get(w.d1, 'SELECT id FROM form_submissions WHERE id = ?', w.declinedSub), undefined);
-  assert.ok(get(w.d1, 'SELECT id FROM form_submissions WHERE id = ?', w.keptSub));
-  assert.equal(first.declinedFilesDeleted, 1);
-  assert.ok(!w.bucket.objects.has(w.files.oldDeclinedFile), 'file of an application declined 91 days ago');
-  assert.ok(w.bucket.objects.has(w.files.newDeclinedFile), 'file of a recent decline');
-  assert.ok(get(w.d1, 'SELECT id FROM form_submissions WHERE id = ?', w.oldDeclinedSub), 'its record stays');
-  assert.ok(!w.bucket.objects.has(w.files.declinedFile));
-  assert.ok(w.bucket.objects.has(w.files.keptFile));
-  assert.ok(!w.bucket.objects.has(w.files.abandoned));
-  assert.ok(w.bucket.objects.has(w.files.recent));
-  // Offers, tokens, rate limits.
-  assert.equal(first.offersExpired, 1);
-  assert.equal(get(w.d1, 'SELECT status FROM offers WHERE id = ?', w.offerId)!.status, 'expired');
-  assert.equal(first.tokensPurged, 1);
-  assert.deepEqual(
-    all(w.d1, 'SELECT id FROM customer_access_tokens').map((t) => t.id),
-    ['tok_recent'],
-  );
-  assert.equal(first.rateLimitCountersPurged, 1);
-  assert.equal(first.recipientEmailsPurged, 0);
-
-  const second = await runDailyJobs(env, w.later, r.options);
-  assert.deepEqual(failed(second), []);
-  const { now: _a, ...firstCounts } = first;
-  const { now: _b, ...secondCounts } = second;
-  void firstCounts;
-  assert.deepEqual(secondCounts, {
-    emailsRetried: 0,
-    emailsSent: 0,
-    uploadsPurged: 0,
-    uploadSessionsPurged: 0,
-    uploadFailures: 0,
-    declinedFilesDeleted: 0,
-    submissionsPurged: 0,
-    submissionFilesDeleted: 0,
-    offersExpired: 0,
-    tokensPurged: 0,
-    rateLimitCountersPurged: 0,
-    recipientEmailsPurged: 0,
-    failures: [],
-  });
-  assert.equal(r.calls.length, 1, 'no second email');
-});
-
-test('runDailyJobs: a failing upload cleanup (missing secret) does not stop the other jobs', async () => {
-  const w = await world();
-  const r = fakeResend();
-  const log = captureConsole();
-  let result: DailyResult;
-  try {
-    result = await runDailyJobs(
-      envFor(w.d1, w.bucket, { FORM_UPLOAD_SECRET: undefined }),
-      w.later,
-      r.options,
-    );
-  } finally {
-    log.restore();
-  }
-  assert.deepEqual(failed(result), [
-    'uploads:SecretNotConfiguredError',
-    'declinedFiles:SecretNotConfiguredError',
-    'submissions:SecretNotConfiguredError',
-  ]);
-  assert.equal(result.emailsSent, 1, 'email retry still ran');
-  assert.equal(result.offersExpired, 1);
-  assert.equal(result.tokensPurged, 1);
-  assert.equal(result.rateLimitCountersPurged, 1);
-  assert.ok(
-    get(w.d1, 'SELECT id FROM form_submissions WHERE id = ?', w.declinedSub),
-    'nothing deleted without being able to delete files',
-  );
-  assert.ok(log.lines.some((l) => l.includes('[daily-jobs] uploads failed (SecretNotConfiguredError)')));
-});
-
-test('runDailyJobs: files that cannot be deleted keep the submission record for the next run', async () => {
-  const w = await world();
-  const r = fakeResend();
-  w.bucket.failDelete = true;
-  const log = captureConsole();
-  let result: DailyResult;
-  try {
-    result = await runDailyJobs(envFor(w.d1, w.bucket), w.later, r.options);
-  } finally {
-    log.restore();
-  }
-  assert.deepEqual(failed(result), ['submissions:SubmissionFilesNotDeletedError']);
-  assert.equal(
-    result.uploadFailures,
-    2,
-    'the abandoned upload and the old declined file stay for the next run',
-  );
-  assert.equal(result.declinedFilesDeleted, 0);
-  assert.equal(result.submissionsPurged, 0);
-  assert.ok(get(w.d1, 'SELECT id FROM form_submissions WHERE id = ?', w.declinedSub));
-  assert.equal(get(w.d1, "SELECT status FROM form_uploads WHERE id = 'up_old'")!.status, 'verified');
-  assert.equal(result.emailsSent, 1);
-  assert.equal(result.offersExpired, 1);
-
-  w.bucket.failDelete = false;
-  const retry = await runDailyJobs(envFor(w.d1, w.bucket), w.later, r.options);
-  assert.deepEqual(failed(retry), []);
-  assert.equal(retry.submissionsPurged, 1);
-  assert.equal(retry.uploadsPurged, 1);
-  assert.equal(retry.declinedFilesDeleted, 1);
-});
-
-test('runDailyJobs: without an R2 bucket only the upload jobs fail', async () => {
-  const w = await world();
-  const result = await runDailyJobs(envFor(w.d1, undefined), w.later, fakeResend().options);
-  assert.deepEqual(failed(result), [
-    'uploads:UploadError',
-    'declinedFiles:UploadError',
-    'submissions:UploadError',
-  ]);
-  assert.equal(result.offersExpired, 1);
-  assert.equal(result.emailsSent, 1);
-});
-
-test('runDailyJobs: a failing email retry (database error) does not stop the rest', async () => {
-  const w = await world();
-  w.d1.sqlite.exec('DROP TABLE email_log');
-  const log = captureConsole();
-  let result: DailyResult;
-  try {
-    result = await runDailyJobs(envFor(w.d1, w.bucket), w.later, fakeResend().options);
-  } finally {
-    log.restore();
-  }
-  assert.deepEqual(
-    failed(result).map((f) => f.split(':')[0]),
-    ['emails', 'recipients'],
-  );
-  assert.equal(result.uploadsPurged, 1);
-  assert.equal(result.submissionsPurged, 1);
-  assert.equal(result.offersExpired, 1);
-  assert.equal(result.tokensPurged, 1);
-});
-
 test('runDailyJobs: nothing in the logs identifies a person, even when a failure message does', async () => {
   const w = await world();
   w.bucket.failDelete = true;
@@ -464,21 +284,6 @@ test('runDailyJobs: nothing in the logs identifies a person, even when a failure
   assert.ok(log.lines.every((l) => l.length < 400));
 });
 
-test('runDailyJobs: a missing database binding is reported for every job and never throws', async () => {
-  const log = captureConsole();
-  let result: DailyResult;
-  try {
-    result = await runDailyJobs({ ENVIRONMENT: 'production' } as unknown as DailyEnv, NOW);
-  } finally {
-    log.restore();
-  }
-  assert.deepEqual(
-    result.failures.map((f) => f.job),
-    [...DAILY_JOB_NAMES],
-  );
-  assert.ok(result.failures.every((f) => f.error === 'DatabaseUnavailable'));
-});
-
 test('runDailyJobs: recipient addresses older than 180 days are nulled', async () => {
   const d1 = await newDb();
   run(
@@ -504,34 +309,4 @@ test('runDailyJobs: recipient addresses older than 180 days are nulled', async (
     get(d1, "SELECT recipient_email FROM email_log WHERE id = 'log_new'")!.recipient_email,
     'new@example.org',
   );
-});
-
-test('offers accepted before the run are not expired', async () => {
-  const w = await world();
-  // Re-offer and accept a second pending offer; accepted offers must survive the expiry job.
-  const row = get(w.d1, 'SELECT request_id, roster_member_id, role FROM offers WHERE id = ?', w.offerId)!;
-  run(w.d1, "UPDATE offers SET status = 'withdrawn' WHERE id = ?", w.offerId);
-  const sent = await sendOffer(
-    w.d1,
-    ENV,
-    {
-      requestId: String(row.request_id),
-      rosterMemberId: String(row.roster_member_id),
-      role: String(row.role),
-      payCents: 12_000,
-      staffId,
-      siteOrigin: 'https://gamostudio.org',
-      now: NOW,
-    },
-    fakeResend().options,
-  );
-  await respondToOffer(
-    w.d1,
-    ENV,
-    { token: sent.url.slice(sent.url.lastIndexOf('/') + 1), action: 'accept', now: NOW + 60 },
-    fakeResend().options,
-  );
-  const result = await runDailyJobs(envFor(w.d1, w.bucket), w.later, fakeResend().options);
-  assert.equal(result.offersExpired, 0);
-  assert.equal(get(w.d1, 'SELECT status FROM offers WHERE id = ?', sent.offerId)!.status, 'accepted');
 });

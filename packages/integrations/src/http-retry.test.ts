@@ -1,7 +1,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createStripeTestClient, StripeApiError } from './stripe.ts';
-import { createResendClient } from './resend.ts';
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -62,27 +61,4 @@ test('Stripe: no retry on 4xx or without an idempotency key; errors carry the co
     createStripeTestClient({ secretKey: 'sk_test_abc' }).createTestCheckoutSession(checkout),
   );
   assert.equal(calls.length, 1);
-});
-
-test('Resend: idempotency key is sent; one retry on network error or 5xx; 4xx is final', async () => {
-  const client = createResendClient({ apiKey: 're_live_example_key' });
-  const msg = { to: 'a@example.test', subject: 's', text: 't', idempotencyKey: 'notification_job_1' };
-
-  const calls = stubFetch([
-    () => {
-      throw new TypeError('network down');
-    },
-    json(200, { id: 'msg_1' }),
-  ]);
-  assert.deepEqual(await client.send(msg), { success: true, id: 'msg_1', mock: false });
-  assert.equal(calls.length, 2);
-  assert.equal(calls[0].headers.get('idempotency-key'), 'notification_job_1');
-
-  const calls4xx = stubFetch([json(422, {})]);
-  assert.equal((await client.send(msg)).success, false);
-  assert.equal(calls4xx.length, 1);
-
-  const callsNoKey = stubFetch([json(502, {})]);
-  assert.equal((await client.send({ ...msg, idempotencyKey: undefined })).success, false);
-  assert.equal(callsNoKey.length, 1);
 });

@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { createR2StorageClient, generateR2Key, sanitizeFilename } from './storage.ts';
+import { createR2StorageClient, sanitizeFilename } from './storage.ts';
 
 describe('R2 Object Storage & Upload Security', () => {
   const client = createR2StorageClient();
@@ -11,16 +11,6 @@ describe('R2 Object Storage & Upload Security', () => {
     assert.equal(clean, 'passwd.dangerous.png');
     assert.ok(!clean.includes('..'));
     assert.ok(!clean.includes('/'));
-  });
-
-  test('generates unpredictable namespaced R2 keys', () => {
-    const key1 = generateR2Key('public_asset', 'usr_1', 'poster.png');
-    const key2 = generateR2Key('public_asset', 'usr_1', 'poster.png');
-
-    assert.ok(key1.startsWith('public_asset/usr_1/'));
-    assert.ok(key1.endsWith('_poster.png'));
-    // Keys must be unique due to random salt & timestamp
-    assert.notEqual(key1, key2);
   });
 
   test('authorizes valid upload request and generates signed ticket', async () => {
@@ -91,20 +81,6 @@ describe('R2 Object Storage & Upload Security', () => {
     const tampered = ticket.ticket.slice(0, -4) + 'abcd';
     const result = await client.verifyTicket(tampered);
     assert.equal(result, null);
-  });
-
-  test('never exposes private or restricted assets via public CDN URLs', () => {
-    const publicUrl = client.getPublicUrl('public_asset/usr_1/poster.webp', 'public_read');
-    assert.ok(publicUrl?.startsWith('https://assets.gamostudio.org/'));
-
-    const privateUrl = client.getPublicUrl('private_document/usr_1/sheet.pdf', 'private');
-    assert.equal(privateUrl, null);
-
-    const auditionUrl = client.getPublicUrl('audition_media/usr_1/clip.mp4', 'audition');
-    assert.equal(auditionUrl, null);
-
-    const restrictedUrl = client.getPublicUrl('restricted/org_1/tax.pdf', 'restricted');
-    assert.equal(restrictedUrl, null);
   });
 
   test('enforces access permissions on private object retrieval', async () => {

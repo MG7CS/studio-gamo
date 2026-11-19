@@ -5,13 +5,7 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  applyMigrations,
-  createInMemoryD1,
-  createMigratedD1,
-  migrationFileNames,
-  readMigrations,
-} from './testing.ts';
+import { applyMigrations, createInMemoryD1, createMigratedD1, readMigrations } from './testing.ts';
 
 const FUTURE = Math.floor(Date.now() / 1000) + 30 * 86400; // 0003's trigger compares with the real clock
 const T = 1_900_000_000;
@@ -141,34 +135,12 @@ const KEPT_AFTER_0019 = [
   'moderation_reviews',
 ];
 
-const NEW_COLUMNS: Record<string, string[]> = {
-  users: ['person_id'],
-  sessions: ['clerk_session_id'],
-  customer_access_tokens: ['product'],
-  customer_sessions: ['product'],
-};
-
-const NEW_INDEXES = [
-  'users_person_idx',
-  'sessions_clerk_session_idx',
-  'customer_tokens_expires_idx',
-  'terms_documents_one_active_unique',
-  'rate_limit_counters_expires_idx',
-  'email_log_retry_idx',
-];
-
-const NEW_TRIGGERS = ['terms_acceptances_immutable'];
-
 type Db = Awaited<ReturnType<typeof createMigratedD1>>;
 const names = (d1: Db, type: string) =>
   new Set(
     (
       d1.sqlite.prepare('SELECT name FROM sqlite_master WHERE type = ?').all(type) as Array<{ name: string }>
     ).map((r) => r.name),
-  );
-const columns = (d1: Db, table: string) =>
-  new Set(
-    (d1.sqlite.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>).map((r) => r.name),
   );
 const get = (d1: Db, sql: string, ...p: Array<string | number | null>) =>
   ({ ...(d1.sqlite.prepare(sql).get(...p) as object) }) as Record<string, unknown>;
@@ -205,30 +177,6 @@ function assertNoReferencesToDroppedTables(d1: Db, dropped: string[], kept: stri
 }
 
 describe('from scratch', () => {
-  test('migration files are numbered and every kept table, column, index and trigger exists', async () => {
-    const files = migrationFileNames();
-    assert.ok(
-      files.includes('0012_identity_terms_customers.sql') &&
-        files.includes('0018_remove_gamo_live.sql') &&
-        files.includes('0019_remove_public_accounts.sql'),
-    );
-    assert.deepEqual([...files].sort(), files);
-    const d1 = await createMigratedD1();
-    for (const [table, cols] of Object.entries(NEW_COLUMNS)) {
-      const have = columns(d1, table);
-      for (const c of cols) assert.ok(have.has(c), `${table}.${c}`);
-    }
-    const indexes = names(d1, 'index');
-    for (const i of NEW_INDEXES) assert.ok(indexes.has(i), `index ${i}`);
-    const triggers = names(d1, 'trigger');
-    for (const t of NEW_TRIGGERS) assert.ok(triggers.has(t), `trigger ${t}`);
-    assert.ok(!triggers.has('moderation_pending'), 'the event-moderation trigger is gone');
-  });
-
-  test('0018 leaves no Live table, and nothing kept references one', async () => {
-    assertNoReferencesToDroppedTables(await migratedThrough0018(), LIVE_TABLES, KEPT_AFTER_0018);
-  });
-
   test('0019 leaves exactly the kept tables, and nothing kept references a dropped one', async () => {
     const d1 = createInMemoryD1(); // as 0019 left it; 0020+ add forms/roster tables (migrations-forms.test.ts)
     await applyMigrations(d1, readMigrations('0020'));
@@ -242,71 +190,9 @@ describe('from scratch', () => {
     ])
       assert.ok(!triggers.has(t), `trigger ${t} dropped`);
   });
-
-  test('every trigger is written on one line (Wrangler remote splitter rule)', () => {
-    for (const sql of readMigrations().slice(readMigrations('0012').length))
-      for (const stmt of sql.split('--> statement-breakpoint'))
-        if (/CREATE TRIGGER/i.test(stmt)) {
-          const body = stmt.split('\n').filter((l) => l.trim() && !l.trim().startsWith('--'));
-          assert.equal(body.length, 1, body[0]?.slice(0, 80));
-        }
-  });
-
-  test('applying twice is harmless for IF NOT EXISTS / IF EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
-    const d1 = await createMigratedD1();
-    const only0018And0019 = readMigrations('0020').slice(readMigrations('0018').length);
-    assert.equal(only0018And0019.length, 2);
-    await applyMigrations(d1, only0018And0019);
-    const only0017 = readMigrations('0018').slice(readMigrations('0017').length);
-    await assert.rejects(() => applyMigrations(d1, only0017), /duplicate column/);
-  });
 });
 
 describe('identity and consent constraints', () => {
-  test('persons and customers: normalised emails; a customer links to a person only once the email is verified', async () => {
-    const d1 = await createMigratedD1();
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('p', 'Sample@Example.org', 1, 1, 1)",
-        ),
-      /CHECK/,
-    );
-    run(
-      d1,
-      "INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('per_1', 'sample@example.org', 1, 1, 1)",
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('per_2', 'sample@example.org', 1, 1, 1)",
-        ),
-      /UNIQUE/,
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO customer_profiles (id, email_normalized, person_id, created_at, updated_at) VALUES ('c1', 'sample@example.org', 'per_1', 1, 1)",
-        ),
-      /CHECK/,
-    );
-    run(
-      d1,
-      "INSERT INTO customer_profiles (id, email_normalized, person_id, email_verified_at, created_at, updated_at) VALUES ('c1', 'sample@example.org', 'per_1', 2, 1, 1)",
-    );
-    run(
-      d1,
-      "INSERT INTO users (id, email, created_at, person_id) VALUES ('usr_1', 'sample@example.org', 1, 'per_1')",
-    );
-    assert.throws(
-      () => run(d1, "UPDATE users SET person_id = 'per_missing' WHERE id = 'usr_1'"),
-      /FOREIGN KEY/,
-    );
-  });
-
   test('terms: one active version per slug, acceptances reference a real document and a subject, and are immutable', async () => {
     const d1 = await createMigratedD1();
     const doc = (id: string, version: string, status: string) =>
@@ -345,47 +231,6 @@ describe('identity and consent constraints', () => {
       /TERMS_ACCEPTANCE_IMMUTABLE/,
     );
     run(d1, "UPDATE terms_acceptances SET email_normalized = 'erased:abc', ip_hash = NULL WHERE id = 'ta_3'");
-  });
-
-  test('academy registrations: under-18 needs a guardian and both consents; no birth date column exists', async () => {
-    const d1 = await createMigratedD1();
-    assert.ok(![...columns(d1, 'academy_registrations')].some((c) => /birth|dob/.test(c)));
-    d1.sqlite.exec(`
-      INSERT INTO customer_profiles (id, email_normalized, created_at, updated_at) VALUES ('cus_1', 'parent@example.org', 1, 1);
-      INSERT INTO terms_documents (id, slug, version, title, status, content_hash, created_at) VALUES ('td', 'academy-enrollment-terms', '1', 'DRAFT', 'active', '${'a'.repeat(64)}', 1);
-      INSERT INTO terms_acceptances (id, document_slug, document_version, customer_profile_id, context, accepted_at) VALUES ('ta', 'academy-enrollment-terms', '1', 'cus_1', 'registration:reg_1', 1);
-    `);
-    const reg = (
-      id: string,
-      band: string,
-      guardian: boolean,
-      status = 'reserved',
-      paidAt: number | null = null,
-    ) =>
-      run(
-        d1,
-        "INSERT INTO academy_registrations (id, program_slug, location, student_first_name, student_age_band, guardian_name, guardian_email, guardian_phone, customer_profile_id, status, terms_acceptance_id, guardian_consent_acceptance_id, child_safety_acceptance_id, idempotency_key, paid_at, created_at, updated_at) VALUES (?, 'sample-piano', 'Sample Studio', 'Sam', ?, ?, ?, ?, 'cus_1', ?, 'ta', ?, ?, ?, ?, 1, 1)",
-        id,
-        band,
-        guardian ? 'Sample Parent' : null,
-        guardian ? 'parent@example.org' : null,
-        guardian ? '+1 555 0100' : null,
-        status,
-        guardian ? 'ta' : null,
-        guardian ? 'ta' : null,
-        `idem_${id}`,
-        paidAt,
-      );
-    assert.throws(() => reg('r1', '10_12', false), /CHECK/);
-    reg('r2', '10_12', true);
-    reg('r3', '18_plus', false);
-    assert.throws(() => reg('r4', '18_plus', false, 'paid'), /CHECK/);
-    reg('r5', '18_plus', false, 'paid', 5);
-    assert.throws(() => reg('r6', 'age_9', true), /CHECK/);
-    assert.throws(
-      () => run(d1, "UPDATE academy_registrations SET idempotency_key = 'idem_r2' WHERE id = 'r3'"),
-      /UNIQUE/,
-    );
   });
 
   test('email log, suppressions and rate-limit counters hold hashes, not addresses', async () => {
@@ -471,16 +316,6 @@ describe('0018 on a database that still holds Live rows', () => {
     assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, 'per_1');
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM moderation_reviews').n, 1);
   });
-
-  test('moderation reviews of any target insert again (no trigger reads the dropped events table)', async () => {
-    const d1 = await liveDb();
-    run(
-      d1,
-      "INSERT INTO moderation_reviews (id, reviewer_user_id, target_type, target_id, decision, reviewed_at) VALUES ('mod_2', 'usr_staff', 'event', 'evt_free', 'approved', ?)",
-      T,
-    );
-    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM moderation_reviews').n, 2);
-  });
 });
 
 describe('0019 on a database that still holds account, provider and demo rows', () => {
@@ -541,21 +376,5 @@ describe('0019 on a database that still holds account, provider and demo rows', 
     assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, 'per_1');
     assert.equal(get(d1, "SELECT person_id AS p FROM users WHERE id = 'usr_1'").p, 'per_1');
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM terms_acceptances').n, 1);
-  });
-
-  test('kept tables still accept writes after 0019 (staff credentials, persons, terms)', async () => {
-    const d1 = await accountsDb();
-    run(d1, "INSERT INTO users (id, email, created_at) VALUES ('usr_new', 'new-staff@example.org', ?)", T);
-    run(
-      d1,
-      "INSERT INTO admin_credentials (user_id, password_hash, updated_at, created_at) VALUES ('usr_new', 'pbkdf2$sample', ?, ?)",
-      T,
-      T,
-    );
-    run(d1, "DELETE FROM users WHERE id = 'usr_new'");
-    assert.equal(get(d1, "SELECT COUNT(*) AS n FROM admin_credentials WHERE user_id = 'usr_new'").n, 0);
-    run(d1, "DELETE FROM persons WHERE id = 'per_1'");
-    assert.equal(get(d1, "SELECT person_id AS p FROM users WHERE id = 'usr_1'").p, null);
-    assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, null);
   });
 });

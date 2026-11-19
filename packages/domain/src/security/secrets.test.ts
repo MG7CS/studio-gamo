@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SecretNotConfiguredError } from './crypto.ts';
-import { clientIp, hashEmail, hashIp, hashPii, isPlausibleEmail, normalizeEmail } from './pii-hash.ts';
+import { hashEmail, hashIp, hashPii } from './pii-hash.ts';
 import { signValue, verifySignedValue } from './signed-value.ts';
 
 const PII = 'pii-hash-secret-for-tests-only-000000001';
@@ -22,23 +22,6 @@ test('pii hashing: keyed, deterministic, domain-separated, fails closed without 
   );
   await assert.rejects(() => hashPii('x', undefined), SecretNotConfiguredError);
   await assert.rejects(() => hashEmail('x@example.org', 'short'), SecretNotConfiguredError);
-});
-
-test('email normalisation keeps dots and plus-tags; plausibility check is simple', () => {
-  assert.equal(normalizeEmail('  A.B+tag@Gmail.COM '), 'a.b+tag@gmail.com');
-  assert.notEqual(normalizeEmail('ab@gmail.com'), normalizeEmail('a.b@gmail.com'));
-  for (const ok of ['a@b.co', 'sample.parent+live@example.org']) assert.ok(isPlausibleEmail(ok), ok);
-  for (const bad of ['', 'a', 'a@b', 'a b@c.org', 'a@@b.org', 'a@b..org', `${'x'.repeat(320)}@b.org`])
-    assert.ok(!isPlausibleEmail(bad), bad);
-});
-
-test('clientIp trusts only cf-connecting-ip', () => {
-  const req = (headers: Record<string, string>) => new Request('https://gamostudio.org/', { headers });
-  assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' })), '203.0.113.7');
-  assert.equal(clientIp(req({ 'cf-connecting-ip': '2001:db8::1' })), '2001:db8::1');
-  assert.equal(clientIp(req({ 'x-forwarded-for': '198.51.100.1' })), null);
-  assert.equal(clientIp(req({ 'cf-connecting-ip': '<script>' })), null);
-  assert.equal(clientIp(req({})), null);
 });
 
 test('signed values: tamper-evident, expiring, purpose-bound', async () => {

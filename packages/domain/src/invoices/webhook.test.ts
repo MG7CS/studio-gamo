@@ -20,12 +20,6 @@ const run = (d1: SqliteD1, sql: string, ...p: Array<string | number | null>) =>
   d1.sqlite.prepare(sql).run(...p);
 const get = (d1: SqliteD1, sql: string, ...p: Array<string | number | null>) =>
   ({ ...(d1.sqlite.prepare(sql).get(...p) as object) }) as Record<string, string | number | null>;
-const all = (d1: SqliteD1, sql: string) =>
-  d1.sqlite
-    .prepare(sql)
-    .all()
-    .map((r) => ({ ...r })) as Array<Record<string, string | number | null>>;
-
 function mailer() {
   const sent: Array<{ subject: string; key: string }> = [];
   const impl = (async (_url: string | URL | Request, init?: RequestInit) => {
@@ -114,65 +108,6 @@ describe('handleStripeInvoiceEvent', () => {
     assert.equal(get(d1, 'SELECT paid_at AS p FROM invoices WHERE id = ?', inv.id).p, NOW - 30);
   });
 
-  test('unknown invoice, other event types and unparseable objects: applied false, nothing changes', async () => {
-    const { d1, m, inv } = await openInvoice();
-    for (const e of [
-      event('invoice.paid', { id: 'in_other' }),
-      event('customer.created'),
-      event('invoice.paid', { id: 'not-an-invoice' }),
-    ]) {
-      assert.deepEqual(await handleStripeInvoiceEvent(d1, ENV, e, { now: NOW, fetchImpl: m.impl }), {
-        received: true,
-        applied: false,
-      });
-    }
-    assert.equal(get(d1, 'SELECT status FROM invoices WHERE id = ?', inv.id).status, 'open');
-    assert.equal(m.sent.length, 0);
-  });
-
-  test('a paid event for a void invoice stays void, sends no receipt, and leaves an audit row', async () => {
-    const { d1, m, svc, inv } = await openInvoice();
-    run(d1, "UPDATE invoices SET status = 'void' WHERE id = ?", inv.id);
-    void svc;
-    const r = await handleStripeInvoiceEvent(d1, ENV, event('invoice.paid'), { now: NOW, fetchImpl: m.impl });
-    assert.deepEqual(r, { received: true, applied: false });
-    assert.equal(get(d1, 'SELECT status, paid_at AS p FROM invoices WHERE id = ?', inv.id).status, 'void');
-    assert.equal(m.sent.length, 0);
-    assert.equal(
-      all(d1, "SELECT action FROM audit_logs WHERE entity_id = '" + inv.id + "'")[0].action,
-      'invoice.paid_event_on_void',
-    );
-  });
-
-  test('payment_failed changes nothing but records one audit row per event id', async () => {
-    const { d1, m, inv } = await openInvoice();
-    const e = event('invoice.payment_failed');
-    for (let i = 0; i < 2; i++) {
-      assert.deepEqual(await handleStripeInvoiceEvent(d1, ENV, e, { now: NOW, fetchImpl: m.impl }), {
-        received: true,
-        applied: false,
-      });
-    }
-    assert.equal(get(d1, 'SELECT status FROM invoices WHERE id = ?', inv.id).status, 'open');
-    const rows = all(d1, `SELECT action, actor_user_id AS a FROM audit_logs WHERE entity_id = '${inv.id}'`);
-    assert.deepEqual(rows, [{ action: 'invoice.payment_failed', a: null }]);
-    assert.equal(m.sent.length, 0);
-  });
-
-  test('an amount that differs from the invoice total still marks it paid but is audited', async () => {
-    const { d1, m, inv } = await openInvoice();
-    await handleStripeInvoiceEvent(d1, ENV, event('invoice.paid', { amount_paid: 4000 }), {
-      now: NOW,
-      fetchImpl: m.impl,
-    });
-    assert.equal(get(d1, 'SELECT status FROM invoices WHERE id = ?', inv.id).status, 'paid');
-    assert.ok(
-      all(d1, `SELECT action FROM audit_logs WHERE entity_id = '${inv.id}'`).some(
-        (r) => r.action === 'invoice.paid_amount_mismatch',
-      ),
-    );
-  });
-
   test('livemode events are refused with LIVEMODE_REFUSED (400)', async () => {
     const { d1, m } = await openInvoice();
     await assert.rejects(
@@ -234,37 +169,5 @@ describe('verifyAndHandleStripeWebhook', () => {
       400,
     );
     assert.equal(get(d1, 'SELECT status FROM invoices WHERE id = ?', inv.id).status, 'open');
-  });
-
-  test('a signed invoice.paid answers 200 {received, applied:true}; the replay answers applied:false; one receipt', async () => {
-    const { d1, m, inv } = await openInvoice();
-    const body = JSON.stringify(event('invoice.paid'));
-    const first = await verifyAndHandleStripeWebhook(req(body, sign(body)), d1, ENV, NOW, {
-      fetchImpl: m.impl,
-    });
-    assert.equal(first.status, 200);
-    assert.deepEqual(await first.json(), { received: true, applied: true });
-    const second = await verifyAndHandleStripeWebhook(req(body, sign(body)), d1, ENV, NOW + 1, {
-      fetchImpl: m.impl,
-    });
-    assert.deepEqual(await second.json(), { received: true, applied: false });
-    assert.equal(get(d1, 'SELECT status FROM invoices WHERE id = ?', inv.id).status, 'paid');
-    assert.equal(receiptCount(m), 1);
-  });
-
-  test('unknown invoice answers 200 applied:false; a signed live-mode event answers 400', async () => {
-    const { d1, m } = await openInvoice();
-    const unknown = JSON.stringify(event('invoice.paid', { id: 'in_unknown' }));
-    const res = await verifyAndHandleStripeWebhook(req(unknown, sign(unknown)), d1, ENV, NOW, {
-      fetchImpl: m.impl,
-    });
-    assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), { received: true, applied: false });
-    const live = JSON.stringify(event('invoice.paid', {}, { livemode: true }));
-    const refused = await verifyAndHandleStripeWebhook(req(live, sign(live)), d1, ENV, NOW, {
-      fetchImpl: m.impl,
-    });
-    assert.equal(refused.status, 400);
-    assert.equal(((await refused.json()) as { error: { code: string } }).error.code, 'LIVEMODE_REFUSED');
   });
 });

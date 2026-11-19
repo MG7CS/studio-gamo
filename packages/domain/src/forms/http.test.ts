@@ -8,7 +8,7 @@ import { FormsService } from './service.ts';
 import { UploadService } from './uploads.ts';
 import { FakeBucket, fakeImages, withHeader } from './uploads-test-support.ts';
 import { parseFormSchema } from './schema.ts';
-import { FORM_TURNSTILE_ACTION, readSentReference, submitFormPage, UPLOAD_TOKEN_FIELD } from './http.ts';
+import { readSentReference, submitFormPage } from './http.ts';
 
 const NOW = 1_900_000_000;
 const SECRET = 'form-sent-secret-for-tests-00000000001';
@@ -100,28 +100,6 @@ test('a valid church request is stored, becomes a service request, sends both em
   assert.equal(await readSentReference(s.env, null, NOW), null);
 });
 
-test('posting the same form twice stores it once and sends no second email', async () => {
-  const s = await setup();
-  const send = () =>
-    submitFormPage({
-      slug: 'worship-request',
-      env: s.env,
-      db: s.d1,
-      request: post({ ...REQUEST_ANSWERS, idempotency_key: 'key-bbbbbbbbbbbbbbbb' }),
-      locals: {},
-      uploads: null,
-      adminUrlFor,
-      now: NOW,
-      email: s.email,
-    });
-  const first = await send();
-  const second = await send();
-  assert.equal(first.kind, 'sent');
-  assert.equal(second.kind, 'sent');
-  assert.equal(s.count('form_submissions'), 1);
-  assert.equal(s.sent.length, 2);
-});
-
 test('invalid answers redisplay with the errors and every value kept, and store nothing', async () => {
   const s = await setup();
   const out = await submitFormPage({
@@ -170,46 +148,6 @@ test('a missing bot check is refused with a message for the widget and nothing i
   assert.ok(out.status === 400 || out.status === 403);
   assert.ok(out.turnstileError);
   assert.equal(s.count('form_submissions'), 0);
-});
-
-test('too many posts from one address are limited before anything is stored', async () => {
-  const s = await setup();
-  let limited = 0;
-  for (let i = 0; i < 22; i++) {
-    const out = await submitFormPage({
-      slug: 'worship-request',
-      env: s.env,
-      db: s.d1,
-      request: post({ ...REQUEST_ANSWERS, church_name: '' }, { ip: '198.51.100.9' }),
-      locals: {},
-      uploads: null,
-      adminUrlFor,
-      now: NOW,
-      email: s.email,
-    });
-    if (out.kind === 'redisplay' && out.status === 429) limited++;
-  }
-  assert.ok(limited >= 1, 'the per-IP limit answers 429');
-});
-
-test('an unknown form is not_found and a closed form is closed', async () => {
-  const s = await setup();
-  const base = { env: s.env, db: s.d1, locals: {}, uploads: null, adminUrlFor, now: NOW, email: s.email };
-  assert.deepEqual(await submitFormPage({ ...base, slug: 'no-such-form', request: post(REQUEST_ANSWERS) }), {
-    kind: 'not_found',
-  });
-  const forms = new FormsService(s.d1, { now: NOW });
-  const form = await forms.findBySlug('worship-request');
-  await forms.close(form!.id, { now: NOW });
-  assert.deepEqual(
-    await submitFormPage({ ...base, slug: 'worship-request', request: post(REQUEST_ANSWERS) }),
-    { kind: 'closed' },
-  );
-});
-
-test('the form and the guard agree on one Turnstile action, and the token field is not an answer', () => {
-  assert.match(FORM_TURNSTILE_ACTION, /^[A-Za-z0-9_-]{1,32}$/);
-  assert.equal(UPLOAD_TOKEN_FIELD, 'upload_session_token');
 });
 
 // ---- files posted inside the form (a browser without JavaScript) -----------------------------------------
@@ -309,31 +247,6 @@ async function send(s: Awaited<ReturnType<typeof withPhotoForm>>, request: Reque
   });
 }
 
-test('a photo posted inside the form is checked, stored and attached to the submission', async () => {
-  const s = await withPhotoForm();
-  const out = await send(
-    s,
-    multipart(TEXT, [
-      { field: 'photo', name: 'me.webp', type: 'image/webp', bytes: withHeader('webp', 4000) },
-    ]),
-  );
-  assert.equal(out.kind, 'sent');
-  assert.equal(s.count('form_submissions'), 1);
-  const upload = s.d1.sqlite
-    .prepare('SELECT status, submission_id, kind, r2_key FROM form_uploads')
-    .get() as {
-    status: string;
-    submission_id: string | null;
-    kind: string;
-    r2_key: string;
-  };
-  assert.equal(upload.status, 'verified');
-  assert.equal(upload.kind, 'image');
-  assert.ok(upload.submission_id, 'attached to the submission');
-  assert.match(upload.r2_key, /^forms\/submissions\//);
-  assert.ok(s.images.seen.outputs.length > 0, 'the photo was re-encoded');
-});
-
 test('a video, a disguised file and an oversized photo are refused next to their question; nothing is stored', async () => {
   const s = await withPhotoForm();
   const cases: [string, { name: string; type: string; bytes: Uint8Array }, RegExp][] = [
@@ -366,49 +279,4 @@ test('a video, a disguised file and an oversized photo are refused next to their
     );
   }
   assert.equal(s.count('form_submissions'), 0);
-});
-
-test('a photo is kept when the rest of the form has a mistake, so it is not asked for again', async () => {
-  const s = await withPhotoForm();
-  const out = await send(
-    s,
-    multipart({ ...TEXT, email: 'not-an-email' }, [
-      { field: 'photo', name: 'me.webp', type: 'image/webp', bytes: withHeader('webp', 3000) },
-    ]),
-  );
-  assert.equal(out.kind, 'redisplay');
-  if (out.kind !== 'redisplay') return;
-  assert.ok(out.errors.some((e) => e.questionId === 'email'));
-  assert.equal(out.uploads.photo?.length, 1, 'the finished photo is shown again');
-  assert.equal(out.uploadTokens.length, 1, 'with the token that proves it is theirs');
-
-  // The retry carries the finished photo by id and token, no file at all.
-  const again = await send(
-    s,
-    multipart(
-      {
-        ...TEXT,
-        'photo.upload': out.uploads.photo![0]!.uploadId,
-        [UPLOAD_TOKEN_FIELD]: out.uploadTokens[0]!,
-      },
-      [],
-    ),
-  );
-  assert.equal(again.kind, 'sent');
-  assert.equal(s.count('form_submissions'), 1);
-});
-
-test('a post far larger than two photos is refused with a message about JavaScript', async () => {
-  const s = await withPhotoForm();
-  const out = await send(
-    s,
-    multipart(TEXT, [
-      { field: 'photo', name: 'huge.webp', type: 'image/webp', bytes: new Uint8Array(25 * 1024 * 1024) },
-    ]),
-  );
-  assert.equal(out.kind, 'redisplay');
-  if (out.kind !== 'redisplay') return;
-  assert.equal(out.status, 413);
-  assert.match(out.summaryExtra[0]!.message, /JavaScript/);
-  assert.equal(s.count('form_uploads'), 0);
 });

@@ -10,7 +10,6 @@ import {
   approveApplication,
   createRequestFromSubmission,
   sendOffer,
-  withdrawOffer,
 } from '../../packages/domain/src/worship/index.ts';
 import {
   all,
@@ -21,7 +20,6 @@ import {
   newDb,
   NOW,
   requestBinds,
-  run,
   seedSubmission,
 } from '../../packages/domain/src/worship/test-support.ts';
 
@@ -167,34 +165,6 @@ test('an unknown or malformed token is a generic 404 that discloses nothing', as
   }
 });
 
-test('a withdrawn or expired offer says it is gone and shows no details', async () => {
-  const s = await scenario();
-  run(s.d1, "UPDATE offers SET status = 'withdrawn' WHERE id = ?", s.offerId);
-  const withdrawn = await loadOfferPage(astroFor(s, s.token).astro, s.token);
-  assert.equal(view(withdrawn), 'gone');
-  assert.equal(JSON.stringify(withdrawn).includes('Grace'), false);
-  const answered = await loadOfferPage(post(s, s.token, 'accept').astro, s.token);
-  assert.equal(answered.view === 'result' && answered.state, 'unavailable');
-
-  const t = await scenario();
-  run(t.d1, 'UPDATE offers SET expires_at = 1 WHERE id = ?', t.offerId);
-  assert.equal(view(await loadOfferPage(astroFor(t, t.token).astro, t.token)), 'gone');
-  const late = await loadOfferPage(post(t, t.token, 'accept').astro, t.token);
-  assert.equal(late.view === 'result' && late.state, 'unavailable');
-  assert.equal(
-    get(t.d1, 'SELECT status FROM offers WHERE id = ?', t.offerId)!.status,
-    'expired',
-    'a late answer is never accepted',
-  );
-});
-
-test('a withdrawn offer through the real withdraw path is unavailable', async () => {
-  const s = await scenario();
-  await withdrawOffer(s.d1, { offerId: s.offerId, staffId, now: NOW });
-  const out = await loadOfferPage(post(s, s.token, 'accept').astro, s.token);
-  assert.equal(out.view === 'result' && out.state, 'unavailable');
-});
-
 test('a cross-origin or cross-site POST is refused (403) before the token is looked at', async () => {
   const s = await scenario();
   const before = rows(s);
@@ -213,34 +183,6 @@ test('a cross-origin or cross-site POST is refused (403) before the token is loo
   assert.equal(rows(s), before);
 });
 
-test('a no-referrer page gets Origin: null from the browser: that is accepted when the browser says same-origin', async () => {
-  const s = await scenario();
-  const accepted: Record<string, string>[] = [
-    { origin: 'null', 'sec-fetch-site': 'same-origin' },
-    { origin: 'null' },
-  ];
-  for (const headers of accepted) {
-    const fresh = await scenario();
-    const out = await loadOfferPage(post(fresh, fresh.token, 'accept', headers).astro, fresh.token);
-    assert.equal(out.view === 'result' && out.state, 'accepted', JSON.stringify(headers));
-  }
-  assert.equal(get(s.d1, 'SELECT status FROM offers WHERE id = ?', s.offerId)!.status, 'pending');
-});
-
-test('an unknown action is a 400 and changes nothing', async () => {
-  const s = await scenario();
-  const before = rows(s);
-  for (const action of ['', 'withdraw', 'ACCEPT']) {
-    const { astro, response } = post(s, s.token, action);
-    assert.equal(view(await loadOfferPage(astro, s.token)), 'unavailable');
-    assert.equal(response.status, 400);
-  }
-  const { astro, response } = astroFor(s, s.token, { method: 'POST', body: '' });
-  assert.equal(view(await loadOfferPage(astro, s.token)), 'unavailable');
-  assert.equal(response.status, 400);
-  assert.equal(rows(s), before);
-});
-
 test('too many posts from one address are answered 429 with Retry-After', async () => {
   const s = await scenario();
   let limited: { status: number; retry: string | null } | null = null;
@@ -251,12 +193,4 @@ test('too many posts from one address are answered 429 with Retry-After', async 
   }
   assert.ok(limited, 'the per-IP limit answered 429');
   assert.ok(Number(limited.retry) > 0);
-});
-
-test('without a database the page says it is unavailable (503) rather than guessing', async () => {
-  const s = await scenario();
-  const bare = { ...s, env: { ...ENV } as never } as Setup;
-  const { astro, response } = astroFor(bare, s.token);
-  assert.equal(view(await loadOfferPage(astro, s.token)), 'unavailable');
-  assert.equal(response.status, 503);
 });

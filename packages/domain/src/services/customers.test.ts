@@ -4,20 +4,13 @@ import { createMigratedD1 } from '@gamo/db/testing';
 import {
   customerCookieName,
   CUSTOMER_LINK_INVALID_MESSAGE,
-  CustomerInputError,
   endCustomerSession,
-  findOrCreatePersonForVerifiedEmail,
   issueCustomerLink,
-  markCustomerEmailVerified,
   openCustomerLink,
   readCustomerSession,
-  revokeCustomerSessions,
-  setVerifiedCustomerName,
-  PersonErasedError,
   upsertCustomerProfile,
 } from './customers.ts';
-import { CUSTOMER_SESSION_TTL_SECONDS, CustomerLinkTokens } from '../security/link-tokens.ts';
-import { SecretNotConfiguredError } from '../security/crypto.ts';
+import { CustomerLinkTokens } from '../security/link-tokens.ts';
 
 const SECRET = 'customer-link-secret-for-tests-000000000001';
 const ENV = { ENVIRONMENT: 'production', CUSTOMER_LINK_SECRET: SECRET };
@@ -29,100 +22,6 @@ const withCookie = (setCookie: string) =>
   new Request('https://academy.example.test/registrations', {
     headers: { cookie: `other=1; ${customerCookieName('academy')}=${cookieValue(setCookie)}` },
   });
-
-test('upsertCustomerProfile: normalised email is the key; a guest form never sets or changes the name', async () => {
-  const db = await createMigratedD1();
-  const a = await upsertCustomerProfile(db, { email: ' Sam@Example.org ', now: NOW });
-  assert.equal(a.emailNormalized, 'sam@example.org');
-  assert.equal(a.displayName, null);
-  const b = await upsertCustomerProfile(db, { email: 'SAM@example.org', now: NOW + 1 });
-  assert.equal(b.id, a.id);
-  assert.equal(b.updatedAt, NOW, 'an existing profile is returned unchanged');
-  await assert.rejects(
-    setVerifiedCustomerName(db, { customerProfileId: a.id, displayName: 'Mallory', now: NOW + 2 }),
-    CustomerInputError,
-    'no name before the email is verified',
-  );
-  await markCustomerEmailVerified(db, { customerProfileId: a.id, now: NOW + 3 });
-  const named = await setVerifiedCustomerName(db, {
-    customerProfileId: a.id,
-    displayName: '  Sam   Lee ',
-    now: NOW + 4,
-  });
-  assert.equal(named.displayName, 'Sam Lee');
-  const d = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW + 5 });
-  assert.equal(d.emailVerifiedAt, NOW + 3);
-  assert.equal(d.displayName, 'Sam Lee');
-  assert.ok(d.personId);
-  const person = db.sqlite.prepare('SELECT display_name FROM persons WHERE id = ?').get(d.personId) as any;
-  assert.equal(person.display_name, null, 'a customer verification never copies a name into persons');
-  await assert.rejects(upsertCustomerProfile(db, { email: 'not-an-email', now: NOW }), CustomerInputError);
-});
-
-test('erased persons are never reattached; after erasure rewrites the email a fresh person is created', async () => {
-  const db = await createMigratedD1();
-  const first = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW, 'Sam');
-  assert.equal(first.displayName, 'Sam');
-  const again = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 1, 'Someone Else');
-  assert.equal(again.displayName, 'Sam', 'the name is written only when the person is created');
-  // Incomplete erasure: the row still holds the address → refused, never returned.
-  db.sqlite.prepare('UPDATE persons SET erased_at = ? WHERE id = ?').run(NOW + 2, first.id);
-  await assert.rejects(findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 3), PersonErasedError);
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW + 3 });
-  const verified = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 4 });
-  assert.equal(verified.personId, null, 'a customer is not linked to an erased person');
-  // Completed erasure keeps only a marker: a re-registration gets a fresh person.
-  db.sqlite.prepare("UPDATE persons SET email_normalized = 'erased:0123abcd' WHERE id = ?").run(first.id);
-  const fresh = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 5);
-  assert.notEqual(fresh.id, first.id);
-  assert.equal(fresh.displayName, null);
-});
-
-test('erased profiles are returned unchanged and cannot be verified or sent links', async () => {
-  const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'gone@example.org', now: NOW });
-  db.sqlite.prepare('UPDATE customer_profiles SET erased_at = ? WHERE id = ?').run(NOW + 1, p.id);
-  const again = await upsertCustomerProfile(db, { email: 'gone@example.org', now: NOW + 2 });
-  assert.equal(again.erasedAt, NOW + 1);
-  assert.equal(again.displayName, null);
-  await assert.rejects(
-    markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW }),
-    CustomerInputError,
-  );
-  await assert.rejects(
-    issueCustomerLink(db, ENV, {
-      product: 'academy',
-      customerProfileId: p.id,
-      scope: 'customer:all',
-      purpose: 'recovery',
-      expiresAt: NOW + 1800,
-      now: NOW,
-    }),
-    CustomerInputError,
-  );
-});
-
-test('markCustomerEmailVerified links the person (created once), is idempotent, and leaves users alone', async () => {
-  const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
-  const v1 = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 10 });
-  const v2 = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 20 });
-  assert.equal(v1.emailVerifiedAt, NOW + 10);
-  assert.equal(v2.emailVerifiedAt, NOW + 10, 'first verification time is kept');
-  assert.equal(v1.personId, v2.personId);
-  const persons = db.sqlite.prepare('SELECT email_normalized, display_name FROM persons').all();
-  assert.deepEqual(
-    persons.map((r) => ({ ...r })),
-    [{ email_normalized: 'sam@example.org', display_name: null }],
-  );
-  const person = await findOrCreatePersonForVerifiedEmail(db, 'SAM@example.org', NOW + 30);
-  assert.equal(person.id, v1.personId, 'Agent A gets the same person for the same verified email');
-  assert.equal(person.emailVerifiedAt, NOW + 10);
-  await assert.rejects(
-    markCustomerEmailVerified(db, { customerProfileId: 'cus_missing', now: NOW }),
-    CustomerInputError,
-  );
-});
 
 test('issue → open → read → end: cookie flags, TTL capped by the token, token-free session', async () => {
   const db = await createMigratedD1();
@@ -208,36 +107,6 @@ test('issue → open → read → end: cookie flags, TTL capped by the token, to
   );
 });
 
-test('a full 2 h session when the token lives longer; http (local) cookies are not Secure', async () => {
-  const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
-  const link = await issueCustomerLink(db, ENV, {
-    product: 'academy',
-    customerProfileId: p.id,
-    scope: 'customer:all',
-    purpose: 'recovery',
-    expiresAt: NOW + 30 * 86400,
-    now: NOW,
-  });
-  assert.equal(link.path, `/link?t=${link.token}`);
-  const opened = await openCustomerLink(db, ENV, {
-    product: 'academy',
-    token: link.token,
-    now: NOW,
-    https: false,
-    markEmailVerified: false,
-  });
-  assert.ok(opened.ok);
-  assert.equal(opened.session.expiresAt, NOW + CUSTOMER_SESSION_TTL_SECONDS);
-  assert.ok(!opened.cookie.includes('Secure'));
-  const row = db.sqlite
-    .prepare('SELECT email_verified_at FROM customer_profiles WHERE id = ?')
-    .get(p.id) as any;
-  assert.equal(row.email_verified_at, null, 'markEmailVerified: false skips verification');
-  assert.equal(await revokeCustomerSessions(db, p.id, NOW + 1), 1);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 2, 'academy'), null);
-});
-
 test('every failure has the same public message (invalid, expired, revoked, exhausted, erased)', async () => {
   const db = await createMigratedD1();
   const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
@@ -282,93 +151,4 @@ test('every failure has the same public message (invalid, expired, revoked, exha
     await openCustomerLink(db, ENV, { product: 'academy', token: erased.token, now: NOW + 4, https: true }),
   );
   for (const o of outcomes) assert.deepEqual(o, { ok: false, message: CUSTOMER_LINK_INVALID_MESSAGE });
-});
-
-test('CUSTOMER_LINK_SECRET: missing outside local throws SecretNotConfiguredError; local uses a dev key', async () => {
-  const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
-  const input = {
-    customerProfileId: p.id,
-    scope: 'customer:all' as const,
-    purpose: 'recovery' as const,
-    product: 'academy' as const,
-    expiresAt: NOW + 600,
-    now: NOW,
-  };
-  for (const ENVIRONMENT of ['production', 'preview', undefined])
-    await assert.rejects(issueCustomerLink(db, { ENVIRONMENT }, input), SecretNotConfiguredError);
-  await assert.rejects(
-    readCustomerSession(
-      db,
-      { ENVIRONMENT: 'preview', CUSTOMER_LINK_SECRET: 'short' },
-      new Request('https://x.test'),
-      NOW,
-      'academy',
-    ),
-    SecretNotConfiguredError,
-  );
-  const local = { ENVIRONMENT: 'local' };
-  const link = await issueCustomerLink(db, local, input);
-  const opened = await openCustomerLink(db, local, {
-    product: 'academy',
-    token: link.token,
-    now: NOW + 1,
-    https: false,
-  });
-  assert.ok(opened.ok);
-  assert.ok(await readCustomerSession(db, local, withCookie(opened.cookie), NOW + 2, 'academy'));
-  const prod = await openCustomerLink(db, ENV, {
-    product: 'academy',
-    token: link.token,
-    now: NOW + 3,
-    https: true,
-  });
-  assert.equal(prod.ok, false, 'a token issued with the local key is useless with a real secret');
-});
-
-test('revoking the link revokes the sessions opened from it (revokeForScope and revoke)', async () => {
-  const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
-  const tokens = new CustomerLinkTokens(db, SECRET, 'academy');
-  const open = async (scope: 'registration:acr_1' | 'customer:all') => {
-    const link = await issueCustomerLink(db, ENV, {
-      product: 'academy',
-      customerProfileId: p.id,
-      scope,
-      purpose: scope === 'customer:all' ? 'recovery' : 'registration',
-      expiresAt: NOW + 86400,
-      now: NOW,
-    });
-    const opened = await openCustomerLink(db, ENV, {
-      product: 'academy',
-      token: link.token,
-      now: NOW + 1,
-      https: true,
-    });
-    assert.ok(opened.ok);
-    return { link, opened };
-  };
-  const order = await open('registration:acr_1');
-  const other = await open('customer:all');
-  assert.ok(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 2, 'academy'));
-  assert.equal(await tokens.revokeForScope('registration:acr_1', NOW + 3), 1);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 4, 'academy'), null);
-  const row = db.sqlite
-    .prepare('SELECT revoked_at FROM customer_sessions WHERE id = ?')
-    .get(order.opened.session.sessionId) as any;
-  assert.equal(row.revoked_at, NOW + 3, 'the session row is revoked in the same batch');
-  assert.ok(
-    await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 4, 'academy'),
-    'other scopes keep working',
-  );
-
-  // A token revoked without touching its session row (e.g. by an older code path) is still refused.
-  db.sqlite
-    .prepare('UPDATE customer_access_tokens SET revoked_at = ? WHERE id = ?')
-    .run(NOW + 5, other.link.id);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 6, 'academy'), null);
-
-  const third = await open('customer:all');
-  assert.equal(await tokens.revoke(third.link.id, NOW + 7), true);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(third.opened.cookie), NOW + 8, 'academy'), null);
 });

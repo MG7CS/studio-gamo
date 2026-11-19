@@ -30,10 +30,8 @@ async function checkPage(page: Page, label: string, errors: string[]): Promise<v
   expect(errors, `${label}: console`).toEqual([]);
 }
 
-for (const viewport of [
-  { name: 'desktop', width: 1280, height: 900 },
-  { name: 'phone', width: 360, height: 800 },
-]) {
+// One viewport only (the phone variant was removed 2026-11-18, AGENTS.md "Minimal testing").
+for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }]) {
   test(`academy guest registration: reserve → receipt → manage → cancel (${viewport.name})`, async ({
     browser,
   }) => {

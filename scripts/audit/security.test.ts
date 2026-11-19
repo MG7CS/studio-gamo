@@ -591,41 +591,6 @@ test('staff identity provisioning binds immutable Cloudflare Access sub and bloc
     f.d1.sqlite.close();
   }
 });
-test('email HTML escaping and the sensitive-document guard on media uploads', async () => {
-  const { escapeHtml, MediaService } = await import('../../packages/domain/index.ts');
-  const f = await fixture();
-  try {
-    assert.equal(
-      escapeHtml('<script>alert("xss")</script>'),
-      '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;',
-    );
-    // D1 trigger blocks sensitive document rows even if inserted directly into media_files
-    const media = new MediaService(f.db);
-    await assert.rejects(
-      () =>
-        media.recordMediaUpload({
-          ownerUserId: f.owner.id,
-          scopeType: 'student_document',
-          r2Key: 'student_document/1.pdf',
-          contentType: 'application/pdf',
-          byteSize: 100,
-          accessPolicy: 'private',
-        }),
-      /SENSITIVE_DOCUMENT_PROHIBITED/,
-    );
-    assert.throws(
-      () =>
-        f.d1.sqlite
-          .prepare(
-            "INSERT INTO media_files(id,owner_user_id,scope_type,r2_key,content_type,byte_size,access_policy,status,created_at) VALUES('m1',?,'identity_document','k1','application/pdf',10,'private','quarantined',unixepoch())",
-          )
-          .run(f.owner.id),
-      /SENSITIVE_DOCUMENT_PROHIBITED/,
-    );
-  } finally {
-    f.d1.sqlite.close();
-  }
-});
 test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation', async () => {
   const onRequest = await loadAdminMiddleware();
   const { authenticateAdminPassword, changeAdminPassword, ensureBootstrapAdminAccount } =

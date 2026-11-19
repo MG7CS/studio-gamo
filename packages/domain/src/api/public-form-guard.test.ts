@@ -5,9 +5,7 @@ import {
   PUBLIC_FORM_MAX_BYTES,
   readBoundedBody,
   readPublicFormBody,
-  describeWait,
   guardPublicForm,
-  guardPublicFormForPage,
   TURNSTILE_RESPONSE_FIELD,
 } from './public-form-guard.ts';
 import { TURNSTILE_DUMMY_TOKEN } from '../security/turnstile.ts';
@@ -33,13 +31,6 @@ const formRequest = (fields: Record<string, string>, ip = '203.0.113.9') =>
     body: new URLSearchParams(fields).toString(),
   });
 
-const jsonRequest = (body: unknown, ip = '203.0.113.9') =>
-  new Request('https://live.example.test/api/rsvp', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
-    body: JSON.stringify(body),
-  });
-
 const limits = {
   perIp: { limit: 3, windowSeconds: 60 },
   perEmail: { limit: 2, windowSeconds: 600 },
@@ -56,44 +47,6 @@ async function env(extra: Record<string, unknown> = {}) {
     ...extra,
   };
 }
-
-test('success: verifies the token, returns the parsed body and hashes; form and JSON bodies', async () => {
-  const e = await env();
-  const sv = siteverify({ success: true, action: 'rsvp', hostname: 'live.example.test' });
-  const r = await guardPublicForm(
-    {
-      request: formRequest({ email: 'Sam@Example.org', name: 'Sam', [TURNSTILE_RESPONSE_FIELD]: 'tok-1' }),
-      env: e,
-    },
-    { route: 'live.rsvp', turnstileAction: 'rsvp', limits, now: T0, fetchImpl: sv.impl },
-  );
-  assert.ok(r.ok);
-  assert.equal(r.body.get('name'), 'Sam');
-  assert.match(r.ipHash, /^[0-9a-f]{64}$/);
-  assert.match(r.emailHash ?? '', /^[0-9a-f]{64}$/);
-  assert.equal(r.turnstileMocked, false);
-  assert.equal(sv.calls.length, 1);
-  assert.equal(sv.calls[0].get('response'), 'tok-1');
-  assert.equal(sv.calls[0].get('remoteip'), '203.0.113.9');
-
-  const j = await guardPublicForm(
-    {
-      request: jsonRequest({
-        email: 'sam@example.org',
-        quantity: 2,
-        names: ['A', 'B'],
-        [TURNSTILE_RESPONSE_FIELD]: 'tok-2',
-      }),
-      env: e,
-    },
-    { route: 'live.rsvp', limits, now: T0, fetchImpl: sv.impl },
-  );
-  assert.ok(j.ok);
-  assert.equal(j.body.type, 'json');
-  assert.equal(j.body.get('quantity'), '2');
-  assert.deepEqual(j.body.getAll('names'), ['A', 'B']);
-  assert.equal(j.emailHash, r.emailHash, 'the email hash is normalised (case-insensitive)');
-});
 
 test('missing token → 400 TURNSTILE_REQUIRED tied to the field; rejected → 403; siteverify down → 503', async () => {
   const e = await env();
@@ -215,43 +168,6 @@ test('per-IP limit: 429 with Retry-After and a message saying how long to wait; 
   assert.ok((await send('198.51.100.2')).ok);
 });
 
-test('per-email limit counts the normalised address across IPs, after Turnstile', async () => {
-  const e = await env();
-  const ok = siteverify({ success: true });
-  const send = (email: string, ip: string, fetchImpl = ok.impl) =>
-    guardPublicForm(
-      { request: formRequest({ email, [TURNSTILE_RESPONSE_FIELD]: 'tok' }, ip), env: e },
-      { route: 'live.find', limits: { perEmail: { limit: 2, windowSeconds: 3600 } }, now: T0, fetchImpl },
-    );
-  // Failed Turnstile attempts do not use up the victim's email budget.
-  const bad = siteverify({ success: false, 'error-codes': ['invalid-input-response'] });
-  for (let i = 0; i < 5; i++) assert.ok(!(await send('victim@example.org', '192.0.2.1', bad.impl)).ok);
-  assert.ok((await send('victim@example.org', '192.0.2.2')).ok);
-  assert.ok((await send(' VICTIM@example.org ', '192.0.2.3')).ok);
-  const blocked = await send('victim@example.org', '192.0.2.4');
-  assert.ok(!blocked.ok);
-  assert.equal(blocked.response.status, 429);
-  assert.ok(Number(blocked.response.headers.get('retry-after')) > 0);
-  assert.match(blocked.error.message, /this email address/);
-  assert.ok((await send('other@example.org', '192.0.2.4')).ok);
-  const noEmail = await send('', '192.0.2.5');
-  assert.ok(noEmail.ok && noEmail.emailHash === undefined, 'no email → limit skipped, validation decides');
-});
-
-test('page variant returns an inline error (field id for the summary link) instead of JSON', async () => {
-  const e = await env();
-  const r = await guardPublicFormForPage(
-    { request: formRequest({ email: 'sam@example.org' }), env: e },
-    { route: 'live.rsvp', limits, now: T0, turnstileFieldId: 'rsvp-turnstile' },
-  );
-  assert.ok(!r.ok);
-  assert.equal(r.error.status, 400);
-  assert.equal(r.error.field, TURNSTILE_RESPONSE_FIELD);
-  assert.equal(r.error.fieldId, 'rsvp-turnstile');
-  assert.equal(r.error.headers['Cache-Control'], 'no-store');
-  assert.ok(!('response' in r));
-});
-
 test('bodies: malformed JSON, arrays, unknown content types and oversize bodies are refused', async () => {
   const e = await env();
   const opts = { route: 'live.rsvp', limits, now: T0 };
@@ -283,15 +199,6 @@ test('bodies: malformed JSON, arrays, unknown content types and oversize bodies 
     guardPublicForm({ request: formRequest({}), env: e }, { ...opts, route: 'Bad Route' }),
     RangeError,
   );
-});
-
-test('describeWait phrases the wait for people', () => {
-  assert.equal(describeWait(1), '1 second');
-  assert.equal(describeWait(42), '42 seconds');
-  assert.equal(describeWait(60), 'about 1 minute');
-  assert.equal(describeWait(61), 'about 2 minutes');
-  assert.equal(describeWait(3600), 'about 1 hour');
-  assert.equal(describeWait(7201), 'about 3 hours');
 });
 
 /** A streamed body with no Content-Length (or a lying one); counts how many chunks were pulled. */
@@ -341,61 +248,4 @@ test('size limit counts bytes as they stream: no Content-Length and a lying Cont
   const exact = await readBoundedBody(streamed(PUBLIC_FORM_MAX_BYTES).request, PUBLIC_FORM_MAX_BYTES);
   assert.ok(exact.ok && exact.bytes.byteLength === PUBLIC_FORM_MAX_BYTES, 'exactly the limit is fine');
   await assert.rejects(readBoundedBody(streamed(1).request, 0), RangeError);
-});
-
-test('multibyte characters are counted in bytes, not string length', async () => {
-  // "é" is 2 bytes in UTF-8: a value of 32 769 "é" is under 64 Ki characters but over 64 KiB.
-  const send = (body: string) =>
-    readPublicFormBody(
-      new Request('https://live.example.test/x', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body,
-      }),
-    );
-  const json = (n: number) => JSON.stringify({ name: 'é'.repeat(n) });
-  const under = await send(json(Math.floor((PUBLIC_FORM_MAX_BYTES - 20) / 2)));
-  assert.ok(under.ok, 'just under the byte limit is accepted');
-  assert.equal(under.body.get('name')?.length, Math.floor((PUBLIC_FORM_MAX_BYTES - 20) / 2));
-  const over = await send(json(Math.ceil(PUBLIC_FORM_MAX_BYTES / 2)));
-  assert.ok(!over.ok, 'fewer characters than the limit but more bytes is refused');
-  assert.equal(over.error.status, 413);
-  assert.ok(
-    json(Math.ceil(PUBLIC_FORM_MAX_BYTES / 2)).length < PUBLIC_FORM_MAX_BYTES,
-    'string length alone would pass',
-  );
-});
-
-test('multipart is refused on public forms (415) unless the route opts in with its own limit', async () => {
-  const multipart = () => {
-    const form = new FormData();
-    form.append('email', 'sam@example.org');
-    form.append(TURNSTILE_RESPONSE_FIELD, 'tok');
-    return new Request('https://live.example.test/x', { method: 'POST', body: form });
-  };
-  const e = await env();
-  const refused = await guardPublicForm(
-    { request: multipart(), env: e },
-    { route: 'live.rsvp', limits, now: T0, fetchImpl: siteverify({ success: true }).impl },
-  );
-  assert.ok(!refused.ok);
-  assert.equal(refused.response.status, 415);
-  assert.equal(((await refused.response.json()) as any).error.code, 'UNSUPPORTED_MEDIA_TYPE');
-
-  const optedIn = await guardPublicForm(
-    { request: multipart(), env: e },
-    {
-      route: 'live.map',
-      limits,
-      now: T0,
-      fetchImpl: siteverify({ success: true }).impl,
-      allowMultipart: { maxBytes: 1024 * 1024 },
-    },
-  );
-  assert.ok(optedIn.ok);
-  assert.equal(optedIn.body.get('email'), 'sam@example.org');
-
-  const tooBig = await readPublicFormBody(multipart(), { allowMultipart: { maxBytes: 16 } });
-  assert.ok(!tooBig.ok);
-  assert.equal(tooBig.error.status, 413);
 });

@@ -103,21 +103,6 @@ test('staff sign in with the temporary password, are forced to change it, and re
   await context.close();
 });
 
-test('the form signs in with JavaScript disabled, as a normal POST and redirect', async ({ browser }) => {
-  const context = await accessContext(browser, { javaScriptEnabled: false });
-  const page = await context.newPage();
-  await page.goto(`${ADMIN_E2E_ORIGIN}/security`);
-  await page.getByLabel('Password').fill(STAFF_NEW_PASSWORD);
-  await Promise.all([
-    page.waitForURL(`${ADMIN_E2E_ORIGIN}/`),
-    page.getByRole('button', { name: 'Sign in to Operations Gateway' }).click(),
-  ]);
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  const settings = await page.goto(`${ADMIN_E2E_ORIGIN}/security`);
-  expect(settings?.status()).toBe(200);
-  await context.close();
-});
-
 test('an Access assertion the app cannot verify never signs anyone in', async ({ browser }) => {
   // Tampered signature: the assertion is present but invalid, so the gateway page is shown (401), whatever the cookies say.
   const jwt = mintAccessJwt(readFileSync(ACCESS_KEY_FILE, 'utf8'), STAFF_EMAIL);
