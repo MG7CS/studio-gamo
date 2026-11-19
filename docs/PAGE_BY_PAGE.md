@@ -16,8 +16,11 @@ pages, so it is applied when we reach them. Order: home (main site), then Academ
 1. **Headings in title case.** The first letter of every word is capitalised except the small words (a, an, the, and,
    but, or, nor, for, so, yet, as, at, by, in, of, on, to, up, from, with, into, onto, over, per, via, is). The first
    word is always capitalised. A page that is done carries `data-heading-case="as-written"` on its content so the
-   shared heading styles show the text exactly as typed; pages not yet done still use the old rule (every word
-   capitalised by CSS). When every page is done, make "as written" the default and remove the attribute.
+   shared heading styles (and photo-card titles, `.media-card__title`) show the text exactly as typed; pages not yet
+   done still use the old rule (every word capitalised by CSS). When every page is done, make "as written" the default
+   and remove the attribute. Done: home (5ff33a15).
+6. **Header menu tiles are pictures without links** (ddb2b62d): the side links and "All of …" still work. Applies to
+   every page already, because the header is shared.
 2. **Headings are short:** one line where possible, two at most.
 3. **Photos crop as little as possible and are at least as tall as the text beside them.** Use the frame ratio closest
    to the photo's own shape; make the photo taller, or trim the text when a wide photo cannot grow. Done: main site
