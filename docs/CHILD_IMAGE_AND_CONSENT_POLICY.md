@@ -154,7 +154,6 @@ From the code on 2026-11-18. Image descriptions come from the catalog alt text (
 | --- | --- | --- | --- |
 | Academy home `/` | `apps/academy/src/pages/index.astro`, `components/home/AcademyHero.astro`, `HowLessonsWork.astro`, `InstructionFormats.astro`, `SponsoredPrograms.astro` | Age groups "Kids (6–12)", "Teens (13–17)", "Adults" named in copy (the age cards section was removed 2026-11-20) | `boyGuitar`, `girlGuitar`, `youngPianist`, `guitarMentor` (AI; boy, girl, young pianist, instructor with young student) |
 | Academy instruments `/instruments` | `apps/academy/src/pages/instruments/index.astro` | No | `youngPianist` hero, `guitarMentor` closing image |
-| Academy sponsored `/sponsored` | `apps/academy/src/pages/sponsored.astro` | Families, sponsored students | `boyGuitar` hero |
 | Academy interest `/academy/interest` (web app) | `apps/web/src/pages/academy/interest.astro` | Age group only; no child name | form photos |
 | Academy instructor `/instructors/[slug]` | `apps/academy/src/pages/instructors/[slug].astro` | No | initials only, "Sample" badge |
 | Web home `/` | `apps/web/src/pages/index.astro`, `components/organization/PathChooser.astro`, `data/organization.ts` | "children, teens and adults" | `boyGuitar` (hero, a boy playing guitar), `girlGuitar` (Students & families card) |
