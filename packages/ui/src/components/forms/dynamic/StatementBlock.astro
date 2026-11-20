@@ -19,7 +19,7 @@ const { question: q, class: className } = Astro.props;
 const paragraphs = splitParagraphs(q.body);
 ---
 
-<div class:list={['space-y-2 rounded-xl bg-surface-inset px-5 py-4 text-fg', className]}>
+<div class:list={['space-y-2 rounded-card bg-surface-inset px-5 py-4 text-fg', className]}>
   <p class="text-body-sm font-semibold">{q.label}</p>
   {q.help && <p class="text-small text-fg-muted">{q.help}</p>}
   {paragraphs.map((paragraph) => (

@@ -324,3 +324,17 @@ Owner direction: the hero images of every landing page have the shape of the mai
 ## 2026-11-19 — No public email address for now
 
 Owner direction: "Do not show the email and remove the emails shown for now." Every visible address (`hello@gamostudio.org`) was replaced by the contact form until the owner chooses a public address in the next deploy: page copy, notices, error messages, the FAQ answer, the legal texts and their footers, the Academy messages and the receipt and sign-in-link email bodies ("Questions? Reply to this email."). The `EmailUsBlock` card was removed from `/contact` and `/partners/interest`, which already carry the form. The staff inbox (`INQUIRY_INBOX_EMAIL`, a secret) is never shown. Sender and Reply-To addresses (`packages/config/brand.ts`, `packages/integrations/src/resend.ts`) are unchanged. The legal texts changed, so the terms version moved to `2026-11-19-draft.5` with new content hashes.
+
+## 2026-11-20 — Form wizard
+
+Public forms now show one screen at a time, a card with a photo, built on the server-rendered form renderer.
+
+- **Approach A.** We enhance the server-rendered `DynamicForm` instead of building a client-side form app. All questions are in the HTML, so the form works without JavaScript; the script only hides all but one screen. No partial answers are stored: nothing is saved until the final submit.
+- **Markup contract.** The renderer emits `data-wizard` (form), `data-wizard-section`, `data-wizard-screen`, `data-wizard-card`, `data-wizard-controls`, `-back`, `-next`, `-progress`, `-status`, `-live` and `-final`; the client adds `data-wizard-ready` and `data-wizard-active`. The photos use `data-wizard-photo` and `data-wizard-photos`. The client reads only these attributes, never class names. `data-wizard-off` turns the wizard off.
+- **Screen rule.** One question per screen; up to three from the same section; heavy questions (paragraphs, file uploads, grids, checkboxes, scales, links, long choice lists) stand alone. `screenItems` and `buildScreens` (`packages/ui/src/lib/dynamic-form-wizard.ts`) apply it.
+- **Positional consents.** Consent questions are recognised by position (the last screens), not by a schema marker, so stored forms need no migration.
+- **Header kept, footer dropped.** Form pages use `BaseLayout` with `footer={false}`: the header stays, the footer goes.
+- **Promoted to `packages/ui`.** `WizardCard` and the kind-keyed `formPhotosFor` live in `packages/ui` because the admin preview is the second user of the wizard (AGENTS rule 6: promote on second use).
+- **Local seed.** `pnpm forms:seed:local` seeds the forms into the local database for the browser checks.
+- **Research (first, per the owner rule).** GOV.UK Design System question pages and "one thing per page" (one question by default, group only when it helps, "Question 3 of 5" text); Visa and Trimble accessible wizard guidance (focus to the new heading, polite live region, `aria-current="step"`, keep data when going back); Formspree on fieldsets, formwizard and Smashing on multistep forms (steps as fieldsets, everything visible without JS, validate per step). We compared a client-rendered wizard (B) with enhancing the server-rendered form (A) and chose A for the no-JavaScript fallback and a single validation path on the server.
+- **Open:** history `#step-n` behaviour: to be verified in the browser (Task 9).

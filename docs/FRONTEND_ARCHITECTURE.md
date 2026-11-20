@@ -145,3 +145,15 @@ Neighbouring full-width sections are told apart by a pale background, automatica
 - **Token.** `--ui-surface-band` (Tailwind `bg-surface-band`) in `tokens.semantic.css`, with a value for each of the light, inset and dark wrappers: a pale sand, an even mix of cream and sand in light, so cards (ivory) still lift off it. Text on it passes AA (ink 15.3:1, muted 6.6:1, terracotta 4.5:1, deep terracotta 6.5:1).
 - **Opt out.** An explicit tone (`raised`, `inset`, `dark`) keeps its own surface and ends the run, so the next default band starts on cream again. Use it only for a deliberate panel or emphasis, never to alternate by hand. A `Section` with `spacing="none"` is the body of the band above (a form or list under the hero): it gets `data-tone="continues"`, keeps that surface and the next band takes the pale one.
 - **One dark band.** A dark band is deliberate emphasis: at most one in a page body and never directly above the footer (which is dark). Rounded panels inside a band (`EditorialFeatureCard`) keep their own tone, so they read against cream or the pale band.
+
+## Form wizard (2026-11-20)
+
+Forms are one screen at a time, enhanced from the server-rendered `DynamicForm`. Pieces in `packages/ui`:
+
+- **`screenItems` / `buildScreens`** (`lib/dynamic-form-wizard.ts`): turn a section's questions into screens. One question per screen, up to three from one section, heavy questions alone.
+- **`WizardControls`** (`components/forms/dynamic/`): the back and next buttons, the "Question n of N" text and the polite live region; hidden until the client is ready.
+- **`WizardCard`** (`components/forms/dynamic/`): the card that holds one screen with its photo. Shared because the web form pages and the admin preview both use it.
+- **`initWizards`** (`lib/dynamic-form-wizard-client.ts`): the bundled client. It reads the `data-wizard*` attributes, shows one screen, moves focus to its heading, validates the screen before moving on and keeps answers when going back.
+- **`initWizardPhotos`** (`lib/wizard-photos-client.ts`) with `formPhotosFor` (`lib/form-photos.ts`): the photo for each screen, chosen by question kind. Apps pass nothing but the form.
+
+Without JavaScript every question is visible in order. Form pages keep the header and drop the footer (`BaseLayout footer={false}`). Decisions: `docs/DECISIONS.md` (2026-11-20).
