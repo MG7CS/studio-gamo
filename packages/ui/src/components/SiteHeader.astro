@@ -142,8 +142,8 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
   id="site-mobile-menu"
   class="fixed inset-0 z-40 hidden flex flex-col overflow-y-auto overscroll-contain bg-surface pt-16 lg:hidden"
 >
-  <nav aria-label="Mobile primary" class="mx-auto my-auto w-full max-w-page py-6 text-center">
-    <div data-mobile-root>
+  <nav aria-label="Mobile primary" class="mx-auto flex w-full max-w-page flex-1 flex-col py-6">
+    <div data-mobile-root class="my-auto">
       <ul class="flex flex-col">
         {items.map((item, index) => {
           const active = item.key !== undefined && item.key === current;
@@ -198,7 +198,13 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
         'flex min-h-14 items-center justify-center px-gutter text-center text-xl font-semibold text-fg transition-colors hover:text-action-strong';
       const linkedTiles = item.menu.tiles.filter((tile) => tile.href);
       return (
-        <section id={screenId} hidden data-mobile-screen aria-labelledby={`${screenId}-title`}>
+        <section
+          id={screenId}
+          hidden
+          data-mobile-screen
+          aria-labelledby={`${screenId}-title`}
+          class="flex flex-1 flex-col"
+        >
           <div class="flex h-14 items-center px-gutter">
             <button
               type="button"
@@ -213,31 +219,33 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
             </h2>
             <span class="-mr-3 size-11 shrink-0" aria-hidden="true"></span>
           </div>
-          {/* Pictures (and the divider under them) show here only for tiles that have an `href`; add hrefs to the
+          <div class="my-auto w-full">
+            {/* Pictures (and the divider under them) show here only for tiles that have an `href`; add hrefs to the
               tiles in packages/config/menus.ts once the pages exist. With none, the screen is the bar and the links. */}
-          {linkedTiles.length > 0 && (
-            <ul class="flex flex-col gap-6 px-gutter pt-8 pb-8">
-              {linkedTiles.map((tile) => (
+            {linkedTiles.length > 0 && (
+              <ul class="flex flex-col gap-6 px-gutter pt-8 pb-8">
+                {linkedTiles.map((tile) => (
+                  <li>
+                    <MenuTile tile={tile} variant="row" />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <ul class:list={['flex flex-col pt-2', linkedTiles.length > 0 && 'border-t border-border']}>
+              {item.menu.links.map((link) => (
                 <li>
-                  <MenuTile tile={tile} variant="row" />
+                  <a href={link.href} class={rowClass}>
+                    {link.label}
+                  </a>
                 </li>
               ))}
-            </ul>
-          )}
-          <ul class:list={['flex flex-col pt-2', linkedTiles.length > 0 && 'border-t border-border']}>
-            {item.menu.links.map((link) => (
               <li>
-                <a href={link.href} class={rowClass}>
-                  {link.label}
+                <a href={item.menu.all.href} class={rowClass}>
+                  {item.menu.all.label}
                 </a>
               </li>
-            ))}
-            <li>
-              <a href={item.menu.all.href} class={rowClass}>
-                {item.menu.all.label}
-              </a>
-            </li>
-          </ul>
+            </ul>
+          </div>
         </section>
       );
     })}
