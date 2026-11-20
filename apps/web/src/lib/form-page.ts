@@ -26,6 +26,7 @@ import { databaseOf, uploadServiceFor } from './forms-api';
 
 interface PublicFormInfo {
   slug: string;
+  kind: string;
   title: string;
   description: string | null;
   confirmationMessage: string;
@@ -64,12 +65,14 @@ const UNAVAILABLE = 'This form is temporarily unavailable. Please try again in a
 
 function infoOf(form: {
   slug: string;
+  kind: string;
   title: string;
   description: string | null;
   confirmationMessage: string | null;
 }): PublicFormInfo {
   return {
     slug: form.slug,
+    kind: form.kind,
     title: form.title,
     description: form.description,
     confirmationMessage: form.confirmationMessage ?? 'Thank you. We received your submission.',

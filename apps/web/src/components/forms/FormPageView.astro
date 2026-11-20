@@ -10,6 +10,8 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import WizardCard from '@studio-gamo/ui/components/forms/dynamic/WizardCard.astro';
+import { formPhotosFor } from '@studio-gamo/ui/lib/form-photos';
 import { FORM_TURNSTILE_ACTION } from '@gamo/domain/forms';
 import type { FormPageData } from '../../lib/form-page';
 import FormReceipt from './FormReceipt.astro';
@@ -27,12 +29,10 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
 ---
 
 {page.view === 'form' ? (
-  <>
-    <PageHero title={title} width="narrow">
-      {page.form.description && <p slot="intro">{page.form.description}</p>}
-    </PageHero>
-    <Container width="narrow" class="pb-16 lg:pb-24">
+  <Container class="py-10 lg:py-16">
+    <WizardCard photos={formPhotosFor(page.form.kind)} title={title} description={page.form.description}>
       <DynamicForm
+        wizard
         schema={page.schema}
         formSlug={page.form.slug}
         idempotencyKey={page.idempotencyKey}
@@ -45,8 +45,8 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
         submitLabel="Send"
         pendingLabel="Sending…"
       />
-    </Container>
-  </>
+    </WizardCard>
+  </Container>
 ) : page.view === 'sent' ? (
   <>
     <PageHero title="Thank you" width="narrow">

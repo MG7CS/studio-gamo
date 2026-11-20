@@ -27,16 +27,19 @@ if ('response' in page) return page.response;
 ---
 
 <SiteLayout
+  footer={false}
   title="Contact | Gamo Studios"
   description="Contact the Gamo Studios team about a program, a way to serve or a community collaboration. Programs begin in Phoenix, Arizona."
 >
-  <PageHero>
-    <Fragment slot="title">
-      Let's start <span class="block text-action">a conversation.</span>
-    </Fragment>
-    <p slot="intro" class="text-small">
-      Programs begin in the Phoenix metropolitan area, Arizona.
-    </p>
-  </PageHero>
+  {page.view === 'missing' && (
+    <PageHero>
+      <Fragment slot="title">
+        Let's start <span class="block text-action">a conversation.</span>
+      </Fragment>
+      <p slot="intro" class="text-small">
+        Programs begin in the Phoenix metropolitan area, Arizona.
+      </p>
+    </PageHero>
+  )}
   <FormPanel page={page} />
 </SiteLayout>

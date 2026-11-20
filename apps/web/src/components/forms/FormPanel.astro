@@ -1,13 +1,15 @@
 ---
 /**
- * FormPanel: a published form for a page that already has its own hero and <h1> (contact, partner interest).
- * It renders the form, or the confirmation after a send, or a short notice when the form is closed or
- * unavailable, and nothing when the form is not published yet.
- * The full-page variant with its own hero is `FormPageView`.
+ * FormPanel: a published form as a wizard card for a page that has no hero of its own (contact, partner
+ * interest): the card carries the page's single <h1> (the form's title), and so does the confirmation, closed
+ * or unavailable notice. Renders nothing when the form is not published yet (`missing`): the page then shows
+ * its own hero. The variant for forms with a hero is `FormPageView`.
  */
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
 import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import WizardCard from '@studio-gamo/ui/components/forms/dynamic/WizardCard.astro';
+import { formPhotosFor } from '@studio-gamo/ui/lib/form-photos';
 import { FORM_TURNSTILE_ACTION } from '@gamo/domain/forms';
 import type { FormPageData } from '../../lib/form-page';
 import FormReceipt from './FormReceipt.astro';
@@ -22,40 +24,47 @@ const { page, id = 'send-a-message' } = Astro.props;
 ---
 
 {page.view === 'form' ? (
-  <Container width="narrow" class="pb-16 lg:pb-24" id={id}>
-    <DynamicForm
-      schema={page.schema}
-      formSlug={page.form.slug}
-      idempotencyKey={page.idempotencyKey}
-      values={page.values}
-      errors={page.errors}
-      uploads={page.uploads}
-      uploadTokens={page.uploadTokens}
-      summaryExtra={page.summaryExtra}
-      turnstile={{ action: FORM_TURNSTILE_ACTION, error: page.turnstileError }}
-      submitLabel="Send"
-      pendingLabel="Sending…"
-    />
+  <Container class="py-10 lg:py-16" id={id}>
+    <WizardCard
+      photos={formPhotosFor(page.form.kind)}
+      title={page.form.title}
+      description={page.form.description}
+    >
+      <DynamicForm
+        wizard
+        schema={page.schema}
+        formSlug={page.form.slug}
+        idempotencyKey={page.idempotencyKey}
+        values={page.values}
+        errors={page.errors}
+        uploads={page.uploads}
+        uploadTokens={page.uploadTokens}
+        summaryExtra={page.summaryExtra}
+        turnstile={{ action: FORM_TURNSTILE_ACTION, error: page.turnstileError }}
+        submitLabel="Send"
+        pendingLabel="Sending…"
+      />
+    </WizardCard>
   </Container>
 ) : page.view === 'sent' ? (
-  <Container width="narrow" class="pb-16 lg:pb-24" id={id}>
+  <Container width="narrow" class="py-10 lg:py-16" id={id}>
     <Card padding="lg" class="space-y-4">
-      <h2 class="text-2xl font-semibold tracking-tight">Thank you</h2>
+      <h1 class="section-heading text-fg">Thank you</h1>
       <p class="text-body">{page.form.confirmationMessage}</p>
       <FormReceipt reference={page.reference} subject="message" problem={page.problem} />
     </Card>
   </Container>
 ) : page.view === 'closed' ? (
-  <Container width="narrow" class="pb-16 lg:pb-24" id={id}>
+  <Container width="narrow" class="py-10 lg:py-16" id={id}>
     <Card padding="lg" class="space-y-2">
-      <h2 class="text-2xl font-semibold tracking-tight">This form is not taking responses right now</h2>
+      <h1 class="section-heading text-fg">This form is not taking responses right now</h1>
       <p class="text-body">Please check back soon.</p>
     </Card>
   </Container>
 ) : page.view === 'unavailable' ? (
-  <Container width="narrow" class="pb-16 lg:pb-24" id={id}>
+  <Container width="narrow" class="py-10 lg:py-16" id={id}>
     <Card padding="lg" class="space-y-2">
-      <h2 class="text-2xl font-semibold tracking-tight">We could not do that</h2>
+      <h1 class="section-heading text-fg">We could not do that</h1>
       <p class="text-body">{page.message}</p>
     </Card>
   </Container>

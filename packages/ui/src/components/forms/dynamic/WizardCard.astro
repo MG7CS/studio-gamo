@@ -1,0 +1,82 @@
+---
+/**
+ * WizardCard: the surface a form wizard sits on. One rounded card; a photo column on the left from `lg`, the
+ * photo on top below `lg`; the title (the page's single <h1> by default), an optional description and the
+ * form in the default slot. The photo follows the screen: one decorative `Frame` per distinct photo of the
+ * map, each in a wrapper marked `data-wizard-photo="{section ids}"`; the default photo is the only one
+ * visible in the server HTML (so the first paint needs no JavaScript), and `lib/wizard-photos-client.ts`
+ * shows the one whose section the wizard is on (the form's `data-wizard-current-section`) and hides the
+ * rest. Each photo has a portrait frame (from `lg`) and a landscape frame (below), one of them hidden by CSS.
+ *
+ * Props
+ * - photos: FormPhotos: `{ default, bySection }` from `lib/form-photos.ts`.
+ * - title: string.
+ * - description?: string: only when the form has one.
+ * - headingLevel?: 1 | 2 (default 1): 2 when the page already has its <h1>.
+ *
+ * Slot: the form (`DynamicForm wizard`).
+ */
+import Card from '../../content/Card.astro';
+import Frame from '../../media/Frame.astro';
+import TitleCase from '../../TitleCase.astro';
+import type { FormPhotos } from '../../../lib/form-photos';
+
+interface Props {
+  photos: FormPhotos;
+  title: string;
+  description?: string | null;
+  headingLevel?: 1 | 2;
+}
+const { photos, title, description, headingLevel = 1 } = Astro.props;
+const Heading = headingLevel === 1 ? 'h1' : 'h2';
+
+// One entry per distinct photo; the default photo also stands for every section without its own entry.
+const entries = new Map<string, string[]>();
+entries.set(photos.default, []);
+for (const [sectionId, key] of Object.entries(photos.bySection)) {
+  entries.set(key, [...(entries.get(key) ?? []), sectionId]);
+}
+const wrappers = [...entries].map(([photo, sections]) => ({
+  photo: photo as FormPhotos['default'],
+  sections,
+  isDefault: photo === photos.default,
+}));
+---
+
+<Card
+  as="section"
+  padding="md"
+  class="gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10"
+  data-wizard-card
+>
+  <div class="min-w-0 lg:sticky lg:top-6" data-wizard-photos aria-hidden="true">
+    {wrappers.map((w) => (
+      <div
+        data-wizard-photo={w.sections.join(' ')}
+        data-wizard-photo-default={w.isDefault ? true : undefined}
+        hidden={!w.isDefault}
+      >
+        <div class="lg:hidden">
+          <Frame photo={w.photo} ratio="landscape" decorative sizes="half" />
+        </div>
+        <div class="hidden lg:block">
+          <Frame photo={w.photo} ratio="portrait" decorative sizes="half" />
+        </div>
+      </div>
+    ))}
+  </div>
+  <div class="min-w-0 space-y-6">
+    <div class="space-y-3">
+      <Heading class="section-heading text-balance text-fg">
+        <TitleCase>{title}</TitleCase>
+      </Heading>
+      {description && <p class="max-w-prose text-lg leading-relaxed text-fg-muted">{description}</p>}
+    </div>
+    <slot />
+  </div>
+</Card>
+
+<script>
+  import { initWizardPhotos } from '../../../lib/wizard-photos-client';
+  initWizardPhotos();
+</script>
