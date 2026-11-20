@@ -1,5 +1,9 @@
 # API compatibility decisions
 
+## 4.1.0 addendum — `instructor_application` form kind (2026-11-20)
+
+Additive only, no version bump. `FormKind` (`openapi/components/schemas/forms/FormKind.yaml`) gained the value `instructor_application`, used by the default `academy-teach` form; the descriptions of `openapi/paths/submissions-approve.yaml` and `submissions-decline.yaml` were extended to mention it. Only the internal admin consumes these operations; it carries a label per kind (`apps/admin/src/lib/forms-builder/view.ts`), which was added in the same change, so no further consumer change is needed. Existing values and routes are unchanged.
+
 ## 4.1.0 addendum — admin form-builder and submission actions
 
 Additive only, no version bump (4.1.0 is unreleased). Added 20 admin operations that were built before they were listed: the form-builder actions (`POST /api/forms/{id}`, `close`, `reopen`, `restore`, `settings`, `questions`, `questions/{qid}` with `delete`, `duplicate`, `move`, `type`, `sections`, `sections/{sid}` with `delete`, plus the `PUT` twins of draft save, question, section and settings) and `POST /api/submissions/{bulk,export,{id}/note}`. All are internal (`x-internal`), staff-session only, same-origin checked, and share the generic `BuilderActionInput`/`BuilderActionResponse` schemas; no existing operation or schema changed, so no consumer is affected. Found by `node scripts/api/check.mjs` during the full `pnpm check` of 2026-11-18. Verification: `pnpm api:check` passes.
@@ -232,7 +236,3 @@ URLs and legacy JSON envelopes remain. Intentional validation/security behavior 
 Existing UI screens have no REST fetch consumers. Service integration tests and the new HTTP contract suite validate local behavior. Real clients and production availability have not been verified. No production rollout was performed. This is a pre-production correction, not a promise of a working identity or ticketing system.
 
 Future entries must identify affected consumers, migration/deprecation plan, exact comparison Base SHA, verification evidence and owner authorization for policy changes. Bump contract info.version for changes to existing operations/schemas.
-
-## 4.1.0 addendum — `instructor_application` form kind (2026-11-20)
-
-Additive only, no version bump. `FormKind` gained the value `instructor_application` (used by the default `academy-teach` form); the request and response enums that carry a form kind are widened. Only the internal admin consumes these operations, and it already renders kinds from the enum, so no consumer change is needed. Existing values and routes are unchanged.
