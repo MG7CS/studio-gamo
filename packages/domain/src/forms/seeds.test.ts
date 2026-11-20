@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createMigratedD1 } from '@gamo/db/testing';
 import { checkPublishable, FORM_KINDS, REQUIRED_BINDS } from './schema.ts';
 import { FormsService } from './service.ts';
-import { defaultFormSeeds, seedDefaultForms } from './seeds.ts';
+import { defaultFormSeeds, missingDefaultSeeds, seedDefaultForms } from './seeds.ts';
 
 const NOW = 1_900_000_000;
 const PROGRAMS = ['academy', 'worship', 'production', 'web'];
@@ -75,4 +75,15 @@ test('seeding an empty database creates and publishes all ten, and a second run 
   const second = await seedDefaultForms(d1, NOW);
   assert.deepEqual(second.created, []);
   assert.equal(second.skipped.length, 10);
+});
+
+test('missingDefaultSeeds lists the default forms whose slug is not there yet', () => {
+  const all = defaultFormSeeds().map((s) => s.slug);
+  assert.deepEqual(missingDefaultSeeds(all), []);
+  const original = all.filter((s) => !NEW_SLUGS.includes(s));
+  assert.deepEqual(
+    missingDefaultSeeds([...original, 'my-custom-form']).map((s) => s.slug),
+    NEW_SLUGS,
+  );
+  assert.equal(missingDefaultSeeds([]).length, all.length);
 });

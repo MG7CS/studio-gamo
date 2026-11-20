@@ -742,8 +742,22 @@ export interface SeedResult {
   skipped: string[];
 }
 
-/** Creates and publishes every default form that does not exist yet (matched by slug). Idempotent. */
-export async function seedDefaultForms(db: SqlDatabase, now: number): Promise<SeedResult> {
+/** The default forms whose slug is not in `existingSlugs`; other (custom) slugs do not matter. */
+export function missingDefaultSeeds(existingSlugs: readonly string[]): FormSeed[] {
+  const have = new Set(existingSlugs);
+  return defaultFormSeeds().filter((seed) => !have.has(seed.slug));
+}
+
+/**
+ * Creates and publishes every default form that does not exist yet (matched by slug). Idempotent.
+ * `staffId` attributes the new forms and their first version (the owner's click in admin); it defaults to
+ * the system seed id.
+ */
+export async function seedDefaultForms(
+  db: SqlDatabase,
+  now: number,
+  staffId: string = SEED_STAFF_ID,
+): Promise<SeedResult> {
   const forms = new FormsService(db, { now });
   const result: SeedResult = { created: [], skipped: [] };
   for (const seed of defaultFormSeeds()) {
@@ -759,21 +773,21 @@ export async function seedDefaultForms(db: SqlDatabase, now: number): Promise<Se
       description: seed.description,
       confirmationMessage: seed.confirmationMessage,
       retentionMonths: SEED_RETENTION_MONTHS,
-      staffId: SEED_STAFF_ID,
+      staffId,
       now,
     });
     const { revision } = await forms.saveDraft({
       formId: form.id,
       schema: seed.schema,
       expectedRevision: form.revision,
-      staffId: SEED_STAFF_ID,
+      staffId,
       now,
     });
     await forms.publish({
       formId: form.id,
       expectedRevision: revision,
       changeNote: 'First published version.',
-      staffId: SEED_STAFF_ID,
+      staffId,
       now,
     });
     result.created.push(seed.slug);

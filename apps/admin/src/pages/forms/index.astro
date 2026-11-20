@@ -7,10 +7,11 @@ import AdminLayout from '../../components/AdminLayout.astro';
 import FormsTable from '../../components/forms-builder/FormsTable.astro';
 import OutcomeNotice from '../../components/forms-builder/OutcomeNotice.astro';
 import { BTN_PRIMARY, HELP } from '../../components/forms-builder/ui';
-import { FormsService, seedDefaultForms } from '@gamo/domain/forms';
+import { FormsService, missingDefaultSeeds, seedDefaultForms } from '@gamo/domain/forms';
 import { adminPage, type AdminContext } from '../../lib/admin-page';
 import { noticeFrom } from '../../lib/flash';
 import { handleBuilderPost } from '../../lib/forms-builder/page';
+import HiddenFields from '../../components/forms-builder/HiddenFields.astro';
 import { FORM_NOTICES } from '../../lib/forms-builder/notices';
 
 export const prerender = false;
@@ -23,7 +24,11 @@ try {
   throw error;
 }
 
-const posted = await handleBuilderPost(admin, Astro.request, null, ['form.close', 'form.reopen']);
+const posted = await handleBuilderPost(admin, Astro.request, null, [
+  'form.close',
+  'form.reopen',
+  'forms.seed_defaults',
+]);
 if (posted?.response) return posted.response;
 if (posted?.failed) Astro.response.status = posted.failed.status;
 
@@ -38,6 +43,7 @@ if (forms.length === 0 && Astro.request.method === 'GET') {
   }
   forms = await new FormsService(admin.db).listForms();
 }
+const missingDefaults = missingDefaultSeeds(forms.map((f) => f.slug));
 const notice = noticeFrom(Astro.url, FORM_NOTICES);
 ---
 
@@ -51,6 +57,17 @@ const notice = noticeFrom(Astro.url, FORM_NOTICES);
     New form
   </a>
   {posted?.failed && <OutcomeNotice failed={posted.failed} />}
+  {missingDefaults.length > 0 && forms.length > 0 && (
+    <form method="post" action="/forms" class="mb-4 flex flex-wrap items-center gap-3">
+      <HiddenFields action="forms.seed_defaults" op={false} />
+      <p class={`${HELP} max-w-prose`}>
+        These default forms can be added and published: {missingDefaults.map((s) => s.title).join(', ')}.
+      </p>
+      <button type="submit" class={BTN_PRIMARY}>
+        Add the new default forms
+      </button>
+    </form>
+  )}
   {forms.length === 0 ? (
     <p class={HELP}>There are no forms yet. Create the first one with New form.</p>
   ) : (

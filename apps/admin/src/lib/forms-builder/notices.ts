@@ -3,9 +3,20 @@
  * and the texts are fixed; nothing from the request is ever copied into one (labels, ids and input appear
  * only in the page itself, where Astro escapes them).
  */
+import { defaultFormSeeds } from '@gamo/domain/forms';
 import type { Notice } from '../flash';
 
+/** "Added N forms." for each count the default forms can reach (fixed texts, keyed by the count). */
+const DEFAULTS_ADDED: Record<string, Notice> = Object.fromEntries(
+  Array.from({ length: defaultFormSeeds().length }, (_, i) => [
+    `defaults-added-${i + 1}`,
+    { kind: 'ok', text: `Added ${i + 1} ${i === 0 ? 'form' : 'forms'}.` } satisfies Notice,
+  ]),
+);
+
 export const FORM_NOTICES: Record<string, Notice> = {
+  ...DEFAULTS_ADDED,
+  'defaults-none': { kind: 'ok', text: 'All default forms are already there.' },
   created: { kind: 'ok', text: 'Form created as a draft. Add your questions, then publish it.' },
   saved: { kind: 'ok', text: 'Question saved to the draft. It is not public until you publish.' },
   added: { kind: 'ok', text: 'Question added to the draft. Edit it below.' },

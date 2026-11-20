@@ -20,6 +20,7 @@ import {
   FORM_KINDS,
   FORM_PROGRAMS,
   parseFormSchema,
+  seedDefaultForms,
   type FormKind,
   type FormSchema,
   type QuestionType,
@@ -209,6 +210,8 @@ async function dispatch(c: Ctx): Promise<Outcome> {
     case 'form.close':
     case 'form.reopen':
       return setStatus(c);
+    case 'forms.seed_defaults':
+      return seedDefaults(c);
     case 'settings.save':
       return saveSettings(c);
     case 'publish':
@@ -506,6 +509,21 @@ async function createForm(c: Ctx): Promise<Outcome> {
     location: editUrl(form.id),
     notice: 'created',
     data: { id: form.id, slug: form.slug, status: form.status, revision: form.revision },
+  };
+}
+
+/**
+ * Adds and publishes only the default forms that are missing (matched by slug), attributed to the signed-in
+ * staff member. Existing forms are never touched, so a second click is a no-op.
+ */
+async function seedDefaults(c: Ctx): Promise<Outcome> {
+  const now = c.deps.now ?? Math.floor(Date.now() / 1000);
+  const { created, skipped } = await seedDefaultForms(c.deps.db, now, c.staffId);
+  return {
+    ok: true,
+    location: '/forms',
+    notice: created.length === 0 ? 'defaults-none' : `defaults-added-${created.length}`,
+    data: { created, existing: skipped },
   };
 }
 
