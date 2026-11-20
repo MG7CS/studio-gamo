@@ -203,7 +203,7 @@ try {
 
   const publicChecks = [
     ['web', '/', 'Gamo Studios'],
-    ['web', '/get-involved', "There's a place"],
+    ['web', '/get-involved', "There's a Place"],
     ['web', '/contact', 'hello@gamostudio.org'],
     ['worship', '/', 'Gamo Worship'],
     ['academy', '/', 'Learn to Play the Instrument You Love'],
