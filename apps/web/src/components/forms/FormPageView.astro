@@ -29,7 +29,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
 ---
 
 {page.view === 'form' ? (
-  <Container class="py-10 lg:py-16">
+  <Container class="page-intro-space mb-16 lg:mb-24">
     <WizardCard photos={formPhotosFor(page.form.kind)} title={title} description={page.form.description}>
       <DynamicForm
         wizard
@@ -52,7 +52,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
     <PageHero title="Thank you" width="narrow">
       <p slot="intro">{page.form.confirmationMessage}</p>
     </PageHero>
-    <Container width="narrow" class="pb-16 lg:pb-24">
+    <Container width="narrow" class="mb-16 lg:mb-24">
       <Card padding="lg" class="space-y-4">
         <FormReceipt
           reference={page.reference}
@@ -70,7 +70,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
     <PageHero title={title} width="narrow">
       <p slot="intro">This form is not taking responses right now.</p>
     </PageHero>
-    <Container width="narrow" class="pb-16 lg:pb-24">
+    <Container width="narrow" class="mb-16 lg:mb-24">
       <Card padding="lg" class="space-y-4">
         <p class="text-body">
           Please check back soon, or send us a message through the{' '}
@@ -90,7 +90,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
     <PageHero title={title} width="narrow">
       <p slot="intro">{page.message}</p>
     </PageHero>
-    <Container width="narrow" class="pb-16 lg:pb-24">
+    <Container width="narrow" class="mb-16 lg:mb-24">
       <ButtonLink href={backHref} arrow>
         {backLabel}
       </ButtonLink>
