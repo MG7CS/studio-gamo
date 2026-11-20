@@ -3,7 +3,6 @@
  * Section 8: how registration really works — one short form per student, an emailed receipt and a
  * private link to view, update or cancel; no account. NumberedSteps beside a sketch of the form.
  */
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
@@ -36,11 +35,8 @@ const steps = [
       <EditorialHeading title="Signing Up Should" accent="Feel Easy." />
       <NumberedSteps items={steps} tone="inset" class="mt-8" />
       <div class="mt-8 flex flex-wrap items-center gap-3">
-        <ButtonLink href={siteUrl('academy', '/lessons')} arrow>
-          Find a lesson
-        </ButtonLink>
-        <ButtonLink href="/instruments" variant="secondary">
-          Explore instruments
+        <ButtonLink href="/instruments" arrow>
+          Choose an instrument
         </ButtonLink>
       </div>
     </div>

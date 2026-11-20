@@ -6,6 +6,8 @@
  * Usage:
  *   <LinkRows items={[{ href: '/piano', title: 'Piano', body: 'First songs in weeks.', meta: 'Ages 6 and up' }]} />
  *
+ * A row may carry an `action` link; it sits beside the row link, not inside it.
+ *
  * Props: items, headingLevel (h2 to h4, default h3), columns (1 or 2, default 2: two columns from 768 px), class.
  */
 import Icon from '../Icon.astro';
@@ -18,6 +20,8 @@ export interface LinkRow {
   body?: string;
   /** Small muted line under the sentence (for example an age range). */
   meta?: string;
+  /** A second, separate link beside the row (for example Register). It is a sibling of the row link, never nested in it. */
+  action?: { href: string; label: string };
 }
 interface Props {
   items: LinkRow[];
@@ -30,8 +34,8 @@ const { items, headingLevel: Heading = 'h3', columns = 2, class: className } = A
 
 <ul class:list={['grid gap-x-12 border-b border-border', columns === 2 && 'md:grid-cols-2', className]}>
   {items.map((item) => (
-    <li class="border-t border-border">
-      <a href={item.href} class="group flex items-start justify-between gap-6 py-6">
+    <li class="flex items-start border-t border-border">
+      <a href={item.href} class="group flex min-w-0 flex-1 items-start justify-between gap-6 py-6">
         <span class="min-w-0">
           <Heading class="text-xl font-semibold tracking-tight text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
             <TitleCase>{item.title}</TitleCase>
@@ -39,11 +43,21 @@ const { items, headingLevel: Heading = 'h3', columns = 2, class: className } = A
           {item.body && <p class="mt-1 text-body text-fg-muted">{item.body}</p>}
           {item.meta && <p class="mt-1 text-small text-fg-muted">{item.meta}</p>}
         </span>
-        <Icon
-          name="arrow"
-          class="mt-1.5 h-5 w-5 shrink-0 text-action transition-transform group-hover:translate-x-1"
-        />
+        {!item.action && (
+          <Icon
+            name="arrow"
+            class="mt-1.5 h-5 w-5 shrink-0 text-action transition-transform group-hover:translate-x-1"
+          />
+        )}
       </a>
+      {item.action && (
+        <a
+          href={item.action.href}
+          class="inline-flex min-h-11 shrink-0 items-center py-6 ps-6 font-semibold text-action-strong underline underline-offset-4 hover:text-action"
+        >
+          {item.action.label}
+        </a>
+      )}
     </li>
   ))}
 </ul>

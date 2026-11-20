@@ -5,11 +5,9 @@ import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import InstrumentOverview from '../../components/instruments/InstrumentOverview.astro';
-import LessonCard from '../../components/shared/LessonCard.astro';
 import InstructorCard from '../../components/shared/InstructorCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments, type Instrument } from '../../data/instruments';
-import { lessons } from '../../data/lessons';
 import { instructors } from '../../data/instructors';
 
 // Rendered on demand (not prerendered) so the page gets the same security and cache headers
@@ -17,7 +15,6 @@ import { instructors } from '../../data/instructors';
 const found = instruments.find((item) => item.slug === Astro.params.slug);
 if (!found) return Astro.rewrite('/404');
 const instrument: Instrument = found;
-const related = lessons.filter((l) => l.instrumentSlug === instrument.slug);
 const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument.slug));
 ---
 
@@ -35,21 +32,20 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   >
     <p slot="intro">{instrument.blurb}</p>
     <Fragment slot="actions">
-      <ButtonLink href={`/lessons?instrument=${instrument.slug}`} size="lg" arrow>
-        Find {instrument.short.toLowerCase()} lessons
+      <ButtonLink href={`/register/${instrument.slug}`} size="lg" arrow>
+        Register for {instrument.name}
       </ButtonLink>
     </Fragment>
     {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} />}
   </PageHero>
   <InstrumentOverview instrument={instrument} />
-  <Section title={`Ways to Learn ${instrument.short}`}>
-    <FeatureGrid as="ul" max={3}>
-      {related.map((l) => (
-        <LessonCard lesson={l} />
-      ))}
-      {teachers.map((t) => (
-        <InstructorCard instructor={t} as="li" />
-      ))}
-    </FeatureGrid>
-  </Section>
+  {teachers.length > 0 && (
+    <Section title={`Teachers for ${instrument.short}`}>
+      <FeatureGrid as="ul" max={3}>
+        {teachers.map((t) => (
+          <InstructorCard instructor={t} as="li" />
+        ))}
+      </FeatureGrid>
+    </Section>
+  )}
 </Layout>

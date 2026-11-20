@@ -1,25 +1,20 @@
 ---
 import TitleCase from '@studio-gamo/ui/components/TitleCase.astro';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
-import LessonCard from '../../components/shared/LessonCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { joinAgeGroups } from '@gamo/config/academy-levels';
 import { instructorFormatLabels, instructors, type Instructor } from '../../data/instructors';
-import { lessons } from '../../data/lessons';
 
 // Rendered on demand (not prerendered) so the page gets the same security and cache headers
 // as every other HTML response; unknown slugs render the branded 404 page.
 const found = instructors.find((item) => item.slug === Astro.params.slug);
 if (!found) return Astro.rewrite('/404');
 const t: Instructor = found;
-const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 const details = [
   ['users', joinAgeGroups(t.ageGroups)],
   ['video', instructorFormatLabels(t).join(', ')],
@@ -51,8 +46,8 @@ const details = [
             </li>
           ))}
         </ul>
-        <ButtonLink href={siteUrl('academy', '/lessons')} class="mt-8 w-full justify-center" arrow>
-          Find a lesson
+        <ButtonLink href="/instruments" class="mt-8 w-full justify-center" arrow>
+          Choose an instrument
         </ButtonLink>
       </Card>
       <div class="min-w-0 lg:col-span-2">
@@ -69,10 +64,10 @@ const details = [
             </li>
             <li class="flex items-center gap-x-2">
               <a
-                href="/lessons"
+                href="/instruments"
                 class="inline-flex min-h-11 items-center underline-offset-4 hover:text-fg hover:underline"
               >
-                Lessons
+                Instruments
               </a>
               <span aria-hidden="true">/</span>
             </li>
@@ -93,14 +88,6 @@ const details = [
           tone="inset"
           class="mt-6"
         />
-        <h3 class="section-subheading mt-12">
-          <TitleCase>Available Lessons</TitleCase>
-        </h3>
-        <FeatureGrid as="ul" max={2} class="mt-6">
-          {taught.map((l) => (
-            <LessonCard lesson={l} headingLevel="h4" />
-          ))}
-        </FeatureGrid>
       </div>
     </div>
   </Container>

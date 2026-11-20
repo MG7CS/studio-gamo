@@ -1,11 +1,9 @@
 ---
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import AcademyHero from '../components/home/AcademyHero.astro';
 import InstrumentDiscovery from '../components/home/InstrumentDiscovery.astro';
-import LearningPaths from '../components/home/LearningPaths.astro';
 import InstructionFormats from '../components/home/InstructionFormats.astro';
 import InstructorsPreview from '../components/home/InstructorsPreview.astro';
 import HowLessonsWork from '../components/home/HowLessonsWork.astro';
@@ -18,7 +16,6 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
 <Layout description="Friendly, patient music lessons for students and families: private or small group, online or near home, with church-hosted and sponsored options in preparation.">
   <AcademyHero />
   <InstrumentDiscovery />
-  <LearningPaths />
   <InstructionFormats />
   <InstructorsPreview />
   <HowLessonsWork />
@@ -29,9 +26,6 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
   <CtaInvitation title="Your First Song Is Closer than You Think." photo="girlGuitar">
     <ButtonLink href="/instruments" size="lg" arrow>
       Choose an instrument
-    </ButtonLink>
-    <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" variant="secondary">
-      Register now
     </ButtonLink>
   </CtaInvitation>
 </Layout>

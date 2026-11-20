@@ -4,14 +4,12 @@ import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
-import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
 ---
 
 <Layout
   title="Browse Instruments"
-  description="Explore piano, guitar, bass and drums at Gamo Academy. Each instrument page shows who it suits, what first lessons cover and available lessons."
+  description="Explore piano, guitar, bass and drums at Gamo Academy. Each instrument page shows who it suits, what first lessons cover and how to register."
 >
   <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Instruments' }]}>
     <Fragment slot="title">
@@ -26,13 +24,9 @@ import { instruments, plannedInstruments } from '../../data/instruments';
         href: `/instruments/${i.slug}`,
         title: i.name,
         meta: i.ages,
+        action: { href: `/register/${i.slug}`, label: 'Register' },
       }))}
     />
     <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>
   </Section>
-  <CtaInvitation title="Find a Lesson Path That Fits." photo="guitarMentor">
-    <ButtonLink href="/lessons" size="lg" arrow>
-      Browse lessons
-    </ButtonLink>
-  </CtaInvitation>
 </Layout>

@@ -6,9 +6,11 @@ import {
   createGamoDevServer,
   gamoDeployBuildHygiene,
 } from '@gamo/config/env-loader';
+import { legacyRedirects } from './src/lib/legacy-redirects.ts';
 
 export default defineConfig({
   output: 'server',
+  redirects: legacyRedirects,
   devToolbar: { enabled: false },
   server: createGamoDevServer('academy'),
   adapter: cloudflare(createGamoCloudflareConfig('academy', import.meta.url)),
