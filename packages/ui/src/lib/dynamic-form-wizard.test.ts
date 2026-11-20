@@ -5,6 +5,7 @@ import {
   buildScreens,
   isLightQuestion,
   nextVisibleScreen,
+  screenItems,
   type WizardScreen,
 } from './dynamic-form-wizard.ts';
 
@@ -206,4 +207,72 @@ test('single-screen form returns one screen', () => {
   const screens = buildScreens(form(section('only', [heavy.paragraph as DynQuestion])));
   assert.deepEqual(screens, [{ id: 'only-1', sectionId: 'only', questionIds: ['h'], statementIds: [] }]);
   assert.deepEqual(buildScreens({ sections: [] }), []);
+});
+
+const itemIds = (sec: DynSection, screen: WizardScreen) => screenItems(sec, screen).map((q) => q.id);
+
+test('screenItems: every question and statement lands in exactly one screen, in section order', () => {
+  const sec = section('s', [
+    shortText('a'),
+    statement('n1'),
+    dropdown('b'),
+    heavy.paragraph as DynQuestion,
+    statement('n2'),
+    shortText('c'),
+    choice('d', 9),
+    statement('n3'),
+  ]);
+  // Give the heavy question a distinct id.
+  sec.questions[3] = { ...(heavy.paragraph as DynQuestion), id: 'p' };
+  const screens = buildScreens(form(sec));
+  const all = screens.flatMap((screen) => itemIds(sec, screen));
+  assert.deepEqual(
+    [...all].sort(),
+    sec.questions.map((q) => q.id).sort(),
+    'each id exactly once, none dropped',
+  );
+  assert.equal(new Set(all).size, all.length);
+  for (const screen of screens) {
+    const ids = itemIds(sec, screen);
+    const order = sec.questions.map((q) => q.id).filter((id) => ids.includes(id));
+    assert.deepEqual(ids, order, `${screen.id} keeps section order`);
+  }
+});
+
+test('screenItems: statements ride in the screen of the question they precede', () => {
+  const sec = section('s', [
+    statement('n1'),
+    shortText('a'),
+    statement('n2'),
+    paragraph('p'),
+    shortText('z'),
+  ]);
+  const screens = buildScreens(form(sec));
+  const byId = (id: string) => screens.find((s) => s.questionIds.includes(id))!;
+  assert.deepEqual(itemIds(sec, byId('a')), ['n1', 'a']);
+  assert.deepEqual(itemIds(sec, byId('p')), ['n2', 'p']);
+  assert.deepEqual(itemIds(sec, byId('z')), ['z']);
+});
+
+test('screenItems: trailing statements stay with the last screen; a statement-only section yields them', () => {
+  const trailing = section('t', [shortText('a'), statement('end')]);
+  const [only] = buildScreens(form(trailing));
+  assert.deepEqual(itemIds(trailing, only!), ['a', 'end']);
+
+  const statements = section('n', [statement('s1'), statement('s2')]);
+  const screens = buildScreens(form(statements));
+  assert.equal(screens.length, 1);
+  assert.deepEqual(screens[0]!.questionIds, []);
+  assert.deepEqual(itemIds(statements, screens[0]!), ['s1', 's2']);
+});
+
+test("screenItems: never returns another section's items and is generic over the question type", () => {
+  const one = section('one', [shortText('a'), paragraph('b')]);
+  const two = section('two', [shortText('c')]);
+  const screens = buildScreens(form(one, two));
+  for (const screen of screens) {
+    const sec = screen.sectionId === 'one' ? one : two;
+    for (const q of screenItems(sec, screen)) assert.ok(sec.questions.includes(q));
+  }
+  assert.deepEqual(itemIds(two, screens[2]!), ['c']);
 });

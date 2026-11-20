@@ -6,6 +6,7 @@
  *   show-if, so the server-rendered markup is the same for every visitor; the browser hides screens whose
  *   questions are all hidden (see `nextVisibleScreen`).
  * - `isLightQuestion`: the questions short enough to share a screen with others.
+ * - `screenItems`: the questions and statements of one screen, in section order (what the markup renders).
  * - `nextVisibleScreen`: steps forward or back past hidden screens.
  *
  * Rule: one question per screen by default. Up to `MAX_LIGHT_PER_SCREEN` consecutive light questions of
@@ -86,6 +87,18 @@ export function buildScreens(schema: DynFormSchema): WizardScreen[] {
     screens.push(...sectionScreens);
   }
   return screens;
+}
+
+/**
+ * The questions and statements that belong to `screen`, in the order they appear in `section` (statements
+ * ride above the question they precede). Every item of a section is returned by exactly one of its screens.
+ */
+export function screenItems<Q extends { id: string }>(
+  section: { questions: Q[] },
+  screen: WizardScreen,
+): Q[] {
+  const ids = new Set([...screen.statementIds, ...screen.questionIds]);
+  return section.questions.filter((q) => ids.has(q.id));
 }
 
 /**

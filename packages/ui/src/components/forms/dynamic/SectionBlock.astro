@@ -21,6 +21,7 @@ import QuestionField from './QuestionField.astro';
 import TitleCase from '../../TitleCase.astro';
 import { buildFieldId, linkAlternativeFor, sectionDomId, showIfAttributes } from '../../../lib/dynamic-form';
 import type { DynSection } from '../../../lib/dynamic-form';
+import { screenItems } from '../../../lib/dynamic-form-wizard';
 import type { WizardScreen } from '../../../lib/dynamic-form-wizard';
 import type { DynamicFormContext, DynLinkAlternative } from './index';
 
@@ -42,12 +43,6 @@ function alternativeFor(q: (typeof section.questions)[number]): DynLinkAlternati
   if (q.type !== 'file_upload') return undefined;
   const link = linkAlternativeFor(section, q);
   return link ? { fieldId: buildFieldId(ctx.idPrefix, link.id), label: link.label } : undefined;
-}
-
-/** The questions (and statements) of one wizard screen, in section order. */
-function screenItems(screen: WizardScreen) {
-  const ids = new Set([...screen.statementIds, ...screen.questionIds]);
-  return section.questions.filter((q) => ids.has(q.id));
 }
 ---
 
@@ -72,10 +67,7 @@ function screenItems(screen: WizardScreen) {
             {screen.questionIds.length > 1 && (
               <Heading
                 id={`${domId}-${screen.id}-title`}
-                class:list={[
-                  'text-xl font-black tracking-tight text-fg',
-                  !titleVisible && 'sr-only',
-                ]}
+                class:list={['text-xl font-black tracking-tight text-fg', !titleVisible && 'sr-only']}
               >
                 <TitleCase>{section.title}</TitleCase>
               </Heading>
@@ -88,7 +80,7 @@ function screenItems(screen: WizardScreen) {
           </div>
         ) : null}
         <div class="space-y-6">
-          {screenItems(screen).map((question) => (
+          {screenItems(section, screen).map((question) => (
             <QuestionField question={question} ctx={ctx} linkAlternative={alternativeFor(question)} />
           ))}
         </div>
