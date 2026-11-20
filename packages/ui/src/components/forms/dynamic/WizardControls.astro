@@ -10,7 +10,8 @@
  * `data-wizard-live`, `data-wizard-actions` (the button row), `data-wizard-back`, `data-wizard-next`.
  * The script moves the form's submit button into the action row, so on the last screen Back sits beside
  * Send in one row (Next is hidden there). The row does not wrap: at 360 px Next / Send take the width left
- * beside Back.
+ * beside Back. With several submit buttons (the script sets `data-wizard-multi`) the row wraps, each button
+ * takes its own line on phones and Back comes last.
  *
  * Props
  * - total: number — screens in the form (the script recomputes it as show-if hides screens).
@@ -39,11 +40,11 @@ const segments = Array.from({ length: Math.max(total, 1) }, (_, i) => i);
     Step 1 of {total}
   </p>
   <div data-wizard-live aria-live="polite" class="sr-only"></div>
-  <div data-wizard-actions class="flex items-center gap-3">
+  <div data-wizard-actions class="group/actions flex items-center gap-3 data-wizard-multi:flex-wrap">
     <button
       type="button"
       data-wizard-back
-      class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-button border border-fg-muted bg-surface-raised px-7 py-2.5 text-base font-semibold text-fg transition-colors hover:bg-surface-inset"
+      class="inline-flex min-h-11 shrink-0 group-data-wizard-multi/actions:order-last group-data-wizard-multi/actions:w-full sm:group-data-wizard-multi/actions:w-auto items-center justify-center rounded-button border border-fg-muted bg-surface-raised px-7 py-2.5 text-base font-semibold text-fg transition-colors hover:bg-surface-inset"
     >
       Back
     </button>

@@ -425,6 +425,8 @@ function initWizard(form: HTMLFormElement): void {
   // Back beside Send on the last screen: the submit button(s) join the action row once (still in the form).
   const actions = controls.querySelector<HTMLElement>('[data-wizard-actions]') ?? next.parentElement;
   actions?.append(...submits);
+  // Several submit buttons (e.g. Reserve and Pay): the row wraps and each button gets its own line on phones.
+  if (submits.length > 1 && actions) actions.dataset.wizardMulti = '';
 
   w.current = openingScreen(screens, {
     isHidden: isScreenHidden,

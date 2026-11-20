@@ -1,5 +1,5 @@
 ---
-/** Part 2: who we contact. For a student under 18 that is the parent or guardian (all fields required). */
+/** Contact screen: the receipt email (typed twice) and phone. For a student under 18 these are the parent or guardian's. */
 import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
 import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
 import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
@@ -20,16 +20,6 @@ const suggestion = errors.email && values.email ? emailTypoSuggestion(values.ema
   variant="section"
   hint="If the student is under 18, a parent or guardian fills in this part and every field is required."
 >
-  <TextField
-    id="guardian-name"
-    name="guardian_name"
-    label="Parent or guardian's full name"
-    hint="Required when the student is under 18."
-    autocomplete="name"
-    maxlength={120}
-    value={values.guardian_name}
-    error={errors.guardian_name}
-  />
   <EmailField
     label="Email for the receipt"
     hint="The parent or guardian's email when the student is under 18. We send the receipt and a link to manage the registration here."

@@ -53,12 +53,18 @@ for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }]) {
     await expect(page.getByRole('heading', { name: 'First Piano Steps' })).toBeVisible();
     await checkPage(page, 'register form', errors);
 
+    // The form is a wizard: one screen at a time, moved with Next (student, guardian, contact, agreements, choice).
+    const next = page.getByRole('button', { name: 'Next' });
     // A student under 18 without guardian details: the server lists what is missing and keeps the input.
     await page.getByLabel("Student's first name").fill('Sample Ada');
     await page.getByLabel('Age group').selectOption('6_9');
+    await next.click();
+    await next.click(); // the guardian screen, left empty
     await page.getByLabel('Email for the receipt').fill(email);
     await page.getByLabel('Confirm email').fill(email);
+    await next.click();
     await page.locator('#terms-accept').check();
+    await next.click();
     await page.getByRole('button', { name: 'Reserve my spot' }).click();
     const summary = page.locator('[data-error-summary]');
     await expect(summary).toBeVisible();
@@ -66,11 +72,15 @@ for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }]) {
     await expect(page.getByLabel("Student's first name")).toHaveValue('Sample Ada');
     await checkPage(page, 'register form with errors', errors);
 
+    // After the failed submit the wizard opens on the first screen with a problem: the guardian screen.
     await page.getByLabel("Parent or guardian's full name").fill('Sample Parent');
+    await next.click();
     await page.getByLabel('Phone').fill('555 123 4567');
+    await next.click();
     await page.locator('#terms-accept').check();
     await page.locator('#guardian-consent').check();
     await page.locator('#child-safety-consent').check();
+    await next.click();
     await page.getByRole('button', { name: 'Reserve my spot' }).click();
 
     await expect(page).toHaveURL(/\/registrations\/receipt\?r=/);

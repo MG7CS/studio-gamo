@@ -1,15 +1,20 @@
 ---
 /**
  * The guest registration form (no account, no JavaScript needed): POSTs to the page itself, which answers
- * 303 to the receipt or re-renders with errors. Turnstile and a hidden idempotency key protect it.
+ * 303 to the receipt or re-renders with errors. Turnstile and a hidden idempotency key protect it. With
+ * JavaScript it is a wizard (shared `initWizards`): student, parent or guardian, contact, agreements, then
+ * the choice screen (Turnstile and the Reserve / Pay buttons, the `data-wizard-final` block). Without it the
+ * whole form scrolls as one page.
  */
 import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
 import TurnstileWidget from '@studio-gamo/ui/components/forms/TurnstileWidget.astro';
 import type { TermsConsentDocument } from '@studio-gamo/ui/lib/terms-links';
 import StudentFields from './StudentFields.astro';
+import GuardianFields from './GuardianFields.astro';
 import ContactFields from './ContactFields.astro';
 import ConsentFields from './ConsentFields.astro';
 import RegistrationChoice from './RegistrationChoice.astro';
+import WizardControls from '@studio-gamo/ui/components/forms/dynamic/WizardControls.astro';
 
 interface Props {
   idempotencyKey: string;
@@ -29,12 +34,32 @@ const { idempotencyKey, values, errors, summary, documents, payAvailable, amount
   Astro.props;
 ---
 
-<form method="post" class="space-y-8" data-registration-form>
+<form method="post" class="space-y-6" data-registration-form data-wizard>
   <FormErrorSummary errors={summary} />
   <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-  <StudentFields values={values} errors={errors} />
-  <ContactFields values={values} errors={errors} />
-  <ConsentFields documents={documents} errors={errors} />
-  <TurnstileWidget action="academy_register" error={turnstileError} />
-  <RegistrationChoice payAvailable={payAvailable} amountLabel={amountLabel} />
+  <div data-wizard-screen="student" data-wizard-section="student">
+    <StudentFields values={values} errors={errors} />
+  </div>
+  <div data-wizard-screen="guardian" data-wizard-section="guardian" data-wizard-single>
+    <GuardianFields values={values} errors={errors} />
+  </div>
+  <div data-wizard-screen="contact" data-wizard-section="contact">
+    <ContactFields values={values} errors={errors} />
+  </div>
+  <div data-wizard-screen="agreements" data-wizard-section="agreements">
+    <ConsentFields documents={documents} errors={errors} />
+  </div>
+  <div data-wizard-screen="choice" data-wizard-section="choice" data-wizard-single class="space-y-6">
+    <h2 class="text-xl font-black tracking-tight text-fg">Reserve or pay</h2>
+    <div data-wizard-final class="space-y-6">
+      <TurnstileWidget action="academy_register" error={turnstileError} />
+      <RegistrationChoice payAvailable={payAvailable} amountLabel={amountLabel} />
+    </div>
+  </div>
+  <WizardControls total={5} />
 </form>
+
+<script>
+  import { initWizards } from '@studio-gamo/ui/lib/dynamic-form-wizard-client';
+  initWizards();
+</script>
