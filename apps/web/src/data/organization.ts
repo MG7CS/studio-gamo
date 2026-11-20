@@ -32,7 +32,7 @@ export const participation: ParticipationPath[] = [
     area: 'Gamo Academy',
     next: 'Teach private, group and community lessons.',
     body: 'Bring your teaching experience to private, small-group and community lessons with Gamo Academy.',
-    href: '/contact?interest=Teaching',
+    href: '/academy/teach',
     photo: 'guitarMentor',
   },
   {

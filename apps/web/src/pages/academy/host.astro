@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'academy-host');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  footer={false}
+  title="Host Lessons at Your Church | Gamo Academy"
+  description="Churches and ministries can tell us about a space where Gamo Academy lessons could be offered."
+>
+  <FormPageView
+    page={page}
+    fallbackTitle="Host lessons at your church"
+    backHref={siteUrl('academy')}
+    backLabel="Back to Gamo Academy"
+  />
+</SiteLayout>

@@ -1,0 +1,23 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'volunteer');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  footer={false}
+  title="Volunteer With Us | Gamo Studios"
+  description="Tell us how you would like to volunteer your time and skills with Gamo Studios."
+>
+  <FormPageView
+    page={page}
+    fallbackTitle="Volunteer with us"
+    backHref={'/get-involved'}
+    backLabel="Back to Get Involved"
+  />
+</SiteLayout>

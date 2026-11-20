@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'academy-interest');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  footer={false}
+  title="Join the Interest List | Gamo Academy"
+  description="Students and families can ask to hear from Gamo Academy when lessons open."
+>
+  <FormPageView
+    page={page}
+    fallbackTitle="Join the interest list"
+    backHref={siteUrl('academy')}
+    backLabel="Back to Gamo Academy"
+  />
+</SiteLayout>
