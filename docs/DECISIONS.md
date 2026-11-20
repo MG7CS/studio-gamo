@@ -350,3 +350,11 @@ The site used to send teaching, church-hosting and volunteering enquiries to the
 - **`roster.can_teach`** is bound through the required single-option "Yes" question ("Are you applying to teach lessons?"), so every approved instructor is flagged as able to teach.
 - **Role vocabulary.** The instructor form's role words (Piano, Guitar, Bass, Drums, Voice, Strings, Other) differ from the musician roster vocabulary (for example Keys, Sound). Staff should keep this in mind when searching the roster.
 - **Open:** partial seeding is not self-healing. Creating a form, saving its draft and publishing it are separate steps, so a failure in between can leave a form created but unpublished; the button's "missing" test sees an existing slug and does not repair it. Staff can publish it from the form's page once its checklist passes.
+
+## 2026-11-20 — Academy is instrument pages and one simple interest form
+
+The owner decided the Academy has no lesson catalog: it is a simple wait list where families send their interest and we follow up.
+
+- **One form.** Every instrument "Register" link opens the staff-editable `academy-interest` form (web app, `/academy/interest?instrument=<slug>`), which ticks the matching instrument. Fields: name, email, phone, who is learning, age group, instruments, level, one-on-one or group, ZIP code, optional note, privacy consent. No agreements, reserve or payment.
+- **Removed:** the hand-built registration page `apps/academy/src/pages/register/[instrument].astro`, the form components in `apps/academy/src/components/registration/` and `tests/e2e/academy-registration.spec.ts`.
+- **Dormant, kept untouched:** `packages/domain/src/services/academy-registrations.ts`, the registration migrations (including 0022) and Drizzle schema, the admin registrations list, the Academy pages `registrations/{find,manage,open,receipt}.astro` with `RegistrationNotice`, `RegistrationDetails` and `ManageRegistrationCard`, and `apps/academy/src/lib/{registration,instrument-class}.ts`. They cannot be reached from the site; deleting them is a separate owner decision.

@@ -101,7 +101,9 @@ Gamo does not take or publish real photos of children today. If that changes:
 
 ## 7. Online collection of children's information
 
-**What the Academy registration form collects today** (from `apps/academy/src/components/registration/StudentFields.astro`, `ContactFields.astro`, `ConsentFields.astro`, and `apps/academy/src/pages/register/[lesson].astro`):
+**Academy interest form (current).** The Academy's "Register" links open the simple interest form served from the web app at `/academy/interest`. It collects only a parent or guardian's contact details (name, email, phone) and a ZIP code, plus the learner's age group, instrument, level and one-on-one or group preference, and an optional note; it does not collect the child's name. The hand-built registration route was removed on 2026-11-20 and the enrollment machinery below is dormant.
+
+**What the former Academy registration form collected** (from `apps/academy/src/components/registration/StudentFields.astro`, `ContactFields.astro`, `ConsentFields.astro`, and `apps/academy/src/pages/register/[lesson].astro`):
 
 - the student's first name only ("First name only");
 - an age group, not a birth date ("We ask for an age group only, never a birth date"): Under 6, 6–9, 10–12, 13–15, 16–17, 18 or older (`packages/domain/src/services/academy-registrations.ts`);
@@ -154,7 +156,7 @@ From the code on 2026-11-18. Image descriptions come from the catalog alt text (
 | Academy instruments `/instruments` | `apps/academy/src/pages/instruments/index.astro` | No | `youngPianist` hero, `guitarMentor` closing image |
 | Academy lesson `/lessons/[slug]` | `apps/academy/src/pages/lessons/[slug].astro`, `src/data/lessons.ts` | Sample lessons for Kids/Teens, e.g. "children ages 6–10", "Teen Guitar Circle" | instrument photo (free-licence instrument close-ups), fallback `guitarMentor` |
 | Academy sponsored `/sponsored` | `apps/academy/src/pages/sponsored.astro` | Families, sponsored students | `boyGuitar` hero |
-| Academy register `/register/[lesson]` | `apps/academy/src/pages/register/[lesson].astro` | Age groups Under 6 to 16–17 | none |
+| Academy interest `/academy/interest` (web app) | `apps/web/src/pages/academy/interest.astro` | Age group only; no child name | form photos |
 | Academy instructor `/instructors/[slug]` | `apps/academy/src/pages/instructors/[slug].astro` | No | initials only, "Sample" badge |
 | Web home `/` | `apps/web/src/pages/index.astro`, `components/organization/PathChooser.astro`, `data/organization.ts` | "children, teens and adults" | `boyGuitar` (hero, a boy playing guitar), `girlGuitar` (Students & families card) |
 | Web get started `/get-started` | `apps/web/src/pages/get-started.astro` | via PathChooser | `girlGuitar` |

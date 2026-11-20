@@ -33,7 +33,7 @@ No filler news pages, donation checkout or automatic hero rotation.
 | /instruments, /instruments/[slug] | Discovery and instrument detail | UI ready |
 | /instructors/[slug] | Sample instructor profile | UI ready |
 | /lessons, /lessons/[slug] | Filterable discovery and sample lesson details | UI ready |
-| /register/[lesson] | Account-free family registration (parent-completed), validation, review | Real (D1) |
+| /academy/interest (web app) | Academy interest: the simple request form (name, email, phone, who is learning, age group, instrument, level, one-on-one or group, ZIP code, optional note). Instrument "Register" links open it with the instrument ticked. The hand-built `/register/[lesson]` route was removed on 2026-11-20 and its enrollment and payment machinery is dormant. | Real (D1) |
 | /registrations/find, /open, /manage, /receipt | Emailed manage-link flow, no account | Real (D1) |
 | /sponsored | Proposed sponsored/scholarship details | UI ready |
 
