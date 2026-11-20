@@ -473,6 +473,7 @@ const instructorApplication = (): FormSchema =>
         choice('can_teach', 'Are you applying to teach lessons?', ['Yes'], {
           required: true,
           bind: 'roster.can_teach',
+          help: 'Choose Yes to confirm.',
         }),
         checks('ages', 'Which ages can you teach?', ['Children', 'Teens', 'Adults'], {
           required: true,
