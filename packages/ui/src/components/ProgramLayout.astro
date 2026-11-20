@@ -19,6 +19,7 @@ export interface Props {
   headerTheme?: 'light' | 'dark';
   bodyClass?: string;
   chrome?: boolean;
+  footer?: boolean;
   ogImage?: string;
   ogType?: 'website' | 'article' | 'event';
   noindex?: boolean;
@@ -33,6 +34,7 @@ const {
   headerTheme = 'light',
   bodyClass = 'bg-cream text-charcoal',
   chrome = true,
+  footer = true,
   ogImage,
   ogType,
   noindex,
@@ -48,6 +50,7 @@ const {
   headerTheme={headerTheme}
   bodyClass={bodyClass}
   chrome={chrome}
+  footer={footer}
   ogImage={ogImage}
   ogType={ogType}
   noindex={noindex}

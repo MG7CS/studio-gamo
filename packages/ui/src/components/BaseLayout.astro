@@ -24,6 +24,8 @@ interface Props {
   bodyClass?: string;
   /** Hide shared chrome for focused flows. */
   chrome?: boolean;
+  /** Keep the header but drop the footer (and the `footer` slot); ignored when `chrome` is false, which drops both. */
+  footer?: boolean;
   /** Absolute or root-relative 1200x630 share image; defaults to the app's /og-image.png (scripts/generate-share-images.mjs). */
   ogImage?: string;
   ogType?: 'website' | 'article' | 'event';
@@ -40,6 +42,7 @@ const {
   headerTheme = 'light',
   bodyClass = 'bg-cream text-charcoal',
   chrome = true,
+  footer = true,
   ogImage = '/og-image.png',
   ogType = 'website',
   noindex = false,
@@ -55,6 +58,7 @@ const canonical = indexable ? origin + (Astro.url.pathname.replace(/\/+$/, '') |
 const imageUrl = indexable && ogImage ? new URL(ogImage, origin).href : undefined;
 const siteName = shell?.brand.name;
 const showChrome = chrome && Boolean(shell);
+const showFooter = showChrome && footer;
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
 
@@ -110,7 +114,7 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <main id="main-content" class:list={['overflow-x-clip', !chrome && 'min-h-screen w-full']}>
       <slot />
     </main>
-    {showChrome &&
+    {showFooter &&
       shell &&
       (Astro.slots.has('footer') ? <slot name="footer" /> : <SiteFooter shell={shell} />)}
     <script>
