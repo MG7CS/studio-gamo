@@ -6,6 +6,8 @@
 import AdminLayout from '../../../components/AdminLayout.astro';
 import FormMeta from '../../../components/forms-builder/FormMeta.astro';
 import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import WizardCard from '@studio-gamo/ui/components/forms/dynamic/WizardCard.astro';
+import { formPhotosFor } from '@studio-gamo/ui/lib/form-photos';
 import { BTN_SECONDARY, PANEL } from '../../../components/forms-builder/ui';
 import { FormsService, FormsError } from '@gamo/domain/forms';
 import { adminPage, see, type AdminContext } from '../../../lib/admin-page';
@@ -49,11 +51,18 @@ const submitted = Astro.request.method === 'POST';
     <p class="text-body-sm font-semibold text-fg">Preview: nothing is saved.</p>
     <p class="mt-1 text-small text-fg-muted">
       {submitted ? 'You pressed the button, and nothing was sent or stored. ' : ''}This is the draft as people
-      will see it once it is published. Try the show-if rules by answering the questions.
+      will see it once it is published. Step through the screens with Next and Back, and try the show-if rules
+      by answering the questions.
     </p>
   </div>
-  <div class="max-w-narrow">
+  <WizardCard
+    photos={formPhotosFor(edit.form.kind)}
+    title={edit.form.title}
+    description={edit.form.description}
+    headingLevel={2}
+  >
     <DynamicForm
+      wizard
       schema={edit.draft}
       formSlug={edit.form.slug}
       action={`/forms/${formId}/preview`}
@@ -62,5 +71,5 @@ const submitted = Astro.request.method === 'POST';
       idPrefix="pv"
       headingLevel={2}
     />
-  </div>
+  </WizardCard>
 </AdminLayout>
