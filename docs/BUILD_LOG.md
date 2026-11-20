@@ -849,3 +849,11 @@
 - Docs updated: DECISIONS, API_COMPATIBILITY, RUNBOOK, SCREEN_INVENTORY, the web and admin READMEs and the deploy owner steps (ten default forms, not six).
 - Commands run for the docs and polish commit: `pnpm exec tsx --test packages/domain/src/forms/seeds.test.ts`, `pnpm check:quick`, `pnpm typecheck` (results in the task report). Browser verification is pending: no screenshots or end-to-end results exist yet for the new pages.
 - Owner action after deploying: open **Forms** in admin; on a fresh database this publishes the ten defaults, on a database that already has forms click **Add the new default forms**.
+
+## 2026-11-20 — Academy is instrument-based
+
+- Removed the Academy lessons catalog, its filters and the sample lessons; `/lessons` answers with a 301 to `/instruments`. The home learning-paths section and the instruments call-to-action band are gone. Footer and menu links now say "Choose an instrument" and point at `/instruments`.
+- Each instrument's Register link opens the simple interest form on the main site (`/academy/interest`) with the instrument ticked; the interest form was updated to match.
+- The hand-built registration page (`/register/[lesson]`) was removed; the enrollment machinery and the `/registrations/*` manage-link pages are dormant.
+- Docs updated: SCREEN_INVENTORY, AGE_GROUPS_AND_LEVELS, CHILD_IMAGE_AND_CONSENT_POLICY, the Academy README and the root README.
+- Commands run for the link and docs commits: `pnpm check:quick`, `pnpm typecheck`. Browser verification is pending: no screenshots or end-to-end results exist yet for these changes.

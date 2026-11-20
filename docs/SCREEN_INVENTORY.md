@@ -30,11 +30,11 @@ No filler news pages, donation checkout or automatic hero rotation.
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Exact approved headline "Learn to Play the Instrument You Love.", learning hero, instruments, ages, formats, instructors, sponsored/hosted pathways, FAQs | UI ready |
-| /instruments, /instruments/[slug] | Discovery and instrument detail | UI ready |
+| /instruments, /instruments/[slug] | Discovery and instrument detail; each instrument has a Register link that opens the web interest form (`/academy/interest`) with the instrument ticked | UI ready |
 | /instructors/[slug] | Sample instructor profile | UI ready |
-| /lessons, /lessons/[slug] | Filterable discovery and sample lesson details | UI ready |
+| /lessons, /lessons/[slug] | Removed 2026-11-20 (no lessons catalog): answers with a 301 to `/instruments` | Removed |
 | /academy/interest (web app) | Academy interest: the simple request form (name, email, phone, who is learning, age group, instrument, level, one-on-one or group, ZIP code, optional note). Instrument "Register" links open it with the instrument ticked. The hand-built `/register/[lesson]` route was removed on 2026-11-20 and its enrollment and payment machinery is dormant. | Real (D1) |
-| /registrations/find, /open, /manage, /receipt | Emailed manage-link flow, no account | Real (D1) |
+| /registrations/find, /open, /manage, /receipt | Emailed manage-link flow, no account; dormant since the hand-built registration page was removed (nothing creates new registrations from the Academy site) | Dormant (D1) |
 | /sponsored | Proposed sponsored/scholarship details | UI ready |
 
 No sponsored places, screened instructors or real enrollments are offered. Safeguarding, tuition and launch decisions remain pending.

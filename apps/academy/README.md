@@ -2,10 +2,10 @@
 
 `apps/academy` · production host `academy.gamostudio.org` · local port 4323
 
-The program site for students, parents and families: instruments, lessons, instructors and guest registration.
+The program site for students, parents and families: instruments, instructors and a simple interest form.
 
-- Registration needs no account: the email is the identity. A signed link in the receipt email opens or manages a registration (`/registrations/...`).
-- Lessons shown today are labelled Sample; registration for a sample lesson is refused outside local. Paid checkout stays unavailable (503) until real charges are approved.
+- There is no lessons catalog. Each instrument page has a Register link that opens the web interest form (`/academy/interest` on the main site) with the instrument ticked; `/lessons` answers with a 301 to `/instruments`.
+- The `/registrations/...` pages (signed manage links, no account) and the enrollment machinery behind them are dormant: nothing creates new registrations from this site. Paid checkout stays unavailable (503) until real charges are approved.
 
 ## Run it
 

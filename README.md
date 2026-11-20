@@ -13,7 +13,7 @@ Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This rep
 | App | Host | Local | What it is |
 | --- | --- | --- | --- |
 | `apps/web` | gamostudio.org | http://127.0.0.1:4321 | Organization site, mission, partnerships, contact and partner-interest forms |
-| `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, account-free registration with emailed manage links |
+| `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, instructors, a simple interest form (dormant account-free registration pages) |
 | `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician application and church request forms, offer links |
 | `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support, technician application and request forms |
 | `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | The only dashboard: forms, submissions, roster, requests, offers, invoices; behind Cloudflare Access + admin password |
