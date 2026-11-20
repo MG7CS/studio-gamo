@@ -53,6 +53,12 @@ Financial sustainability is important, but it is subordinate to the mission.
 
 Before fixing or improving anything non-trivial (UI/UX, shared components, architecture, performance, accessibility, security, a recurring bug), do web research first to gather ideas and current best practice: prefer official docs and recognised practitioners, check that the sources are current, and compare at least two approaches before choosing one. Briefly record what was found and chosen (sources and the decision) in the relevant doc (`docs/DECISIONS.md`, the spec or plan, or `docs/FRONTEND_ARCHITECTURE.md`). Every agent brief for such work must say to research first. Skip only for trivial changes (typos, copy edits, renames, mechanical refactors) and say so.
 
+## Branches, deploys and worktrees (owner decision, 2026-11-20)
+
+- **`main` is what is live.** Deploy from `main` only; right after a deploy, merge the deployed work into `main` and tag it `deploy/YYYY-MM-DD`. The latest `deploy/*` tag is the production baseline.
+- **Start every session with a check:** `git fetch`, then compare the current branch with `main` and the latest `deploy/*` tag (`git rev-list --count HEAD..main`, `git log --oneline -1 $(git tag -l 'deploy/*' | tail -1)`) and run `git worktree list`. If the branch is behind what is live, stop and tell the owner before building anything.
+- **Short-lived branches:** one branch (and one worktree if needed) per piece of work, started from `main`, merged back, then deleted (`git worktree remove <path>`, `git branch -d <name>`). No long-running "cleanup" branches. Merging into `main`, pushing and deleting branches that are not merged need the owner's approval.
+
 ## Build sequence
 
 `inspect → plan → scaffold → implement real vertical slice → test → inspect browser → improve → document → commit → next slice`
