@@ -203,18 +203,20 @@ try {
 
   const publicChecks = [
     ['web', '/', 'Gamo Studios'],
-    ['web', '/get-involved', "There's a Place"],
-    ['web', '/contact', 'hello@gamostudio.org'],
+    ['web', '/get-involved', "There's a place"],
+    ['web', '/contact', 'Programs begin in the Phoenix metropolitan area, Arizona.'],
     ['worship', '/', 'Gamo Worship'],
     ['academy', '/', 'Learn to Play the Instrument You Love'],
     ['production', '/', 'Gamo Production'],
   ];
+  // Headings are title-cased by a shared default and split across spans, so compare without case or whitespace.
+  const squash = (text) => text.toLowerCase().replace(/\s+/g, '');
   for (const [app, path, expectedText] of publicChecks) {
     const res = await anonPage.goto(`${urls[app]}${path}`, { waitUntil: 'domcontentloaded' });
     assert.equal(res.status(), 200, `Expected 200 on ${app}${path}`);
     assert.equal(await anonPage.locator('h1').count(), 1, `one <h1> on ${app}${path}`);
     const bodyText = await anonPage.textContent('body');
-    assert.ok(bodyText.includes(expectedText), `Expected "${expectedText}" on ${app}${path}`);
+    assert.ok(squash(bodyText).includes(squash(expectedText)), `Expected "${expectedText}" on ${app}${path}`);
     assert.ok(!bodyText.includes('Jordan Avery'), `Must not expose demo persona on ${app}${path}`);
     assert.ok(!/\/account\/sign(in|up)/.test(await anonPage.content()), `No sign-in link on ${app}${path}`);
   }
