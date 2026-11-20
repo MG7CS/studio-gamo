@@ -23,7 +23,7 @@ import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
 import ManageRegistrationCard from '../../components/registration/ManageRegistrationCard.astro';
-import { findLesson, nowSeconds, registrationDb } from '../../lib/registration';
+import { nowSeconds, registrationClassTitle, registrationDb } from '../../lib/registration';
 
 export const prerender = false;
 
@@ -166,7 +166,7 @@ const doneMessage = done ? doneMessages[done] : undefined;
       {registrations.map((r) => (
         <ManageRegistrationCard
           registration={r}
-          lessonTitle={findLesson(r.lessonSlug ?? undefined)?.title ?? 'Lesson'}
+          lessonTitle={registrationClassTitle(r.programSlug)}
           phoneError={phoneError?.id === r.id ? phoneError.message : undefined}
         />
       ))}

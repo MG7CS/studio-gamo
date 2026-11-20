@@ -1,6 +1,6 @@
 /**
  * Glue between the Academy pages and `@gamo/domain` guest registration (design §4.7, docs/CLEANUP_LOG.md
- * D-130–D-139): lesson lookup, the signed receipt reference and the shared terms documents.
+ * D-130–D-139): instrument class lookup (see `instrument-class.ts`), the signed receipt reference and the shared terms documents.
  */
 import type { GamoEnv } from '@gamo/config/env';
 import {
@@ -8,30 +8,10 @@ import {
   ACADEMY_GUARDIAN_TERMS,
   ACADEMY_REGISTRATION_TERMS,
   termsDocumentsFor,
-  type AcademyLessonRef,
 } from '@gamo/domain';
 import { asSqlDatabase, resolveEnvSecret, signValue, verifySignedValue } from '@gamo/domain/security';
 import { termsConsentDocuments } from '@studio-gamo/ui/lib/terms-links';
-import { lessons, type Lesson } from '../data/lessons';
-
-export function findLesson(slug: string | undefined): Lesson | null {
-  return lessons.find((l) => l.slug === slug) ?? null;
-}
-
-export function lessonRef(lesson: Lesson): AcademyLessonRef {
-  return {
-    slug: lesson.slug,
-    title: lesson.title,
-    programSlug: lesson.instrumentSlug,
-    location: lesson.location,
-    scheduleText: `${lesson.schedule} · ${lesson.length}`,
-    sample: lesson.sample,
-    amountCents: lesson.proposedTuitionCents,
-    currency: 'usd',
-    startsAt: null,
-    termEndsAt: null,
-  };
-}
+export { findInstrument, instrumentClassRef, registrationClassTitle } from './instrument-class';
 
 /** `TermsConsent` documents for the three consent checkboxes of the registration form. */
 export function registrationConsentDocuments() {

@@ -1,6 +1,6 @@
 ---
 /**
- * Guest registration for one lesson (design §4.7). No account: the contact email is the identity.
+ * Guest registration for one instrument class (design §4.7). No account: the contact email is the identity.
  * GET renders the form; POST (same page, works without JavaScript) runs the public-form guard
  * (same-origin, per-IP limit, Turnstile, per-email limit), writes the registration and answers 303 to the
  * receipt, or to Stripe Checkout on the test path. Errors re-render the form with every field kept.
@@ -23,12 +23,11 @@ import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
 import RegistrationForm from '../../components/registration/RegistrationForm.astro';
-import RegistrationLessonSummary from '../../components/registration/RegistrationLessonSummary.astro';
+import RegistrationInstrumentSummary from '../../components/registration/RegistrationInstrumentSummary.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
 import {
-  findLesson,
-  formatAmount,
-  lessonRef,
+  findInstrument,
+  instrumentClassRef,
   nowSeconds,
   registrationConsentDocuments,
   registrationDb,
@@ -37,20 +36,28 @@ import {
 
 export const prerender = false;
 
-const lesson = findLesson(Astro.params.lesson);
-if (!lesson) return Astro.rewrite('/404');
-const ref = lessonRef(lesson);
+const instrument = findInstrument(Astro.params.instrument);
+if (!instrument) return Astro.rewrite('/404');
+const ref = instrumentClassRef(instrument);
 const env = Astro.locals.runtimeEnv ?? (await getRuntimeEnv(Astro));
-const local = env.ENVIRONMENT === 'local';
-const sampleRefused = lesson.sample && !local;
-const payAvailable =
-  !sampleRefused && academyPaidCheckoutGate(env).open && (lesson.proposedTuitionCents ?? 0) > 0;
-const amountLabel = lesson.proposedTuitionCents ? formatAmount(lesson.proposedTuitionCents) : null;
+// An instrument class has no online price yet (amountCents null), so Pay stays unavailable.
+const payAvailable = academyPaidCheckoutGate(env).open && (ref.amountCents ?? 0) > 0;
+const amountLabel: string | null = null;
 // The Pay button 303s to Stripe Checkout: the form's form-action must allow it (only when it can happen).
 if (payAvailable)
   requestSecurityHeaders(Astro.locals, { formActionOrigins: ['https://checkout.stripe.com'] });
 
-const FIELDS = ['student_first_name', 'student_age_band', 'guardian_name', 'email', 'email_confirm', 'phone'];
+const FIELDS = [
+  'student_first_name',
+  'student_age_band',
+  'level',
+  'lesson_format',
+  'zip',
+  'guardian_name',
+  'email',
+  'email_confirm',
+  'phone',
+];
 let values: Record<string, string> = {};
 let errors: Record<string, string> = {};
 let summary: { message: string; fieldId?: string }[] = [];
@@ -93,6 +100,9 @@ if (Astro.request.method === 'POST') {
           idempotencyKey: key,
           studentFirstName: values.student_first_name,
           studentAgeBand: values.student_age_band,
+          level: values.level,
+          lessonFormat: values.lesson_format,
+          zip: values.zip,
           email: values.email,
           emailConfirm: values.email_confirm,
           guardianName: values.guardian_name,
@@ -116,7 +126,7 @@ if (Astro.request.method === 'POST') {
             lesson: ref,
             customerEmail: values.email,
             successUrl: `${origin}${receipt}`,
-            cancelUrl: `${origin}/register/${lesson.slug}`,
+            cancelUrl: `${origin}/register/${instrument.slug}`,
             now,
           });
           return new Response(null, {
@@ -164,20 +174,24 @@ if (Astro.request.method === 'POST') {
 ---
 
 <Layout
-  title={`Register — ${lesson.title}`}
-  description={`Register a student for ${lesson.title} at Gamo Academy. No account needed.`}
+  title={`Register — ${instrument.name}`}
+  description={`Register a student for ${instrument.name} at Gamo Academy. No account needed.`}
   noindex
   footer={false}
 >
   <PageHero
-    title={`Register for ${lesson.title}`}
+    title={`Register for ${instrument.name}`}
     breadcrumbs={[
       { label: 'Academy', href: '/' },
-      { label: 'Lessons', href: '/lessons' },
-      { label: lesson.title, href: `/lessons/${lesson.slug}` },
+      { label: 'Instruments', href: '/instruments' },
+      { label: instrument.name, href: `/instruments/${instrument.slug}` },
       { label: 'Register' },
     ]}
-  />
+  >
+    <p slot="intro">
+      Tell us about the student and the class you want. We will email you to confirm a place and a time.
+    </p>
+  </PageHero>
   <Container class="pb-16 lg:pb-24">
     <div class="grid gap-8 lg:grid-cols-3">
       <Card padding="lg" class="space-y-6 lg:col-span-2">
@@ -186,30 +200,16 @@ if (Astro.request.method === 'POST') {
             <p>{pageProblem}</p>
           </RegistrationNotice>
         )}
-        {sampleRefused ? (
-          <RegistrationNotice title="Registration is not open for this lesson yet">
-            <p>
-              This lesson is an example of what we plan to offer; registration opens when lessons are
-              published.
-            </p>
-            <p>
-              <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
-                Browse lessons
-              </a>
-            </p>
-          </RegistrationNotice>
-        ) : (
-          <RegistrationForm
-            idempotencyKey={idempotencyKey}
-            values={values}
-            errors={errors}
-            summary={summary}
-            documents={registrationConsentDocuments()}
-            payAvailable={payAvailable}
-            amountLabel={amountLabel}
-            turnstileError={turnstileError}
-          />
-        )}
+        <RegistrationForm
+          idempotencyKey={idempotencyKey}
+          values={values}
+          errors={errors}
+          summary={summary}
+          documents={registrationConsentDocuments()}
+          payAvailable={payAvailable}
+          amountLabel={amountLabel}
+          turnstileError={turnstileError}
+        />
         <p class="text-small text-fg-muted">
           Already registered?{' '}
           <a href="/registrations/find" class="font-semibold text-action-strong underline underline-offset-4">
@@ -217,7 +217,7 @@ if (Astro.request.method === 'POST') {
           </a>
         </p>
       </Card>
-      <RegistrationLessonSummary lesson={lesson} class="lg:sticky lg:top-32 lg:self-start" />
+      <RegistrationInstrumentSummary instrument={instrument} class="lg:sticky lg:top-32 lg:self-start" />
     </div>
   </Container>
 </Layout>

@@ -1,0 +1,34 @@
+---
+/** The instrument a family is registering for: minimum age, levels offered and how place and time are set. */
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import { instrumentAgeLabel, type AcademyInstrument } from '@gamo/config/academy-instruments';
+import { levelLabel } from '@gamo/config/academy-levels';
+
+interface Props {
+  instrument: AcademyInstrument;
+  class?: string;
+}
+const { instrument, class: className } = Astro.props;
+const facts: [string, string][] = [
+  ['Ages', instrumentAgeLabel(instrument)],
+  ['Levels', instrument.levels.map(levelLabel).join(', ')],
+];
+const dtClass = 'text-caption font-semibold tracking-wide text-fg-muted uppercase';
+---
+
+<Card as="section" aria-labelledby="instrument-summary-title" class={className}>
+  <h2 id="instrument-summary-title" class="text-xl font-bold">
+    {instrument.name}
+  </h2>
+  <dl class="mt-5 space-y-3">
+    {facts.map(([k, v]) => (
+      <div>
+        <dt class={dtClass}>{k}</dt>
+        <dd class="mt-0.5 font-semibold">{v}</dd>
+      </div>
+    ))}
+  </dl>
+  <p class="mt-5 text-small text-fg-muted">
+    We confirm your place and time by email after you register. Nothing is charged when you register.
+  </p>
+</Card>

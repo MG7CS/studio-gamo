@@ -7,7 +7,7 @@ import { STATUS_LABELS, formatAmount } from '../../lib/registration';
 
 interface Props {
   registration: AcademyRegistration;
-  lessonTitle: string;
+  lessonTitle: string; // the instrument name or lesson title
   headingLevel?: 'h2' | 'h3';
 }
 const { registration: r, lessonTitle, headingLevel = 'h2' } = Astro.props;
@@ -16,7 +16,7 @@ const facts: [string, string][] = [
   ['Reference', r.reference],
   ['Status', STATUS_LABELS[r.status] ?? r.status],
   ['Student', `${r.studentFirstName} (${AGE_BAND_LABELS[r.studentAgeBand]})`],
-  ['Location', r.location],
+  ...(r.location ? ([['Location', r.location]] as [string, string][]) : []),
   ...(r.scheduleText ? ([['Schedule', r.scheduleText]] as [string, string][]) : []),
   ...(r.guardianName ? ([['Parent or guardian', r.guardianName]] as [string, string][]) : []),
   ...(r.amountCents > 0 ? ([['Amount', formatAmount(r.amountCents, r.currency)]] as [string, string][]) : []),

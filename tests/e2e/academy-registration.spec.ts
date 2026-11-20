@@ -1,6 +1,6 @@
 /**
  * Gamo Academy guest registration (design §4.7) in the browser, at desktop width and at 360 px:
- * lesson page → "Register" → form (validation errors first) → "Reserve my spot" → receipt → the manage
+ * instrument page → "Register" → form (validation errors first) → "Reserve my spot" → receipt → the manage
  * link → cancel. Every page is checked with axe (WCAG 2.2 AA, serious/critical), for one <h1>, for console
  * errors (including CSP violations) and for horizontal overflow.
  *
@@ -12,7 +12,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const ORIGIN = process.env.ACADEMY_ORIGIN ?? 'http://127.0.0.1:4323';
-const LESSON = 'first-piano-steps';
+const INSTRUMENT = 'piano';
 
 async function checkPage(page: Page, label: string, errors: string[]): Promise<void> {
   await expect(page.locator('h1'), `${label}: one h1`).toHaveCount(1);
@@ -47,17 +47,21 @@ for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }]) {
     });
     page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));
 
-    await page.goto(`${ORIGIN}/lessons/${LESSON}`);
-    await page.getByRole('link', { name: 'Register for this lesson' }).click();
-    await expect(page).toHaveURL(`${ORIGIN}/register/${LESSON}`);
-    await expect(page.getByRole('heading', { name: 'First Piano Steps' })).toBeVisible();
+    await page.goto(`${ORIGIN}/register/${INSTRUMENT}`);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Register for Piano & Keyboards' }),
+    ).toBeVisible();
     await checkPage(page, 'register form', errors);
 
-    // The form is a wizard: one screen at a time, moved with Next (student, guardian, contact, agreements, choice).
+    // The form is a wizard: one screen at a time, moved with Next (student, your class, guardian, contact, agreements, choice).
     const next = page.getByRole('button', { name: 'Next' });
     // A student under 18 without guardian details: the server lists what is missing and keeps the input.
     await page.getByLabel("Student's first name").fill('Sample Ada');
     await page.getByLabel('Age group').selectOption('6_9');
+    await next.click();
+    await page.getByRole('radio', { name: 'Beginner' }).check();
+    await page.getByRole('radio', { name: 'One-on-one' }).check();
+    await page.getByLabel('ZIP code').fill('20001');
     await next.click();
     await next.click(); // the guardian screen, left empty
     await page.getByLabel('Email for the receipt').fill(email);

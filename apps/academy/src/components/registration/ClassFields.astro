@@ -1,0 +1,54 @@
+---
+/** "Your class" screen: the level, one-on-one or group, and the ZIP code (three questions). */
+import { LEVELS } from '@gamo/config/academy-levels';
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
+import RadioGroup from '@studio-gamo/ui/components/forms/RadioGroup.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+
+interface Props {
+  values: Record<string, string>;
+  errors: Record<string, string>;
+}
+const { values, errors } = Astro.props;
+const levels = LEVELS.map((l) => ({ value: l.id, label: l.label }));
+const formats = [
+  { value: 'private', label: 'One-on-one' },
+  { value: 'group', label: 'Group' },
+];
+---
+
+<Fieldset id="class-section" legend="Your class" variant="section">
+  <RadioGroup
+    id="level"
+    name="level"
+    legend="Level"
+    hint="Not sure? Choose Beginner; we can adjust it with you by email."
+    options={levels}
+    value={values.level}
+    error={errors.level}
+    required
+  />
+  <RadioGroup
+    id="lesson_format"
+    name="lesson_format"
+    legend="One-on-one or group"
+    options={formats}
+    value={values.lesson_format}
+    error={errors.lesson_format}
+    layout="inline"
+    required
+  />
+  <TextField
+    id="zip"
+    name="zip"
+    label="ZIP code"
+    hint="We use it to tell you which in-person classes are near you."
+    autocomplete="postal-code"
+    inputmode="numeric"
+    maxlength={5}
+    pattern="\d{5}"
+    required
+    value={values.zip}
+    error={errors.zip}
+  />
+</Fieldset>

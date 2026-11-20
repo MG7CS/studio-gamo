@@ -2,7 +2,7 @@
 /**
  * Registration receipt, reached by the 303 after the form (or Stripe's success URL). `r` is a signed,
  * 2-hour reference to the registration (proof the visitor just submitted it); without it the page only
- * explains how to find a registration. Shows lesson, location, schedule, status and whether the email went
+ * explains how to find a registration. Shows the instrument class, status and whether the email went
  * out. In local development with simulated email it also shows the manage link ("Local preview only").
  */
 import {
@@ -18,9 +18,10 @@ import RegistrationNotice from '../../components/registration/RegistrationNotice
 import RegistrationDetails from '../../components/registration/RegistrationDetails.astro';
 import {
   emailIsSimulated,
-  findLesson,
-  lessonRef,
+  instrumentClassRef,
+  findInstrument,
   nowSeconds,
+  registrationClassTitle,
   readReceiptReference,
   registrationDb,
 } from '../../lib/registration';
@@ -46,14 +47,14 @@ try {
         .bind(registration.id)
         .first()) as { status: string } | null;
       emailStatus = row?.status ?? null;
-      const lesson = findLesson(registration.lessonSlug ?? undefined);
-      if (emailIsSimulated(env) && lesson && registration.status !== 'cancelled') {
+      const instrument = findInstrument(registration.programSlug);
+      if (emailIsSimulated(env) && instrument && registration.status !== 'cancelled') {
         const link = await issueCustomerLink(db, env as never, {
           product: 'academy',
           customerProfileId: registration.customerProfileId,
           scope: `registration:${registration.id}`,
           purpose: 'registration',
-          expiresAt: registrationLinkExpiresAt(lessonRef(lesson), now),
+          expiresAt: registrationLinkExpiresAt(instrumentClassRef(instrument), now),
           now,
           openPath: '/registrations/open',
         });
@@ -66,7 +67,6 @@ try {
   unavailable = true;
 }
 if (unavailable) Astro.response.status = 503;
-const lesson = registration ? findLesson(registration.lessonSlug ?? undefined) : null;
 const simulated = emailIsSimulated(env);
 const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'delivered');
 ---
@@ -115,7 +115,10 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
               </p>
             </RegistrationNotice>
           )}
-          <RegistrationDetails registration={registration} lessonTitle={lesson?.title ?? 'Lesson'} />
+          <RegistrationDetails
+            registration={registration}
+            lessonTitle={registrationClassTitle(registration.programSlug)}
+          />
           {previewLink && (
             <RegistrationNotice title="Local preview only">
               <p>
