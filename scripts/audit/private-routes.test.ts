@@ -61,9 +61,8 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/instruments',
     '/instruments/[slug]',
     '/instructors/[slug]',
-    // Guest registration (no account, design §4.7): the receipt needs a signed reference and the manage
+    // Dormant guest registration (no account, design §4.7): the receipt needs a signed reference and the manage
     // page a customer cookie from an emailed link; both are noindex and disallowed in robots.txt.
-    '/register/[instrument]',
     '/registrations/find',
     '/registrations/open',
     '/registrations/receipt',

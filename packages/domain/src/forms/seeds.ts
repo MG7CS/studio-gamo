@@ -621,8 +621,13 @@ const academyInterest = (): FormSchema =>
           ['Piano', 'Guitar', 'Bass', 'Drums', 'Not sure yet'],
           { required: true, help: 'Choose all that apply.' },
         ),
-        choice('format', 'How would you like to learn?', ['Online', 'In person', 'Either']),
-        text('city', 'City'),
+        choice('level', "What is the learner's level?", ['Beginner', 'Some experience', 'Advanced']),
+        choice('format', 'How would you like to learn?', ['One-on-one', 'Group']),
+        text('zip', 'ZIP code', {
+          required: true,
+          help: 'So we can tell you which in-person classes are near you.',
+          validation: { kind: 'postal_code' },
+        }),
       ]),
       section('notes', 'Anything else', [paragraph('notes', 'Anything else we should know?')]),
       section('agree', 'Before you send', [
@@ -729,8 +734,8 @@ export function defaultFormSeeds(): FormSeed[] {
       program: 'academy',
       kind: 'contact',
       title: 'Join The Academy Interest List',
-      description: 'Tell us who wants to learn and we will write to you when lessons open near you.',
-      confirmationMessage: MESSAGE_THANKS,
+      description: 'Tell us a little and we will follow up with the details.',
+      confirmationMessage: 'Thank you. We received your request and will be in touch.',
       schema: academyInterest(),
     },
   ];

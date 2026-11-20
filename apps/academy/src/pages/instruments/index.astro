@@ -5,6 +5,7 @@ import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
+import { registerUrl } from '../../lib/register-url';
 ---
 
 <Layout
@@ -24,7 +25,7 @@ import { instruments, plannedInstruments } from '../../data/instruments';
         href: `/instruments/${i.slug}`,
         title: i.name,
         meta: i.ages,
-        action: { href: `/register/${i.slug}`, label: 'Register' },
+        action: { href: registerUrl(i.slug), label: 'Register' },
       }))}
     />
     <p class="mt-6 text-small text-fg-muted">We plan to add: {plannedInstruments.join(' · ')}</p>

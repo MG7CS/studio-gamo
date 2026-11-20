@@ -2,11 +2,16 @@
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import FormPageView from '../../components/forms/FormPageView.astro';
 import { loadFormPage } from '../../lib/form-page';
+import { instrumentOptionFor } from '../../lib/academy-interest';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
 export const prerender = false;
 
-const page = await loadFormPage(Astro, 'academy-interest');
+// Register links from the Academy instruments pages arrive as ?instrument=piano and tick that instrument.
+const instrument = instrumentOptionFor(Astro.url.searchParams.get('instrument'));
+const page = await loadFormPage(Astro, 'academy-interest', {
+  ...(instrument ? { prefill: { instruments: instrument } } : {}),
+});
 if ('response' in page) return page.response;
 ---
 

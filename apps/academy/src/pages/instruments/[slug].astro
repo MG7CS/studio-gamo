@@ -9,6 +9,7 @@ import InstructorCard from '../../components/shared/InstructorCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments, type Instrument } from '../../data/instruments';
 import { instructors } from '../../data/instructors';
+import { registerUrl } from '../../lib/register-url';
 
 // Rendered on demand (not prerendered) so the page gets the same security and cache headers
 // as every other HTML response; unknown slugs render the branded 404 page.
@@ -32,7 +33,7 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   >
     <p slot="intro">{instrument.blurb}</p>
     <Fragment slot="actions">
-      <ButtonLink href={`/register/${instrument.slug}`} size="lg" arrow>
+      <ButtonLink href={registerUrl(instrument.slug)} size="lg" arrow>
         Register for {instrument.name}
       </ButtonLink>
     </Fragment>

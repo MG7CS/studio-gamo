@@ -87,3 +87,21 @@ test('missingDefaultSeeds lists the default forms whose slug is not there yet', 
   );
   assert.equal(missingDefaultSeeds([]).length, all.length);
 });
+
+test('the Academy interest form is a simple request: level, format and ZIP code, no city or online options', () => {
+  const seed = defaultFormSeeds().find((s) => s.slug === 'academy-interest')!;
+  assert.deepEqual(
+    seed.schema.sections.map((s) => s.id),
+    ['who', 'lessons', 'notes', 'agree'],
+  );
+  const by = new Map(
+    seed.schema.sections.flatMap((s) => s.questions).map((q) => [q.id, q as Record<string, unknown>]),
+  );
+  assert.deepEqual(by.get('level')?.options, ['Beginner', 'Some experience', 'Advanced']);
+  assert.deepEqual(by.get('format')?.options, ['One-on-one', 'Group']);
+  assert.equal(by.get('zip')?.required, true);
+  assert.deepEqual(by.get('zip')?.validation, { kind: 'postal_code' });
+  assert.equal(by.has('city'), false);
+  assert.ok(!JSON.stringify(seed.schema).includes('In person'));
+  assert.equal(seed.description?.includes('\n'), false);
+});
