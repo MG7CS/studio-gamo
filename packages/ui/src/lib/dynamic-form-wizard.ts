@@ -139,15 +139,21 @@ export function stepStatusText(position: number, total: number): string {
 /**
  * Index of the first screen (not hidden) holding one of `invalidQuestionIds`, or `null`. Hidden screens are
  * skipped: the server ignored their answers, so they cannot carry an error the visitor must fix.
+ * `invalidScreenIds` is the fallback for hand-built wizards whose screens carry no question ids: a screen
+ * whose own id is listed (it contains an invalid control) counts as holding an error.
  */
 export function firstScreenWithError(
   screens: WizardScreen[],
   invalidQuestionIds: Iterable<string>,
   isHidden: IsHidden = () => false,
+  invalidScreenIds: Iterable<string> = [],
 ): number | null {
   const invalid = new Set(invalidQuestionIds);
-  if (invalid.size === 0) return null;
-  const index = screens.findIndex((s) => !isHidden(s) && s.questionIds.some((id) => invalid.has(id)));
+  const invalidScreens = new Set(invalidScreenIds);
+  if (invalid.size === 0 && invalidScreens.size === 0) return null;
+  const index = screens.findIndex(
+    (s) => !isHidden(s) && (invalidScreens.has(s.id) || s.questionIds.some((id) => invalid.has(id))),
+  );
   return index === -1 ? null : index;
 }
 
@@ -158,12 +164,18 @@ export function firstScreenWithError(
  */
 export function openingScreen(
   screens: WizardScreen[],
-  options: { isHidden: IsHidden; invalidQuestionIds: Iterable<string>; hasSummary: boolean },
+  options: {
+    isHidden: IsHidden;
+    invalidQuestionIds: Iterable<string>;
+    /** Ids of screens containing an invalid control (hand-built wizards without question ids). */
+    invalidScreenIds?: Iterable<string>;
+    hasSummary: boolean;
+  },
 ): number | null {
   const visible = visibleScreenIndexes(screens, options.isHidden);
   if (visible.length === 0) return null;
   const invalid = [...options.invalidQuestionIds];
-  const withError = firstScreenWithError(screens, invalid, options.isHidden);
+  const withError = firstScreenWithError(screens, invalid, options.isHidden, options.invalidScreenIds);
   if (withError !== null) return withError;
   if (options.hasSummary || invalid.length > 0) return visible[visible.length - 1] ?? null;
   return visible[0] ?? null;

@@ -133,10 +133,22 @@ function invalidQuestionIds(form: HTMLFormElement): string[] {
   const ids: string[] = [];
   for (const control of form.querySelectorAll<HTMLElement>('[aria-invalid="true"]')) {
     const id = control.closest<HTMLElement>('[data-dyn-question]')?.dataset.dynQuestion;
-    // Outside every question (consent): an id no screen holds, so the wizard opens on the last screen.
+    // Inside a screen without question markup: `invalidScreenIds` finds it.
+    if (id === undefined && control.closest('[data-wizard-screen]')) continue;
+    // Outside every question and screen (consent): an id no screen holds, so the wizard opens on the last screen.
     ids.push(id ?? '');
   }
   return ids;
+}
+
+/** Ids of the screens that contain an invalid control (the fallback for screens without question markup). */
+function invalidScreenIds(form: HTMLFormElement): string[] {
+  const ids = new Set<string>();
+  for (const control of form.querySelectorAll<HTMLElement>('[aria-invalid="true"]')) {
+    const id = control.closest<HTMLElement>('[data-wizard-screen]')?.dataset.wizardScreen;
+    if (id) ids.add(id);
+  }
+  return [...ids];
 }
 
 // ---------------------------------------------------------------------------
@@ -431,6 +443,7 @@ function initWizard(form: HTMLFormElement): void {
   w.current = openingScreen(screens, {
     isHidden: isScreenHidden,
     invalidQuestionIds: invalidQuestionIds(form),
+    invalidScreenIds: invalidScreenIds(form),
     hasSummary: form.querySelector('[data-error-summary]') !== null,
   });
   form.dataset.wizardActive = '';

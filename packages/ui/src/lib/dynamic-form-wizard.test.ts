@@ -406,3 +406,42 @@ test('historyPushedAfter: push is pushed; replace keeps the entry state it overw
   assert.equal(historyPushedAfter('replace', false), false);
   assert.equal(historyPushedAfter('replace', undefined), false);
 });
+
+test('openingScreen: a hand-built wizard (no question ids) opens on the screen holding an invalid control', () => {
+  const screens = flat([], [], []);
+  assert.equal(
+    openingScreen(screens, {
+      isHidden: () => false,
+      invalidQuestionIds: [],
+      invalidScreenIds: ['s-3', 's-2'],
+      hasSummary: true,
+    }),
+    1,
+  );
+  assert.equal(
+    firstScreenWithError(screens, [], () => false, ['s-3']),
+    2,
+  );
+  // A hidden screen is skipped; unknown ids fall back to the last screen (summary only).
+  assert.equal(
+    firstScreenWithError(screens, [], (s) => s.id === 's-2', ['s-2', 's-3']),
+    2,
+  );
+  assert.equal(
+    openingScreen(screens, {
+      isHidden: () => false,
+      invalidQuestionIds: [],
+      invalidScreenIds: ['nope'],
+      hasSummary: true,
+    }),
+    2,
+  );
+});
+
+test('openingScreen: question ids still decide for DynamicForm screens', () => {
+  const screens = flat(['a'], ['b'], ['c']);
+  assert.equal(
+    openingScreen(screens, { isHidden: () => false, invalidQuestionIds: ['b'], hasSummary: true }),
+    1,
+  );
+});
