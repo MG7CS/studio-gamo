@@ -7,7 +7,10 @@
  *
  * Markup contract (read by the script): `data-wizard-controls`, `data-wizard-progress` (an `<ol>` of
  * `data-wizard-segment` items, `data-state` "done" | "current" | "todo"), `data-wizard-status`,
- * `data-wizard-live`, `data-wizard-back`, `data-wizard-next`.
+ * `data-wizard-live`, `data-wizard-actions` (the button row), `data-wizard-back`, `data-wizard-next`.
+ * The script moves the form's submit button into the action row, so on the last screen Back sits beside
+ * Send in one row (Next is hidden there). The row does not wrap: at 360 px Next / Send take the width left
+ * beside Back.
  *
  * Props
  * - total: number — screens in the form (the script recomputes it as show-if hides screens).
@@ -36,18 +39,18 @@ const segments = Array.from({ length: Math.max(total, 1) }, (_, i) => i);
     Step 1 of {total}
   </p>
   <div data-wizard-live aria-live="polite" class="sr-only"></div>
-  <div class="flex flex-wrap items-center gap-3">
+  <div data-wizard-actions class="flex items-center gap-3">
     <button
       type="button"
       data-wizard-back
-      class="inline-flex min-h-11 items-center justify-center rounded-button border border-fg-muted bg-surface-raised px-7 py-2.5 text-base font-semibold text-fg transition-colors hover:bg-surface-inset"
+      class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-button border border-fg-muted bg-surface-raised px-7 py-2.5 text-base font-semibold text-fg transition-colors hover:bg-surface-inset"
     >
       Back
     </button>
     <button
       type="button"
       data-wizard-next
-      class="inline-flex min-h-11 items-center justify-center rounded-button bg-action px-7 py-2.5 text-base font-semibold text-on-action transition-colors hover:bg-action-strong"
+      class="inline-flex min-h-11 w-full items-center justify-center rounded-button bg-action px-7 py-2.5 text-base font-semibold text-on-action transition-colors hover:bg-action-strong sm:w-auto"
     >
       Next
     </button>

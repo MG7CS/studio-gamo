@@ -8,6 +8,8 @@
  * - `isLightQuestion`: the questions short enough to share a screen with others.
  * - `screenItems`: the questions and statements of one screen, in section order (what the markup renders).
  * - `nextVisibleScreen`: steps forward or back past hidden screens.
+ * - Browser helpers (pure parts of `lib/dynamic-form-wizard-client.ts`): `visibleScreenIndexes`,
+ *   `stepStatusText`, `firstScreenWithError`, `openingScreen`, `resolveScreen`, `stepHash`, `parseStepHash`.
  *
  * Rule: one question per screen by default. Up to `MAX_LIGHT_PER_SCREEN` consecutive light questions of
  * the same section may share a screen. Everything else stands alone. Statements are not answers: they ride
@@ -116,4 +118,76 @@ export function nextVisibleScreen(
     if (screen && !isHidden(screen)) return i;
   }
   return null;
+}
+
+type IsHidden = (screen: WizardScreen) => boolean;
+
+/** Indexes of the screens not hidden by show-if, in order (what the progress marks count). */
+export function visibleScreenIndexes(screens: WizardScreen[], isHidden: IsHidden): number[] {
+  const out: number[] = [];
+  screens.forEach((screen, index) => {
+    if (!isHidden(screen)) out.push(index);
+  });
+  return out;
+}
+
+/** The status line and live announcement: "Step 3 of 8" (1-based position among visible screens). */
+export function stepStatusText(position: number, total: number): string {
+  return `Step ${position} of ${total}`;
+}
+
+/**
+ * Index of the first screen (not hidden) holding one of `invalidQuestionIds`, or `null`. Hidden screens are
+ * skipped: the server ignored their answers, so they cannot carry an error the visitor must fix.
+ */
+export function firstScreenWithError(
+  screens: WizardScreen[],
+  invalidQuestionIds: Iterable<string>,
+  isHidden: IsHidden = () => false,
+): number | null {
+  const invalid = new Set(invalidQuestionIds);
+  if (invalid.size === 0) return null;
+  const index = screens.findIndex((s) => !isHidden(s) && s.questionIds.some((id) => invalid.has(id)));
+  return index === -1 ? null : index;
+}
+
+/**
+ * The screen the wizard opens on. After a failed submit: the first screen with an invalid question, or the
+ * last visible screen when the errors sit outside every screen (the summary alone: Turnstile, consent).
+ * Otherwise the first visible screen. `null` when every screen is hidden.
+ */
+export function openingScreen(
+  screens: WizardScreen[],
+  options: { isHidden: IsHidden; invalidQuestionIds: Iterable<string>; hasSummary: boolean },
+): number | null {
+  const visible = visibleScreenIndexes(screens, options.isHidden);
+  if (visible.length === 0) return null;
+  const invalid = [...options.invalidQuestionIds];
+  const withError = firstScreenWithError(screens, invalid, options.isHidden);
+  if (withError !== null) return withError;
+  if (options.hasSummary || invalid.length > 0) return visible[visible.length - 1] ?? null;
+  return visible[0] ?? null;
+}
+
+/**
+ * `target` when it is a visible screen; otherwise the nearest visible screen before it, else after it
+ * (`target` is clamped to the list). `null` when every screen is hidden.
+ */
+export function resolveScreen(screens: WizardScreen[], target: number, isHidden: IsHidden): number | null {
+  if (screens.length === 0) return null;
+  const at = Math.min(Math.max(target, 0), screens.length - 1);
+  const screen = screens[at];
+  if (screen && !isHidden(screen)) return at;
+  return nextVisibleScreen(screens, at, -1, isHidden) ?? nextVisibleScreen(screens, at, 1, isHidden);
+}
+
+/** The URL fragment of a screen: 0-based index → `#step-{index + 1}`. */
+export function stepHash(index: number): string {
+  return `#step-${index + 1}`;
+}
+
+/** The 0-based screen index of a `#step-n` fragment (n ≥ 1), or `null` for any other fragment. */
+export function parseStepHash(hash: string): number | null {
+  const match = /^#step-([1-9]\d*)$/.exec(hash);
+  return match ? Number(match[1]) - 1 : null;
 }

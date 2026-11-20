@@ -3,9 +3,16 @@ import assert from 'node:assert/strict';
 import type { DynFormSchema, DynQuestion, DynSection } from './dynamic-form.ts';
 import {
   buildScreens,
+  firstScreenWithError,
   isLightQuestion,
   nextVisibleScreen,
+  openingScreen,
+  parseStepHash,
+  resolveScreen,
   screenItems,
+  stepHash,
+  stepStatusText,
+  visibleScreenIndexes,
   type WizardScreen,
 } from './dynamic-form-wizard.ts';
 
@@ -275,4 +282,118 @@ test("screenItems: never returns another section's items and is generic over the
     for (const q of screenItems(sec, screen)) assert.ok(sec.questions.includes(q));
   }
   assert.deepEqual(itemIds(two, screens[2]!), ['c']);
+});
+
+// ---------------------------------------------------------------------------
+// Client helpers (pure parts of lib/dynamic-form-wizard-client.ts)
+// ---------------------------------------------------------------------------
+
+const flat = (...ids: string[][]): WizardScreen[] =>
+  ids.map((questionIds, i) => ({ id: `s-${i + 1}`, sectionId: 's', questionIds, statementIds: [] }));
+
+test('visibleScreenIndexes lists the screens not hidden, in order', () => {
+  const screens = flat(['a'], ['b'], ['c'], ['d']);
+  assert.deepEqual(
+    visibleScreenIndexes(screens, (s) => s.id === 's-2'),
+    [0, 2, 3],
+  );
+  assert.deepEqual(
+    visibleScreenIndexes(screens, () => true),
+    [],
+  );
+});
+
+test('stepStatusText reads "Step n of N"', () => {
+  assert.equal(stepStatusText(3, 8), 'Step 3 of 8');
+});
+
+test('firstScreenWithError finds the first visible screen holding an invalid question', () => {
+  const screens = flat(['name', 'email'], ['topic'], ['message'], ['photo']);
+  assert.equal(firstScreenWithError(screens, ['message', 'email']), 0);
+  assert.equal(firstScreenWithError(screens, new Set(['photo', 'message'])), 2);
+  assert.equal(firstScreenWithError(screens, ['unknown']), null);
+  assert.equal(firstScreenWithError(screens, []), null);
+  // A screen hidden by show-if is skipped: the server ignored its answers.
+  assert.equal(
+    firstScreenWithError(screens, ['topic', 'photo'], (s) => s.id === 's-2'),
+    3,
+  );
+});
+
+test('openingScreen: first visible screen without errors', () => {
+  const screens = flat(['a'], ['b'], ['c']);
+  const hideFirst = (s: WizardScreen) => s.id === 's-1';
+  assert.equal(
+    openingScreen(screens, { isHidden: () => false, invalidQuestionIds: [], hasSummary: false }),
+    0,
+  );
+  assert.equal(openingScreen(screens, { isHidden: hideFirst, invalidQuestionIds: [], hasSummary: false }), 1);
+});
+
+test('openingScreen: first screen with an invalid control after a failed submit', () => {
+  const screens = flat(['a'], ['b'], ['c']);
+  assert.equal(
+    openingScreen(screens, { isHidden: () => false, invalidQuestionIds: ['c', 'b'], hasSummary: true }),
+    1,
+  );
+});
+
+test('openingScreen: last visible screen when only the summary has entries (Turnstile, consent)', () => {
+  const screens = flat(['a'], ['b'], ['c']);
+  assert.equal(
+    openingScreen(screens, { isHidden: () => false, invalidQuestionIds: [], hasSummary: true }),
+    2,
+  );
+  assert.equal(
+    openingScreen(screens, { isHidden: (s) => s.id === 's-3', invalidQuestionIds: [], hasSummary: true }),
+    1,
+  );
+  // An invalid control outside every screen (e.g. the consent box) also opens the last screen.
+  assert.equal(
+    openingScreen(screens, { isHidden: () => false, invalidQuestionIds: ['terms'], hasSummary: false }),
+    2,
+  );
+});
+
+test('openingScreen: null when every screen is hidden', () => {
+  assert.equal(
+    openingScreen(flat(['a']), { isHidden: () => true, invalidQuestionIds: [], hasSummary: true }),
+    null,
+  );
+});
+
+test('stepHash and parseStepHash round-trip a 0-based index as a 1-based #step-n', () => {
+  assert.equal(stepHash(0), '#step-1');
+  assert.equal(stepHash(4), '#step-5');
+  assert.equal(parseStepHash('#step-1'), 0);
+  assert.equal(parseStepHash('#step-12'), 11);
+  assert.equal(parseStepHash(''), null);
+  assert.equal(parseStepHash('#step-0'), null);
+  assert.equal(parseStepHash('#step-x'), null);
+  assert.equal(parseStepHash('#df-email'), null);
+  assert.equal(parseStepHash('#step-2junk'), null);
+});
+
+test('resolveScreen keeps a visible target, else steps back, else forward', () => {
+  const screens = flat(['a'], ['b'], ['c'], ['d']);
+  const hidden = new Set(['s-2', 's-3']);
+  const isHidden = (s: WizardScreen) => hidden.has(s.id);
+  assert.equal(resolveScreen(screens, 3, isHidden), 3);
+  assert.equal(resolveScreen(screens, 2, isHidden), 0);
+  assert.equal(
+    resolveScreen(screens, 1, (s) => s.id !== 's-4'),
+    3,
+  );
+  assert.equal(
+    resolveScreen(screens, 9, () => false),
+    3,
+  );
+  assert.equal(
+    resolveScreen(screens, -2, () => false),
+    0,
+  );
+  assert.equal(
+    resolveScreen(screens, 0, () => true),
+    null,
+  );
 });

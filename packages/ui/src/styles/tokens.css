@@ -165,6 +165,12 @@ html {
   scroll-padding-top: 6rem;
 }
 
+/* Form wizard (lib/dynamic-form-wizard-client.ts): a section without the current screen leaves the flow.
+   The section's own `hidden` attribute stays the show-if signal, so the wizard uses this flag instead. */
+[data-wizard-active] [data-wizard-off] {
+  display: none;
+}
+
 /* Deprecated: prefer text-action-strong for small accent text. Kept for existing markup.
    Small terracotta text: 4.8:1 on cream passes, but only 4.2:1 on sand, so small accent text
    uses the deep shade everywhere (6.0:1 on sand). Large brand type and button fills keep terracotta. */
