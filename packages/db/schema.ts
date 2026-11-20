@@ -400,6 +400,9 @@ export const academyRegistrations = sqliteTable(
     scheduleText: text('schedule_text'),
     studentFirstName: text('student_first_name').notNull(),
     studentAgeBand: text('student_age_band').notNull(), // StudentAgeBand
+    level: text('level'), // LevelId (0022): beginner | developing | advancing
+    lessonFormat: text('lesson_format'), // 0022: private (one-on-one) | group
+    zip: text('zip'), // 0022: five digits; personal data, never in emails or logs
     guardianName: text('guardian_name'),
     guardianEmail: text('guardian_email'),
     guardianPhone: text('guardian_phone'),

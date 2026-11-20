@@ -49,6 +49,10 @@ export interface RegistrationRow {
   status: string;
   programSlug: string;
   lessonSlug: string | null;
+  /** Level id, 'private' or 'group', and five-digit zip as given on the form; null when not given. */
+  level: string | null;
+  lessonFormat: string | null;
+  zip: string | null;
   /** Guardian email, or the customer's own email for an adult student. Mask before display. */
   email: string | null;
   amountCents: number;
@@ -99,6 +103,9 @@ export async function listRegistrations(db: SqlDatabase, cursor?: string | null)
     status: string;
     program_slug: string;
     lesson_slug: string | null;
+    level: string | null;
+    lesson_format: string | null;
+    zip: string | null;
     guardian_email: string | null;
     customer_email: string | null;
     amount_cents: number;
@@ -107,7 +114,7 @@ export async function listRegistrations(db: SqlDatabase, cursor?: string | null)
     invoice_id: string | null;
     invoice_number: string | null;
   }>(db, {
-    sql: `SELECT r.id, r.reference, r.status, r.program_slug, r.lesson_slug, r.guardian_email,
+    sql: `SELECT r.id, r.reference, r.status, r.program_slug, r.lesson_slug, r.level, r.lesson_format, r.zip, r.guardian_email,
                  c.email_normalized AS customer_email, r.amount_cents, r.paid_at, r.created_at,
                  (SELECT i.id FROM invoices i WHERE i.source_type = 'academy_registration' AND i.source_id = r.id AND i.status != 'void'
                     ORDER BY i.created_at DESC LIMIT 1) AS invoice_id,
@@ -127,6 +134,9 @@ export async function listRegistrations(db: SqlDatabase, cursor?: string | null)
       status: r.status,
       programSlug: r.program_slug,
       lessonSlug: r.lesson_slug,
+      level: r.level,
+      lessonFormat: r.lesson_format,
+      zip: r.zip,
       email: r.guardian_email ?? r.customer_email,
       amountCents: Number(r.amount_cents),
       paidAt: r.paid_at === null ? null : Number(r.paid_at),

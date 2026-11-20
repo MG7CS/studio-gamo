@@ -17,6 +17,12 @@ interface Props {
 }
 
 const { rows } = Astro.props;
+const LEVEL: Record<string, string> = {
+  beginner: 'Beginner',
+  developing: 'Developing',
+  advancing: 'Advancing',
+};
+const FORMAT: Record<string, string> = { private: 'One-on-one', group: 'Group' };
 const STATUS: Record<string, string> = {
   reserved: 'Reserved',
   pending_payment: 'Waiting for payment',
@@ -32,7 +38,7 @@ const STATUS: Record<string, string> = {
   tabindex="0"
   class="overflow-x-auto rounded-card border border-border bg-surface-raised"
 >
-  <table class="w-full min-w-176 border-collapse text-left text-small">
+  <table class="w-full min-w-240 border-collapse text-left text-small">
     <caption class="px-4 pt-4 pb-2 text-left text-small font-semibold text-fg">
       Academy registrations, newest first
     </caption>
@@ -43,6 +49,15 @@ const STATUS: Record<string, string> = {
         </th>
         <th scope="col" class="px-4 py-2 font-semibold">
           Lesson
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Level
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          One-on-one or group
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Zip code
         </th>
         <th scope="col" class="px-4 py-2 font-semibold">
           Status
@@ -70,6 +85,9 @@ const STATUS: Record<string, string> = {
               {ref}
             </th>
             <td class="px-4 py-2 capitalize text-fg">{registrationLabel(row)}</td>
+            <td class="px-4 py-2 text-fg">{(row.level && LEVEL[row.level]) || 'Not given'}</td>
+            <td class="px-4 py-2 text-fg">{(row.lessonFormat && FORMAT[row.lessonFormat]) || 'Not given'}</td>
+            <td class="px-4 py-2 text-fg">{row.zip || 'Not given'}</td>
             <td class="px-4 py-2 text-fg">{STATUS[row.status] ?? row.status}</td>
             <td class="px-4 py-2 text-fg-muted">{maskEmail(row.email)}</td>
             <td class="px-4 py-2 text-right tabular-nums text-fg">{formatUsd(row.amountCents)}</td>

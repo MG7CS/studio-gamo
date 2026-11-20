@@ -20,7 +20,7 @@ The schema is defined twice and the two must agree:
 | Staff identity & access (admin) | `users`, `sessions`, `roles`, `user_roles`, `external_identities` (Cloudflare Access subject), `admin_credentials` |
 | Shared person, guests (0012) | `persons`, `customer_profiles`, `customer_access_tokens`, `customer_sessions` |
 | Terms, consent, abuse, email (0012) | `terms_documents`, `terms_acceptances`, `marketing_consents`, `rate_limit_counters`, `email_log`, `email_suppressions` |
-| Gamo Academy | `academy_registrations` (0012, guests) |
+| Gamo Academy | `academy_registrations` (0012, guests; 0022 adds `level`, `lesson_format`, `zip`) |
 | Organization | `media_files`, `audit_logs`, `moderation_reviews` |
 | Forms engine (0020) | `forms`, `form_versions`, `form_submissions`, `form_submission_events`, `form_operations`, `form_reference_counters` |
 | Chunked uploads (0020) | `upload_sessions`, `form_uploads` |
@@ -111,6 +111,7 @@ It first drops the 47 triggers on those tables (so the cascades of DROP TABLE's 
 | `0019_remove_public_accounts.sql` | **drops public accounts, organizations, provider review and old demo tables** (see above) |
 | `0020_forms.sql` | forms engine, submissions, submission events, builder operations, reference counters, upload sessions and uploads (additive) |
 | `0021_roster_requests_offers_invoices.sql` | roster, service requests, offers, invoices, lines, payouts, invoice number counters (additive) |
+| `0022_academy_registration_level_format_zip.sql` | nullable `level`, `lesson_format` (`private` one-on-one or `group`) and five-digit `zip` on `academy_registrations` (additive); the zip is personal data and never goes in emails or logs |
 
 Tables created by 0001–0016 for Live, public accounts and the old demos no longer exist after 0018/0019; the files stay because applied migrations are never edited.
 

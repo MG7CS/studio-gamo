@@ -19,6 +19,7 @@
  * - All times are epoch seconds.
  */
 import type { GamoEnv } from '@gamo/config/env';
+import { LEVELS } from '@gamo/config/academy-levels';
 import { createStripeTestClient } from '@studio-gamo/integrations/stripe';
 import { STUDENT_AGE_BANDS, isOneOf, type StudentAgeBand } from '../types/enums.ts';
 import { newOrderReference, newPrefixedId } from '../security/ids.ts';
@@ -35,16 +36,20 @@ import { getTermsDocument } from '../terms/registry.ts';
 import { findCustomerProfileByEmail, issueCustomerLink, upsertCustomerProfile } from './customers.ts';
 import { sendOutboxEmail, type OutboxResult } from './email-outbox.ts';
 
-/** The lesson a registration is for, as the Academy app describes it. */
+/**
+ * The class a registration is for. People register for an instrument: `programSlug` is the instrument slug,
+ * `slug` is null, and location and schedule are empty (an instructor is matched afterwards).
+ */
 export interface AcademyLessonRef {
-  slug: string;
+  /** A specific lesson's slug; null or absent for an instrument class. */
+  slug?: string | null;
   title: string;
-  /** Program the lesson belongs to (e.g. the instrument slug). */
+  /** Program the class belongs to (the instrument slug). */
   programSlug: string;
-  location: string;
-  scheduleText: string;
-  /** Fictional preview content (refused outside local). */
-  sample: boolean;
+  location?: string | null;
+  scheduleText?: string | null;
+  /** Fictional preview content (refused outside local); absent means false. */
+  sample?: boolean;
   /** Tuition per registration in minor units; null when the lesson cannot be paid online. */
   amountCents: number | null;
   currency?: string;
@@ -62,6 +67,10 @@ export interface GuestRegistrationInput {
   idempotencyKey: string;
   studentFirstName: string;
   studentAgeBand: string;
+  /** Optional here (the form requires them): a level id, 'private' (one-on-one) or 'group', five-digit zip. */
+  level?: string | null;
+  lessonFormat?: string | null;
+  zip?: string | null;
   /** Contact email: the guardian's when the student is under 18, otherwise the learner's own. */
   email: string;
   emailConfirm: string;
@@ -87,6 +96,9 @@ export interface AcademyRegistration {
   scheduleText: string | null;
   studentFirstName: string;
   studentAgeBand: StudentAgeBand;
+  level: string | null;
+  lessonFormat: string | null;
+  zip: string | null;
   guardianName: string | null;
   guardianEmail: string | null;
   guardianPhone: string | null;
@@ -200,6 +212,9 @@ interface RegistrationRow {
   schedule_text: string | null;
   student_first_name: string;
   student_age_band: StudentAgeBand;
+  level: string | null;
+  lesson_format: string | null;
+  zip: string | null;
   guardian_name: string | null;
   guardian_email: string | null;
   guardian_phone: string | null;
@@ -216,7 +231,7 @@ interface RegistrationRow {
 }
 
 const COLUMNS =
-  'id, reference, program_slug, lesson_slug, location, schedule_text, student_first_name, student_age_band, guardian_name, guardian_email, guardian_phone, customer_profile_id, status, amount_cents, currency, stripe_checkout_session_id, idempotency_key, paid_at, cancelled_at, created_at, updated_at';
+  'id, reference, program_slug, lesson_slug, location, schedule_text, student_first_name, student_age_band, level, lesson_format, zip, guardian_name, guardian_email, guardian_phone, customer_profile_id, status, amount_cents, currency, stripe_checkout_session_id, idempotency_key, paid_at, cancelled_at, created_at, updated_at';
 
 function toRegistration(row: RegistrationRow): AcademyRegistration {
   const n = (v: number | null) => (v === null || v === undefined ? null : Number(v));
@@ -229,6 +244,9 @@ function toRegistration(row: RegistrationRow): AcademyRegistration {
     scheduleText: row.schedule_text ?? null,
     studentFirstName: row.student_first_name,
     studentAgeBand: row.student_age_band,
+    level: row.level ?? null,
+    lessonFormat: row.lesson_format ?? null,
+    zip: row.zip ?? null,
     guardianName: row.guardian_name ?? null,
     guardianEmail: row.guardian_email ?? null,
     guardianPhone: row.guardian_phone ?? null,
@@ -282,6 +300,9 @@ export async function listCustomerRegistrations(
 
 interface ValidatedInput {
   band: StudentAgeBand;
+  level: string | null;
+  lessonFormat: string | null;
+  zip: string | null;
   studentFirstName: string;
   email: string;
   guardianName: string | null;
@@ -296,6 +317,16 @@ function validateFields(input: GuestRegistrationInput): ValidatedInput {
   const band = isOneOf(STUDENT_AGE_BANDS, input.studentAgeBand) ? input.studentAgeBand : null;
   if (!band) add('student_age_band', 'student-age-band', "Choose the student's age group.");
   const minor = band ? isUnderEighteen(band) : false;
+  const rawLevel = clean(input.level, 40);
+  const level = rawLevel || null;
+  if (level && !LEVELS.some((l) => l.id === level)) add('level', 'level', 'Choose a level from the list.');
+  const rawFormat = clean(input.lessonFormat, 40);
+  const lessonFormat = rawFormat || null;
+  if (lessonFormat && lessonFormat !== 'private' && lessonFormat !== 'group')
+    add('lesson_format', 'lesson_format', 'Choose one-on-one or group lessons.');
+  const rawZip = clean(input.zip, 20);
+  const zip = rawZip || null;
+  if (zip && !/^[0-9]{5}$/.test(zip)) add('zip', 'zip', 'Enter a five-digit zip code, for example 20001.');
   const email = normalizeEmail(String(input.email ?? ''));
   if (!isPlausibleEmail(email))
     add(
@@ -351,7 +382,16 @@ function validateFields(input: GuestRegistrationInput): ValidatedInput {
       400,
       errors,
     );
-  return { band, studentFirstName, email, guardianName: minor ? guardianName : null, phone };
+  return {
+    band,
+    level,
+    lessonFormat,
+    zip,
+    studentFirstName,
+    email,
+    guardianName: minor ? guardianName : null,
+    phone,
+  };
 }
 
 /** The shown version of each required document; refuses a page opened before the terms changed. */
@@ -450,17 +490,20 @@ export async function createGuestRegistration(
   const termsId = base.recorded.find((r) => r.slug === 'academy-enrollment-terms')!.id;
 
   const insert = (reference: string): SqlStatementSpec => ({
-    sql: `INSERT INTO academy_registrations (id, reference, program_slug, lesson_slug, location, schedule_text, student_first_name, student_age_band, guardian_name, guardian_email, guardian_phone, customer_profile_id, status, terms_acceptance_id, guardian_consent_acceptance_id, child_safety_acceptance_id, amount_cents, currency, idempotency_key, created_at, updated_at)
-          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?20)`,
+    sql: `INSERT INTO academy_registrations (id, reference, program_slug, lesson_slug, location, schedule_text, student_first_name, student_age_band, level, lesson_format, zip, guardian_name, guardian_email, guardian_phone, customer_profile_id, status, terms_acceptance_id, guardian_consent_acceptance_id, child_safety_acceptance_id, amount_cents, currency, idempotency_key, created_at, updated_at)
+          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?23)`,
     params: [
       id,
       reference,
       clean(input.lesson.programSlug, 120) || 'lessons',
-      input.lesson.slug,
+      input.lesson.slug ?? null,
       clean(input.lesson.location, 200) || 'To be confirmed',
       clean(input.lesson.scheduleText, 200) || null,
       fields.studentFirstName,
       fields.band,
+      fields.level,
+      fields.lessonFormat,
+      fields.zip,
       fields.guardianName,
       minor ? fields.email : null,
       fields.phone,
@@ -745,7 +788,7 @@ export async function sendRegistrationReceipt(
     registration: input.registration,
     lessonTitle: input.lesson.title,
     manageUrl,
-    sample: input.lesson.sample,
+    sample: input.lesson.sample ?? false,
   });
   const result = await sendOutboxEmail(
     db,
