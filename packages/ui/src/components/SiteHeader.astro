@@ -140,15 +140,15 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
      backdrop blur would otherwise become the containing block of this fixed layer. -->
 <div
   id="site-mobile-menu"
-  class="fixed inset-0 z-40 hidden overflow-y-auto overscroll-contain bg-surface pt-16 lg:hidden"
+  class="fixed inset-0 z-40 hidden flex flex-col overflow-y-auto overscroll-contain bg-surface pt-16 lg:hidden"
 >
-  <nav aria-label="Mobile primary" class="mx-auto max-w-page pt-4 pb-10">
+  <nav aria-label="Mobile primary" class="mx-auto my-auto w-full max-w-page py-6 text-center">
     <div data-mobile-root>
       <ul class="flex flex-col">
         {items.map((item, index) => {
           const active = item.key !== undefined && item.key === current;
           const rowClass = [
-            'flex min-h-14 w-full items-center justify-between px-gutter text-left text-xl font-semibold transition-colors hover:text-action-strong',
+            'flex min-h-14 w-full items-center justify-center gap-2 px-gutter text-center text-xl font-semibold transition-colors hover:text-action-strong',
             active ? 'text-action-strong' : 'text-fg',
           ];
           const screenId = `site-mobile-screen-${index}`;
@@ -195,7 +195,7 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       if (!item.menu) return null;
       const screenId = `site-mobile-screen-${index}`;
       const rowClass =
-        'flex min-h-14 items-center px-gutter text-xl font-semibold text-fg transition-colors hover:text-action-strong';
+        'flex min-h-14 items-center justify-center px-gutter text-center text-xl font-semibold text-fg transition-colors hover:text-action-strong';
       const linkedTiles = item.menu.tiles.filter((tile) => tile.href);
       return (
         <section id={screenId} hidden data-mobile-screen aria-labelledby={`${screenId}-title`}>
