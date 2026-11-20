@@ -6,7 +6,8 @@
  * Usage:
  *   <LinkRows items={[{ href: '/piano', title: 'Piano', body: 'First songs in weeks.', meta: 'Ages 6 and up' }]} />
  *
- * A row may carry an `action` link; it sits beside the row link, not inside it.
+ * A row may carry an `action` link; it sits beside the row link, not inside it. Its visible text is `label`; the row
+ * title follows as visually hidden text ("Register" + " for Piano") so every action link has its own accessible name.
  *
  * Props: items, headingLevel (h2 to h4, default h3), columns (1 or 2, default 2: two columns from 768 px), class.
  */
@@ -56,6 +57,7 @@ const { items, headingLevel: Heading = 'h3', columns = 2, class: className } = A
           class="inline-flex min-h-11 shrink-0 items-center py-6 ps-6 font-semibold text-action-strong underline underline-offset-4 hover:text-action"
         >
           {item.action.label}
+          <span class="sr-only"> for {item.title}</span>
         </a>
       )}
     </li>
