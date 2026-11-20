@@ -72,7 +72,11 @@ export const SUBMISSION_STATUSES = [
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
 /** Kinds whose submissions can be approved or declined (they feed the roster). */
-export const APPLICATION_KINDS: readonly FormKind[] = ['musician_application', 'technician_application'];
+export const APPLICATION_KINDS: readonly FormKind[] = [
+  'musician_application',
+  'technician_application',
+  'instructor_application',
+];
 /** Kinds that create a service request after submit. */
 export const REQUEST_KINDS: readonly FormKind[] = ['church_request', 'production_request'];
 

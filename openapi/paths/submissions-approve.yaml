@@ -6,7 +6,8 @@ post:
   tags:
     - Roster and requests
   summary: Approve an application
-  description: Applies to musician_application and technician_application submissions only (409
+  description:
+    Applies to musician_application, technician_application and instructor_application submissions only (409
     otherwise). Creates one private roster member from the bind keys (there is no public directory),
     sends the approval email.
   security:

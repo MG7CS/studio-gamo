@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FormSchemaError, parseFormSchema } from './schema.ts';
+import { checkPublishable, FormSchemaError, parseFormSchema } from './schema.ts';
 
 const q = (extra: Record<string, unknown>) => ({ id: 'q1', label: 'Question', type: 'short_text', ...extra });
 const form = (...questions: Record<string, unknown>[]) =>
@@ -84,4 +84,12 @@ test('serialized schema over 256 KB is rejected', () => {
   const circular: Record<string, unknown> = { sections: [] };
   circular.self = circular;
   assert.throws(() => parseFormSchema(circular), FormSchemaError);
+});
+
+test('instructor_application needs name, email and roster.roles binds to be publishable', () => {
+  const name = q({ id: 'n', bind: 'contact.name' });
+  const email = q({ id: 'e', bind: 'contact.email' });
+  const roles = q({ id: 'r', bind: 'roster.roles' });
+  assert.ok(checkPublishable('instructor_application', form(name, email)).errors.length > 0);
+  assert.deepEqual(checkPublishable('instructor_application', form(name, email, roles)).errors, []);
 });

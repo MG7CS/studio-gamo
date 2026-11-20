@@ -43,7 +43,7 @@ const schemaOf = (...extra: Raw[]) => ({
 });
 async function setup(
   options: {
-    kind?: 'contact' | 'church_request' | 'musician_application';
+    kind?: 'contact' | 'church_request' | 'musician_application' | 'instructor_application';
     program?: Form['program'];
     slug?: string;
     retentionMonths?: number;
@@ -209,7 +209,24 @@ describe('submit', () => {
 
 describe('inbox', () => {});
 
-describe('status, notes and events', () => {});
+describe('status, notes and events', () => {
+  test('instructor applications can be approved or declined; a contact submission cannot', async () => {
+    for (const status of ['approved', 'declined'] as const) {
+      const { forms } = await published(
+        schemaOf({ id: 'roles', type: 'short_text', label: 'Roles', bind: 'roster.roles' }),
+        { kind: 'instructor_application', slug: 'ins' },
+      );
+      const r = await forms.submit({ slug: 'ins', raw: answers(), uploads: {}, idempotencyKey: key() });
+      await forms.setStatus({ submissionId: r.submission.id, status, staffId: STAFF, now: T0 + 1 });
+    }
+    const { forms } = await published();
+    const r = await forms.submit({ slug: 'contact', raw: answers(), uploads: {}, idempotencyKey: key() });
+    await assert.rejects(
+      forms.setStatus({ submissionId: r.submission.id, status: 'approved', staffId: STAFF, now: T0 + 1 }),
+      (e: unknown) => isFormsError(e) && e.code === 'INVALID_TRANSITION',
+    );
+  });
+});
 
 describe('retention purge', () => {
   async function aged() {

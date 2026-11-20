@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { approveApplication, WorshipError } from './index.ts';
+import { approveApplication, declineApplication, WorshipError } from './index.ts';
 import {
   all,
   ENV,
@@ -110,4 +110,27 @@ test('approve: refuses non-applications, unknown, declined and incomplete submis
   );
   assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM roster_members')!.n, 0);
   assert.equal(r.calls.length, 0);
+});
+
+test('approve and decline: an Academy instructor application joins the academy roster or is declined', async () => {
+  const d1 = await newDb();
+  const r = fakeResend();
+  const approved = seedSubmission(d1, {
+    kind: 'instructor_application',
+    program: 'academy',
+    binds: musicianBinds(),
+  });
+  const member = await approveApplication(d1, ENV, { submissionId: approved, staffId, now: NOW }, r.options);
+  assert.equal(member.program, 'academy');
+  assert.equal(member.canTeach, true);
+  assert.equal(get(d1, 'SELECT status FROM form_submissions WHERE id = ?', approved)!.status, 'approved');
+  assert.match(String(r.calls[0]!.subject), /Gamo Academy/);
+
+  const declined = seedSubmission(d1, {
+    kind: 'instructor_application',
+    program: 'academy',
+    binds: { ...musicianBinds(), 'contact.email': 'bo@example.org' },
+  });
+  await declineApplication(d1, ENV, { submissionId: declined, staffId, now: NOW }, r.options);
+  assert.equal(get(d1, 'SELECT status FROM form_submissions WHERE id = ?', declined)!.status, 'declined');
 });

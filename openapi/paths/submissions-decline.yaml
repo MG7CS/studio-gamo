@@ -6,7 +6,8 @@ post:
   tags:
     - Roster and requests
   summary: Decline an application
-  description: Applies to musician_application and technician_application submissions only (409
+  description:
+    Applies to musician_application, technician_application and instructor_application submissions only (409
     otherwise). Moves uploaded files to forms/declined, sets deletion at 12 months (files 90 days)
     and sends the decline email.
   security:

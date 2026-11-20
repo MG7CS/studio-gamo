@@ -39,6 +39,7 @@ export const PROGRAM_LABELS: Record<string, string> = {
 export const KIND_LABELS: Record<string, string> = {
   musician_application: 'Musician application',
   technician_application: 'Technician application',
+  instructor_application: 'Instructor application',
   church_request: 'Church request',
   production_request: 'Production request',
   contact: 'Contact',

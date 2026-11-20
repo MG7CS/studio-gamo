@@ -48,7 +48,11 @@ import {
 export const ROSTER_STATUSES = ['active', 'paused', 'removed'] as const;
 export type RosterStatus = (typeof ROSTER_STATUSES)[number];
 
-export const APPLICATION_KINDS = ['musician_application', 'technician_application'] as const;
+export const APPLICATION_KINDS = [
+  'musician_application',
+  'technician_application',
+  'instructor_application',
+] as const;
 
 /** Declined applications are kept 12 months (files are removed earlier by the retention job). */
 export const DECLINED_RETENTION_DAYS = 365;
@@ -139,7 +143,10 @@ async function loadApplication(db: Db, submissionId: string): Promise<Applicatio
   );
   if (!row) throw new WorshipError('NOT_FOUND', 'submission not found');
   if (!(APPLICATION_KINDS as readonly string[]).includes(row.kind))
-    throw new WorshipError('NOT_AN_APPLICATION', 'submission is not a musician or technician application');
+    throw new WorshipError(
+      'NOT_AN_APPLICATION',
+      'submission is not a musician, technician or instructor application',
+    );
   return row;
 }
 

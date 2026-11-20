@@ -327,7 +327,7 @@ export interface paths {
         put?: never;
         /**
          * Approve an application
-         * @description Applies to musician_application and technician_application submissions only (409 otherwise). Creates one private roster member from the bind keys (there is no public directory), sends the approval email.
+         * @description Applies to musician_application, technician_application and instructor_application submissions only (409 otherwise). Creates one private roster member from the bind keys (there is no public directory), sends the approval email.
          */
         post: operations["approveApplication"];
         delete?: never;
@@ -347,7 +347,7 @@ export interface paths {
         put?: never;
         /**
          * Decline an application
-         * @description Applies to musician_application and technician_application submissions only (409 otherwise). Moves uploaded files to forms/declined, sets deletion at 12 months (files 90 days) and sends the decline email.
+         * @description Applies to musician_application, technician_application and instructor_application submissions only (409 otherwise). Moves uploaded files to forms/declined, sets deletion at 12 months (files 90 days) and sends the decline email.
          */
         post: operations["declineApplication"];
         delete?: never;
@@ -971,7 +971,7 @@ export interface components {
          * @description Decides which bind keys a form must define before it can be published.
          * @enum {string}
          */
-        FormKind: "musician_application" | "technician_application" | "church_request" | "production_request" | "contact" | "partner_interest";
+        FormKind: "musician_application" | "technician_application" | "instructor_application" | "church_request" | "production_request" | "contact" | "partner_interest";
         /** @enum {string} */
         FormStatus: "draft" | "published" | "closed";
         /** @enum {string} */

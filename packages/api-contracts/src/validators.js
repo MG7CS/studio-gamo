@@ -2112,7 +2112,7 @@ return errors === 0;
 validate35.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
 export const schema_FormKind = validate36;
-const schema52 = {"$id":"schema_FormKind","type":"string","enum":["musician_application","technician_application","church_request","production_request","contact","partner_interest"],"description":"Decides which bind keys a form must define before it can be published."};
+const schema52 = {"$id":"schema_FormKind","type":"string","enum":["musician_application","technician_application","instructor_application","church_request","production_request","contact","partner_interest"],"description":"Decides which bind keys a form must define before it can be published."};
 
 function validate36(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_FormKind" */;
@@ -2135,7 +2135,7 @@ vErrors.push(err0);
 }
 errors++;
 }
-if(!((((((data === "musician_application") || (data === "technician_application")) || (data === "church_request")) || (data === "production_request")) || (data === "contact")) || (data === "partner_interest"))){
+if(!(((((((data === "musician_application") || (data === "technician_application")) || (data === "instructor_application")) || (data === "church_request")) || (data === "production_request")) || (data === "contact")) || (data === "partner_interest"))){
 const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema52.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err1];
@@ -2262,7 +2262,7 @@ validate39.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 export const schema_FormSummary = validate40;
 const schema56 = {"$id":"schema_FormSummary","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"slug":{"type":"string"},"program":{"$ref":"gamo#/components/schemas/FormProgram"},"kind":{"$ref":"gamo#/components/schemas/FormKind"},"title":{"type":"string"},"status":{"$ref":"gamo#/components/schemas/FormStatus"},"currentVersion":{"type":["integer","null"],"minimum":1,"description":"Latest published version number; null while only a draft exists."},"updatedAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","slug","program","kind","title","status","currentVersion","updatedAt"]};
 const schema58 = {"type":"string","enum":["worship","production","academy","web"],"description":"Program that hosts the public form page."};
-const schema59 = {"type":"string","enum":["musician_application","technician_application","church_request","production_request","contact","partner_interest"],"description":"Decides which bind keys a form must define before it can be published."};
+const schema59 = {"type":"string","enum":["musician_application","technician_application","instructor_application","church_request","production_request","contact","partner_interest"],"description":"Decides which bind keys a form must define before it can be published."};
 const schema60 = {"type":"string","enum":["draft","published","closed"]};
 
 function validate40(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -2441,7 +2441,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
+if(!(((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "instructor_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"gamo#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -2734,7 +2734,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
+if(!(((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "instructor_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"gamo#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -3112,7 +3112,7 @@ vErrors.push(err11);
 }
 errors++;
 }
-if(!((((((data2 === "musician_application") || (data2 === "technician_application")) || (data2 === "church_request")) || (data2 === "production_request")) || (data2 === "contact")) || (data2 === "partner_interest"))){
+if(!(((((((data2 === "musician_application") || (data2 === "technician_application")) || (data2 === "instructor_application")) || (data2 === "church_request")) || (data2 === "production_request")) || (data2 === "contact")) || (data2 === "partner_interest"))){
 const err12 = {instancePath:instancePath+"/kind",schemaPath:"gamo#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err12];
@@ -3571,7 +3571,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
+if(!(((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "instructor_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -4059,7 +4059,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
+if(!(((((((data3 === "musician_application") || (data3 === "technician_application")) || (data3 === "instructor_application")) || (data3 === "church_request")) || (data3 === "production_request")) || (data3 === "contact")) || (data3 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -4902,7 +4902,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
+if(!(((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "instructor_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"gamo#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -5484,7 +5484,7 @@ vErrors.push(err18);
 }
 errors++;
 }
-if(!((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
+if(!(((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "instructor_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
 const err19 = {instancePath:instancePath+"/kind",schemaPath:"gamo#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err19];
@@ -5951,7 +5951,7 @@ vErrors.push(err14);
 }
 errors++;
 }
-if(!((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
+if(!(((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "instructor_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
 const err15 = {instancePath:instancePath+"/kind",schemaPath:"#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
@@ -6677,7 +6677,7 @@ vErrors.push(err18);
 }
 errors++;
 }
-if(!((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
+if(!(((((((data4 === "musician_application") || (data4 === "technician_application")) || (data4 === "instructor_application")) || (data4 === "church_request")) || (data4 === "production_request")) || (data4 === "contact")) || (data4 === "partner_interest"))){
 const err19 = {instancePath:instancePath+"/kind",schemaPath:"#/components/schemas/FormKind/enum",keyword:"enum",params:{allowedValues: schema59.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err19];

@@ -51,6 +51,7 @@ export type BindKey = (typeof BIND_KEYS)[number];
 export const FORM_KINDS = [
   'musician_application',
   'technician_application',
+  'instructor_application',
   'church_request',
   'production_request',
   'contact',
@@ -62,6 +63,7 @@ export type FormKind = (typeof FORM_KINDS)[number];
 export const REQUIRED_BINDS: Record<FormKind, BindKey[]> = {
   musician_application: ['contact.name', 'contact.email', 'roster.roles'],
   technician_application: ['contact.name', 'contact.email', 'roster.roles'],
+  instructor_application: ['contact.name', 'contact.email', 'roster.roles'],
   church_request: [
     'contact.name',
     'contact.email',

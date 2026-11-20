@@ -2,6 +2,7 @@ type: string
 enum:
   - musician_application
   - technician_application
+  - instructor_application
   - church_request
   - production_request
   - contact
