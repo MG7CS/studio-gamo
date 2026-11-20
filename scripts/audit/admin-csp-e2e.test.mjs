@@ -181,7 +181,7 @@ try {
   }
   // The first visit to the forms list published the default forms, so the public form pages exist.
   const seeded = await db.prepare("SELECT count(*) AS n FROM forms WHERE status = 'published'").first();
-  assert.equal(seeded.n, 6, 'the six default forms are published after the first forms visit');
+  assert.equal(seeded.n, 10, 'the ten default forms are published after the first forms visit');
   // Home, Security, Legal and each area in the navigation (admin has no demo screens any more).
   assert.ok([...pages.values()].filter((s) => s === 200).length >= 3, 'crawled the admin workspace');
 
