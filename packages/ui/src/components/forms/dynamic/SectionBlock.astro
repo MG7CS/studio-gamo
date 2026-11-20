@@ -10,12 +10,18 @@
  * - headingLevel?: 2 | 3 | 4 (default 2) — the section title's heading level; the page owns the single `<h1>`.
  * - step?: { index: number; total: number } — shows "Step 1 of 3" above the title (omit for a one-section form).
  * - titleVisible?: boolean (default true) — false keeps the title for assistive technology only.
+ * - screens?: WizardScreen[] — this section's wizard screens (`buildScreens`); renders the section as one
+ *   `data-wizard-screen` wrapper per screen instead of one heading and one list of questions. A screen with
+ *   several questions shows the section title as its heading (at `headingLevel`); a single-question screen
+ *   has no extra heading (`data-wizard-single`; the question's own label is its heading). The section
+ *   description shows once, above the first screen. Omit for the ordinary scrolling section.
  * - class?: string.
  */
 import QuestionField from './QuestionField.astro';
 import TitleCase from '../../TitleCase.astro';
 import { buildFieldId, linkAlternativeFor, sectionDomId, showIfAttributes } from '../../../lib/dynamic-form';
 import type { DynSection } from '../../../lib/dynamic-form';
+import type { WizardScreen } from '../../../lib/dynamic-form-wizard';
 import type { DynamicFormContext, DynLinkAlternative } from './index';
 
 interface Props {
@@ -24,10 +30,11 @@ interface Props {
   headingLevel?: 2 | 3 | 4;
   step?: { index: number; total: number };
   titleVisible?: boolean;
+  screens?: WizardScreen[];
   class?: string;
 }
 
-const { section, ctx, headingLevel = 2, step, titleVisible = true, class: className } = Astro.props;
+const { section, ctx, headingLevel = 2, step, titleVisible = true, screens, class: className } = Astro.props;
 const domId = sectionDomId(ctx.idPrefix, section.id);
 const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
 
@@ -36,32 +43,78 @@ function alternativeFor(q: (typeof section.questions)[number]): DynLinkAlternati
   const link = linkAlternativeFor(section, q);
   return link ? { fieldId: buildFieldId(ctx.idPrefix, link.id), label: link.label } : undefined;
 }
+
+/** The questions (and statements) of one wizard screen, in section order. */
+function screenItems(screen: WizardScreen) {
+  const ids = new Set([...screen.statementIds, ...screen.questionIds]);
+  return section.questions.filter((q) => ids.has(q.id));
+}
 ---
 
 <section
   id={domId}
-  aria-labelledby={`${domId}-title`}
+  aria-labelledby={screens ? undefined : `${domId}-title`}
+  aria-label={screens ? section.title : undefined}
   data-dyn-section={section.id}
   class:list={['space-y-6', className]}
   {...showIfAttributes(section.showIf)}
 >
-  <div>
-    {step && (
-      <p class="text-small font-semibold text-fg-muted">
-        Step {step.index} of {step.total}
-      </p>
-    )}
-    <Heading
-      id={`${domId}-title`}
-      class:list={['text-xl font-black tracking-tight text-fg', !titleVisible && 'sr-only']}
-    >
-      <TitleCase>{section.title}</TitleCase>
-    </Heading>
-    {section.description && <p class="mt-2 text-body-sm text-fg-muted">{section.description}</p>}
-  </div>
-  <div class="space-y-6">
-    {section.questions.map((question) => (
-      <QuestionField question={question} ctx={ctx} linkAlternative={alternativeFor(question)} />
-    ))}
-  </div>
+  {screens ? (
+    screens.map((screen, index) => (
+      <div
+        data-wizard-screen={screen.id}
+        data-wizard-section={section.id}
+        data-wizard-single={screen.questionIds.length <= 1 ? true : undefined}
+        class="space-y-6"
+      >
+        {(index === 0 && section.description) || screen.questionIds.length > 1 ? (
+          <div>
+            {screen.questionIds.length > 1 && (
+              <Heading
+                id={`${domId}-${screen.id}-title`}
+                class:list={[
+                  'text-xl font-black tracking-tight text-fg',
+                  !titleVisible && 'sr-only',
+                ]}
+              >
+                <TitleCase>{section.title}</TitleCase>
+              </Heading>
+            )}
+            {index === 0 && section.description && (
+              <p class:list={['text-body-sm text-fg-muted', screen.questionIds.length > 1 && 'mt-2']}>
+                {section.description}
+              </p>
+            )}
+          </div>
+        ) : null}
+        <div class="space-y-6">
+          {screenItems(screen).map((question) => (
+            <QuestionField question={question} ctx={ctx} linkAlternative={alternativeFor(question)} />
+          ))}
+        </div>
+      </div>
+    ))
+  ) : (
+    <>
+      <div>
+        {step && (
+          <p class="text-small font-semibold text-fg-muted">
+            Step {step.index} of {step.total}
+          </p>
+        )}
+        <Heading
+          id={`${domId}-title`}
+          class:list={['text-xl font-black tracking-tight text-fg', !titleVisible && 'sr-only']}
+        >
+          <TitleCase>{section.title}</TitleCase>
+        </Heading>
+        {section.description && <p class="mt-2 text-body-sm text-fg-muted">{section.description}</p>}
+      </div>
+      <div class="space-y-6">
+        {section.questions.map((question) => (
+          <QuestionField question={question} ctx={ctx} linkAlternative={alternativeFor(question)} />
+        ))}
+      </div>
+    </>
+  )}
 </section>

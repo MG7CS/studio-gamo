@@ -27,6 +27,12 @@
  * - idPrefix?: string (default 'df') — prefix of every DOM id, for two forms on one page.
  * - headingLevel?: 2 | 3 | 4 (default 2) — section titles; the form renders no `<h1>`.
  * - enctype?: string — default `multipart/form-data` when the schema has a file question, else urlencoded.
+ * - wizard?: boolean (default false) — renders the form as a one-screen-at-a-time wizard: the form gets
+ *   `data-wizard`, every section's questions are grouped into `data-wizard-screen` wrappers
+ *   (`lib/dynamic-form-wizard.ts`, `buildScreens`), the consent, Turnstile and submit block is marked
+ *   `data-wizard-final`, and a hidden `WizardControls` (Back, Next, progress) follows it. The server HTML is
+ *   still the complete scrolling form (no-JavaScript baseline); `lib/dynamic-form-wizard-client.ts` turns it
+ *   into screens. False renders exactly the ordinary form.
  * - class?: string.
  *
  * Slots: `before` — inside the form, above the first section (after the error summary);
@@ -39,6 +45,7 @@ import SubmitButton from '../SubmitButton.astro';
 import TermsConsent from '../TermsConsent.astro';
 import TurnstileWidget from '../TurnstileWidget.astro';
 import SectionBlock from './SectionBlock.astro';
+import WizardControls from './WizardControls.astro';
 import { errorsByQuestion, summaryEntries, turnstileActionFor } from '../../../lib/dynamic-form';
 import type {
   DynAnswerError,
@@ -46,6 +53,8 @@ import type {
   DynRawValues,
   DynUploadSummary,
 } from '../../../lib/dynamic-form';
+import { buildScreens } from '../../../lib/dynamic-form-wizard';
+import type { WizardScreen } from '../../../lib/dynamic-form-wizard';
 import type { TermsConsentDocument } from '../../../lib/terms-links';
 import type { DynamicFormContext } from './index';
 
@@ -68,6 +77,7 @@ interface Props {
   idPrefix?: string;
   headingLevel?: 2 | 3 | 4;
   enctype?: string;
+  wizard?: boolean;
   class?: string;
 }
 
@@ -89,6 +99,7 @@ const {
   idPrefix = 'df',
   headingLevel = 2,
   enctype,
+  wizard = false,
   class: className,
 } = Astro.props;
 
@@ -108,6 +119,11 @@ const summary = [
 ];
 const oneSection = schema.sections.length === 1;
 const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.showIf);
+const wizardScreens = wizard ? buildScreens(schema) : [];
+const screensBySection = new Map<string, WizardScreen[]>();
+for (const screen of wizardScreens) {
+  screensBySection.set(screen.sectionId, [...(screensBySection.get(screen.sectionId) ?? []), screen]);
+}
 ---
 
 <form
@@ -117,6 +133,7 @@ const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.sh
   data-dynamic-form
   novalidate
   data-form-slug={formSlug}
+  data-wizard={wizard ? true : undefined}
   class:list={['space-y-10', className]}
 >
   <FormErrorSummary errors={summary} />
@@ -130,12 +147,13 @@ const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.sh
       section={section}
       ctx={ctx}
       headingLevel={headingLevel}
-      step={stepped ? { index: index + 1, total: schema.sections.length } : undefined}
+      step={stepped && !wizard ? { index: index + 1, total: schema.sections.length } : undefined}
+      screens={wizard ? (screensBySection.get(section.id) ?? []) : undefined}
       titleVisible={!oneSection}
     />
   ))}
   <slot name="after" />
-  <div class="space-y-6">
+  <div data-wizard-final={wizard ? true : undefined} class="space-y-6">
     {termsConsent && (
       <TermsConsent
         documents={termsConsent.documents}
@@ -155,9 +173,12 @@ const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.sh
     )}
     <SubmitButton label={submitLabel} pendingLabel={pendingLabel} />
   </div>
+  {wizard && <WizardControls total={wizardScreens.length} />}
 </form>
 
 <script>
   import { initDynamicForms } from '../../../lib/dynamic-form-client';
+  import { initWizards } from '../../../lib/dynamic-form-wizard-client';
   initDynamicForms();
+  initWizards();
 </script>

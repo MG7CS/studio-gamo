@@ -202,7 +202,6 @@ const ROUND_BASELINE: Record<string, number> = {
   'packages/ui/src/components/dashboard/StatGrid.astro': 1,
   'packages/ui/src/components/dashboard/StateView.astro': 1,
   'packages/ui/src/components/dashboard/StepList.astro': 1,
-  'packages/ui/src/components/forms/ChoiceCard.astro': 1,
 };
 
 test('round shapes: only dots, bars, avatars and switches; controls are small-radius rectangles', () => {

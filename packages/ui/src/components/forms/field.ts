@@ -57,7 +57,7 @@ export function fileRequirements(
 
 /** Classes for a boxed control (input, textarea, select): 44 px tall, ≥ 3:1 border, error state. */
 export const CONTROL_CLASS = [
-  'mt-2 block min-h-11 w-full rounded-xl border-fg-muted bg-surface-raised px-4 py-2.5 text-base text-fg',
+  'mt-2 block min-h-11 w-full rounded-button border-fg-muted bg-surface-raised px-4 py-2.5 text-base text-fg',
   'border placeholder:text-fg-muted focus:border-action',
   'disabled:cursor-not-allowed disabled:opacity-60',
   'aria-invalid:border-2 aria-invalid:border-danger',

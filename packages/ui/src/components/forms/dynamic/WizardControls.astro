@@ -1,0 +1,55 @@
+---
+/**
+ * WizardControls — the Back / Next row, progress marks and status line of the form wizard. Server HTML
+ * carries it `hidden`: without JavaScript the form is one scrolling page and shows no controls; the wizard
+ * script (`lib/dynamic-form-wizard-client.ts`) unhides it, marks the current segment, rewrites the status
+ * and announces each step in the polite live region.
+ *
+ * Markup contract (read by the script): `data-wizard-controls`, `data-wizard-progress` (an `<ol>` of
+ * `data-wizard-segment` items, `data-state` "done" | "current" | "todo"), `data-wizard-status`,
+ * `data-wizard-live`, `data-wizard-back`, `data-wizard-next`.
+ *
+ * Props
+ * - total: number — screens in the form (the script recomputes it as show-if hides screens).
+ * - class?: string.
+ */
+interface Props {
+  total: number;
+  class?: string;
+}
+
+const { total, class: className } = Astro.props;
+const segments = Array.from({ length: Math.max(total, 1) }, (_, i) => i);
+---
+
+<div data-wizard-controls hidden class:list={['space-y-4', className]}>
+  <ol data-wizard-progress aria-label="Progress" class="flex list-none gap-1 p-0">
+    {segments.map((i) => (
+      <li
+        data-wizard-segment
+        data-state={i === 0 ? 'current' : 'todo'}
+        class="h-1.5 min-w-0 flex-1 rounded-button bg-border data-[state=current]:bg-action data-[state=done]:bg-action"
+      />
+    ))}
+  </ol>
+  <p data-wizard-status class="text-small font-semibold text-fg-muted">
+    Step 1 of {total}
+  </p>
+  <div data-wizard-live aria-live="polite" class="sr-only"></div>
+  <div class="flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      data-wizard-back
+      class="inline-flex min-h-11 items-center justify-center rounded-button border border-fg-muted bg-surface-raised px-7 py-2.5 text-base font-semibold text-fg transition-colors hover:bg-surface-inset"
+    >
+      Back
+    </button>
+    <button
+      type="button"
+      data-wizard-next
+      class="inline-flex min-h-11 items-center justify-center rounded-button bg-action px-7 py-2.5 text-base font-semibold text-on-action transition-colors hover:bg-action-strong"
+    >
+      Next
+    </button>
+  </div>
+</div>
