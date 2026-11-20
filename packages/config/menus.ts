@@ -51,7 +51,7 @@ export function programMenus(site: SiteUrl): Record<ProgramId, ProgramMenu> {
         href: site('academy', `/instruments/${slug}`),
       })),
       links: [
-        { label: 'Browse lessons', href: site('academy', '/lessons') },
+        { label: 'Choose an instrument', href: site('academy', '/instruments') },
         { label: 'Instructors', href: site('academy', '/#instructors') },
         { label: 'Find my registration', href: site('academy', '/registrations/find') },
       ],

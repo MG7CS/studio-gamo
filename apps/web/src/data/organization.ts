@@ -22,9 +22,9 @@ export const participation: ParticipationPath[] = [
   {
     title: 'Students & families',
     area: 'Gamo Academy',
-    next: 'Find an instrument and a lesson close to home.',
+    next: 'Choose an instrument and ask to hear from us.',
     body: 'Find an instrument you love and a welcoming way into music lessons, for children, teens and adults.',
-    href: siteUrl('academy', '/lessons'),
+    href: siteUrl('academy', '/instruments'),
     photo: 'girlGuitar',
   },
   {

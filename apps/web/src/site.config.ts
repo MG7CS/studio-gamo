@@ -26,7 +26,7 @@ export const shell: ShellConfig = {
       {
         title: 'Get involved',
         links: [
-          { label: 'Find a lesson', href: siteUrl('academy', '/lessons') },
+          { label: 'Choose an instrument', href: siteUrl('academy', '/instruments') },
           { label: 'Request a musician', href: siteUrl('web', '/worship/request') },
           { label: 'Apply as a musician', href: siteUrl('web', '/worship/apply') },
           { label: 'Partnerships', href: siteUrl('web', '/partners') },
