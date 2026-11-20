@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Publishes the six default forms in the LOCAL development databases (what the admin Forms page does on
+ * Publishes the ten default forms in the LOCAL development databases (what the admin Forms page does on
  * its first visit), so the public form pages work locally without a staff account.
  *
  *   pnpm forms:seed:local

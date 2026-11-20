@@ -30,7 +30,11 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
 
 {page.view === 'form' ? (
   <Container class="page-intro-space mb-16 lg:mb-24">
-    <WizardCard photos={formPhotosFor(page.form.kind)} title={title} description={page.form.description}>
+    <WizardCard
+      photos={formPhotosFor(page.form.kind, page.form.slug)}
+      title={title}
+      description={page.form.description}
+    >
       <DynamicForm
         wizard
         schema={page.schema}

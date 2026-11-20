@@ -1,5 +1,5 @@
 /**
- * The six default forms (design 2026-11-16, "Form kinds"). `seedDefaultForms(db, now)` creates and publishes
+ * The ten default forms (design 2026-11-16, "Form kinds"). `seedDefaultForms(db, now)` creates and publishes
  * each one that does not exist yet (matched by slug), so running it again, or after staff edited a form in
  * admin, changes nothing. Every question is labelled in plain language; no sample people or sample answers.
  *
@@ -10,6 +10,10 @@
  *   production-request production  production_request      /production/request
  *   contact            web         contact                 /contact
  *   partner-interest   web         partner_interest        /partners/interest
+ *   academy-teach      academy     instructor_application  (page added later)
+ *   academy-host       web         partner_interest        (page added later)
+ *   volunteer          web         contact                 (page added later)
+ *   academy-interest   academy     contact                 (page added later)
  *
  * Roles are single words (Keys, Drums, Bass, Guitar, Sound, Other) so `roster.roles` and
  * `request.roles_needed` carry stable values. Consent questions are single-option checkboxes, which the
@@ -452,13 +456,190 @@ const partnerInterest = (): FormSchema =>
     ],
   });
 
+const instructorApplication = (): FormSchema =>
+  parseFormSchema({
+    sections: [
+      section('about', 'About you', [
+        ...nameEmailPhone(true),
+        text('city', 'City where you live', { required: true, bind: 'roster.city' }),
+      ]),
+      section('teaching', 'Your teaching', [
+        checks(
+          'roles',
+          'Which instruments do you teach?',
+          ['Piano', 'Guitar', 'Bass', 'Drums', 'Voice', 'Strings', 'Other'],
+          { required: true, bind: 'roster.roles', help: 'Choose all that apply.' },
+        ),
+        choice('can_teach', 'Are you applying to teach lessons?', ['Yes'], {
+          required: true,
+          bind: 'roster.can_teach',
+        }),
+        checks('ages', 'Which ages can you teach?', ['Children', 'Teens', 'Adults'], {
+          required: true,
+          help: 'Choose all that apply.',
+        }),
+        choice('format', 'How would you like to teach?', ['Online', 'In person', 'Either'], {
+          required: true,
+        }),
+        paragraph('experience', 'Tell us about your teaching experience', { required: true }),
+      ]),
+      section('availability', 'When you can teach', [
+        checks(
+          'times',
+          'Which days and times could you teach?',
+          ['Weekday afternoons', 'Weekday evenings', 'Saturdays', 'Sunday afternoons'],
+          { required: true, help: 'Choose all that apply.' },
+        ),
+        paragraph('availability_notes', 'Anything else about your availability?', { maxLength: 500 }),
+      ]),
+      section('church', 'Your church and reference', referenceQuestions()),
+      section('media', 'Video, photo and documents', [
+        choice(
+          'video_method',
+          'How would you like to share a video of you playing or teaching?',
+          ['Send a link', 'Upload a file'],
+          { required: true },
+        ),
+        {
+          id: 'video_link',
+          type: 'link',
+          label: 'Link to your video',
+          help: 'A YouTube, Vimeo, Google Drive or Dropbox link that starts with https://.',
+          required: true,
+          showIf: when('video_method', 'Send a link'),
+        },
+        files('video_file', 'Upload your video', ['video'], 1, 500, {
+          required: true,
+          help: 'MP4, MOV or WebM, up to 500 MB.',
+          showIf: when('video_method', 'Upload a file'),
+        }),
+        files('photo', 'A clear photo of you', ['image'], 1, 10, {
+          required: true,
+          help: 'JPEG, PNG, WebP or HEIC, up to 10 MB.',
+        }),
+        files('documents', 'Résumé and certificates', ['pdf'], 5, 10, {
+          required: true,
+          help: 'PDF files only: up to 5 files of 10 MB each.',
+        }),
+      ]),
+      section('agree', 'Before you send', [
+        privacyConsent(
+          'terms',
+          'I confirm that my answers are true, and I agree that Gamo Studios may review my application and keep my answers as described in the privacy notice.',
+        ),
+      ]),
+    ],
+  });
+
+const hostInterest = (): FormSchema =>
+  parseFormSchema({
+    sections: [
+      section('church', 'Your church', [
+        text('church_name', 'Church name', { required: true, bind: 'request.church_name' }),
+        ...nameEmailPhone(false).map((q) =>
+          q.id === 'name' ? { ...q, label: 'Contact person: full name' } : q,
+        ),
+        text('city', 'City', { required: true }),
+        text('address', 'Church address (street address)', { required: true, bind: 'request.address' }),
+      ]),
+      section('space', 'Your space', [
+        dropdown('rooms', 'How many rooms could we use?', ['1', '2', '3 or more'], { required: true }),
+        checks(
+          'instruments',
+          'Which instruments are already there?',
+          ['Piano or keyboard', 'Guitars', 'Drums', 'Bass', 'None yet'],
+          { help: 'Choose all that apply.' },
+        ),
+        paragraph('free_times', 'When is the space free?', {
+          required: true,
+          help: 'Days and times, for example weekday evenings or Saturday mornings.',
+        }),
+        choice('accessible', 'Is the space easy to reach for people with limited mobility?', [
+          'Yes',
+          'No',
+          'Not sure',
+        ]),
+      ]),
+      section('notes', 'Anything else', [paragraph('notes', 'Anything else we should know?')]),
+      section('agree', 'Before you send', [
+        privacyConsent(
+          'terms',
+          'I agree that Gamo Studios may use these details to reply to me, as described in the privacy notice.',
+        ),
+      ]),
+    ],
+  });
+
+const volunteerForm = (): FormSchema =>
+  parseFormSchema({
+    sections: [
+      section('about', 'About you', [...nameEmailPhone(false), text('city', 'City where you live')]),
+      section('help', 'How you would like to help', [
+        checks(
+          'areas',
+          'Where would you like to help?',
+          [
+            'Teaching assistant',
+            'Sound and video',
+            'Welcome and hospitality',
+            'Events and setup',
+            'Office and email',
+            'Other',
+          ],
+          { required: true, help: 'Choose all that apply.' },
+        ),
+        paragraph('availability', 'When are you available?', {
+          help: 'Days and times that usually work for you.',
+        }),
+      ]),
+      section('agree', 'Before you send', [
+        privacyConsent(
+          'terms',
+          'I agree that Gamo Studios may use these details to reply to me, as described in the privacy notice.',
+        ),
+      ]),
+    ],
+  });
+
+const academyInterest = (): FormSchema =>
+  parseFormSchema({
+    sections: [
+      section('who', 'About you', [
+        ...nameEmailPhone(false),
+        choice('learner', 'Who will be learning?', ['Me', 'My child', 'Someone else in my family'], {
+          required: true,
+        }),
+      ]),
+      section('lessons', 'The lessons', [
+        dropdown('age_group', 'How old is the learner?', ['Under 8', '8 to 12', '13 to 17', '18 or older'], {
+          required: true,
+        }),
+        checks(
+          'instruments',
+          'Which instruments are you interested in?',
+          ['Piano', 'Guitar', 'Bass', 'Drums', 'Not sure yet'],
+          { required: true, help: 'Choose all that apply.' },
+        ),
+        choice('format', 'How would you like to learn?', ['Online', 'In person', 'Either']),
+        text('city', 'City'),
+      ]),
+      section('notes', 'Anything else', [paragraph('notes', 'Anything else we should know?')]),
+      section('agree', 'Before you send', [
+        privacyConsent(
+          'terms',
+          'I agree that Gamo Studios may use these details to reply to me, as described in the privacy notice.',
+        ),
+      ]),
+    ],
+  });
+
 const APPLICATION_THANKS =
   'Thank you. We received your application and sent a confirmation to your email. Our team will review it and write to you.';
 const REQUEST_THANKS =
   'Thank you. We received your request and sent a confirmation to your email. Our team will review it and write to you.';
 const MESSAGE_THANKS = 'Thank you. We received your message and sent a confirmation to your email.';
 
-/** The six default forms, in the order they are seeded. */
+/** The ten default forms, in the order they are seeded. */
 export function defaultFormSeeds(): FormSeed[] {
   return [
     {
@@ -514,6 +695,42 @@ export function defaultFormSeeds(): FormSeed[] {
       description: 'Tell us how your church or organization would like to work with Gamo Studios.',
       confirmationMessage: MESSAGE_THANKS,
       schema: partnerInterest(),
+    },
+    {
+      slug: 'academy-teach',
+      program: 'academy',
+      kind: 'instructor_application',
+      title: 'Apply To Teach',
+      description: 'Apply to teach lessons with Gamo Academy.',
+      confirmationMessage: APPLICATION_THANKS,
+      schema: instructorApplication(),
+    },
+    {
+      slug: 'academy-host',
+      program: 'web',
+      kind: 'partner_interest',
+      title: 'Host Lessons At Your Church',
+      description: 'Tell us about a space at your church where Gamo Academy lessons could happen.',
+      confirmationMessage: MESSAGE_THANKS,
+      schema: hostInterest(),
+    },
+    {
+      slug: 'volunteer',
+      program: 'web',
+      kind: 'contact',
+      title: 'Volunteer With Us',
+      description: 'Tell us how you would like to help Gamo Studios.',
+      confirmationMessage: MESSAGE_THANKS,
+      schema: volunteerForm(),
+    },
+    {
+      slug: 'academy-interest',
+      program: 'academy',
+      kind: 'contact',
+      title: 'Join The Academy Interest List',
+      description: 'Tell us who wants to learn and we will write to you when lessons open near you.',
+      confirmationMessage: MESSAGE_THANKS,
+      schema: academyInterest(),
     },
   ];
 }
