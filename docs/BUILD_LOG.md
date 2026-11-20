@@ -834,3 +834,11 @@
 - Test suite cut to 237 tests (see `docs/DECISIONS.md`); timings before the cut: typecheck 22 s, browser tests 45 s (the page-by-page smoke test about 20 s per app), unit tests 9 s, lint, format, API check, build and journeys 4 to 6 s each.
 - Not deployed: pushing and setting the upload secret were blocked, the owner paused the deploy ("wait on deploying"); steps are in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md`.
 - **Undone later the same day (owner request):** the full-width singer hero, the three program sections and the three wide illustrations were reverted; the home page is back to the three-photo `tall` hero and the single `ProgramsShowcase` block. Nothing else changed.
+
+## 2026-11-19 — Deployed to production
+
+- Branch `cleanup/forms-emails-invoices-verify` pushed (not main) and deployed to all five Workers (web, worship, academy, production, admin) at the owner's request.
+- Backup first (`backup-production-2026-11-19.sql`, git-ignored), then migrations 0019, 0020 and 0021 applied to `gamo-db-production`.
+- Secrets set: `FORM_UPLOAD_SECRET` (web, worship, production, random), `INQUIRY_INBOX_EMAIL` (web, worship, production, admin; the same staff inbox on all four, never shown on a page). The 21 retired Clerk secrets were deleted after the deploy.
+- Not done, by the owner's decision: `INVOICE_PAYMENT_INSTRUCTIONS` (next deploy; until then admin warns and sends no manual invoices), a public contact address (pages link to the contact form for now), and the browser specs and journeys, which need ports 4321 to 4326 while the owner's dev servers were running (unit tests, typecheck, lint, format, API check and builds all passed).
+- Still to do by the owner: open admin Forms once to publish the six default forms (the four apply and request pages answer 404 until then), dashboard-only items in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md` §4 (rate limits, Resend webhook, Access), R2 lifecycle rules (§4), and the retired bootstrap credential check (RUNBOOK §8.2).
