@@ -11,7 +11,7 @@ export const siteTerms: LegalDocumentContent = {
       heading: 'Who we are',
       paragraphs: [
         'Gamo Studios is a Christian, mission-driven Public Benefit Corporation. Gamo Worship, Gamo Academy and Gamo Production are programs that serve one mission: strengthening worship and community through musicians, music education and technical support.',
-        'Questions about these terms can be sent to hello@gamostudio.org.',
+        'Questions about these terms can be sent through the contact form.',
       ],
     },
     {

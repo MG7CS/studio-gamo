@@ -35,7 +35,7 @@ export const academyEnrollmentTerms: LegalDocumentContent = {
       id: 'photos',
       heading: 'Photos and recordings',
       paragraphs: [
-        'Photos or recordings of a student are taken or shared only with the parent or guardian’s consent, which can be withdrawn at any time by writing to hello@gamostudio.org.',
+        'Photos or recordings of a student are taken or shared only with the parent or guardian’s consent, which can be withdrawn at any time by sending a message through the contact form.',
       ],
     },
     {

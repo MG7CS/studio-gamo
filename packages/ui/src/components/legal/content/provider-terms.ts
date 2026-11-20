@@ -40,7 +40,7 @@ export const providerTerms: LegalDocumentContent = {
         'Never harass, demean or discriminate against anyone. Eligibility never depends on ethnicity or nationality.',
         'Keep the personal information you receive (contact details, student details) private and use it only for the service.',
         'With students under 18: follow the Academy child-safety rules, never be alone with a student out of view of others, and communicate through the parent or guardian.',
-        'Report safety concerns to the church or program coordinator and to hello@gamostudio.org without delay.',
+        'Report safety concerns to the church or program coordinator and through the contact form without delay.',
       ],
     },
     {

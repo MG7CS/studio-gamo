@@ -87,7 +87,7 @@ export const privacyPolicy: LegalDocumentContent = {
       id: 'choices',
       heading: 'Your choices and requests',
       paragraphs: [
-        'You can ask to see, correct or erase your personal information by writing to hello@gamostudio.org from the address it concerns. When we erase a record we replace your name and email with an anonymous marker; amounts in financial records are kept without your details where the law requires them.',
+        'You can ask to see, correct or erase your personal information by sending a message through the contact form from the email address it concerns. When we erase a record we replace your name and email with an anonymous marker; amounts in financial records are kept without your details where the law requires them.',
         'Parents and guardians can make these requests for a student they registered.',
       ],
     },

@@ -17,6 +17,7 @@ import {
   updateRegistrationPhone,
 } from '@gamo/domain';
 import { scopeCovers } from '@gamo/domain/security';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
@@ -121,7 +122,13 @@ const doneMessage = done ? doneMessages[done] : undefined;
     <div class="space-y-6">
       {unavailable && (
         <RegistrationNotice tone="problem" title="This page is temporarily unavailable">
-          <p>Please try again in a few minutes, or write to hello@gamostudio.org.</p>
+          <p>
+            Please try again in a few minutes, or send us a message through the
+            <a href={siteUrl('web', '/contact')} class="font-semibold underline">
+              contact form
+            </a>
+            .
+          </p>
         </RegistrationNotice>
       )}
       {!unavailable && !session && (

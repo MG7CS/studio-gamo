@@ -18,6 +18,7 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 - Age groups, levels, formats and instrument ages live only in `packages/config/academy-levels.ts` and `academy-instruments.ts`; never type them in pages or data files (`docs/academy/AGE_GROUPS_AND_LEVELS.md`).
 - Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
 - No donation, membership or sponsorship payment processing or language without owner approval.
+- **No public email address for now (owner, 2026-11-19):** no email address is shown on any public page, in structured data or in messages visitors read; use the contact form (`/contact`, `siteUrl('web', '/contact')`). Never show the staff inbox (`INQUIRY_INBOX_EMAIL`, a secret). Sender and Reply-To addresses are unchanged; emails say "Reply to this email." until the owner chooses a public address.
 - Avoid corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value") when describing the mission.
 
 Financial sustainability is important, but it is subordinate to the mission.

@@ -2,7 +2,7 @@
 /**
  * FormPanel: a published form for a page that already has its own hero and <h1> (contact, partner interest).
  * It renders the form, or the confirmation after a send, or a short notice when the form is closed or
- * unavailable, and nothing when the form is not published yet (the page keeps its own email fallback).
+ * unavailable, and nothing when the form is not published yet.
  * The full-page variant with its own hero is `FormPageView`.
  */
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
@@ -49,16 +49,7 @@ const { page, id = 'send-a-message' } = Astro.props;
   <Container width="narrow" class="pb-16 lg:pb-24" id={id}>
     <Card padding="lg" class="space-y-2">
       <h2 class="text-2xl font-semibold tracking-tight">This form is not taking responses right now</h2>
-      <p class="text-body">
-        Please check back soon, or write to{' '}
-        <a
-          href="mailto:hello@gamostudio.org"
-          class="font-semibold text-action-strong underline underline-offset-4"
-        >
-          hello@gamostudio.org
-        </a>
-        .
-      </p>
+      <p class="text-body">Please check back soon.</p>
     </Card>
   </Container>
 ) : page.view === 'unavailable' ? (

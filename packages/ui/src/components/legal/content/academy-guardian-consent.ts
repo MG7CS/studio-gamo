@@ -34,7 +34,7 @@ export const academyGuardianConsent: LegalDocumentContent = {
       id: 'withdraw',
       heading: 'Withdrawing consent',
       paragraphs: [
-        'You can withdraw this consent at any time by cancelling the registration from your manage link or by writing to hello@gamostudio.org.',
+        'You can withdraw this consent at any time by cancelling the registration from your manage link or by sending a message through the contact form.',
       ],
     },
   ],

@@ -15,11 +15,12 @@ import { TERMS_SLUGS } from '../types/enums.ts';
 import { sha256Hex } from '../security/crypto.ts';
 
 /**
+ * draft.5: the public email address replaced by the contact form in every text.
  * draft.4: public accounts removed (site, privacy and provider texts revised for forms and email links).
  * draft.3: Gamo Live removed (ticket and organizer terms retired; site, privacy and provider texts revised).
  * draft.2 was the first full set of draft texts (packages/ui/src/components/legal/content).
  */
-export const TERMS_DRAFT_VERSION = '2026-11-16-draft.4';
+export const TERMS_DRAFT_VERSION = '2026-11-19-draft.5';
 
 export interface TermsDocumentEntry {
   slug: TermsSlug;
@@ -41,12 +42,12 @@ export interface TermsDocumentEntry {
  * `scripts/audit/legal-drafts.test.ts` recomputes them: edit a text → bump the version and update its hash.
  */
 const DRAFT_CONTENT_HASHES: Readonly<Record<TermsSlug, string>> = {
-  'site-terms': '3288a7716e76ba9e567534086109f86f162fbae3149fde1eaa0928d4a6999cab',
-  'privacy-policy': '09ed0bbdbc5c63b713a013f31d89cfac5d0feb14f6eeed19c628031c76831906',
-  'provider-terms': 'edcc187be6cc10dde84891b7ab9c9c09bf5cb5d01dbdef432fd28ea7d3dbc426',
-  'academy-enrollment-terms': '828e9d4ec877cbb186d55572dccb92510e67f328897612fc07085b4b5afc89ae',
-  'academy-guardian-consent': '7e825c193a223b647672ba33423765c4fa0c23e6d3d68520cc00e05694274fdf',
-  'academy-child-safety-consent': 'e83055c744bbc5e1468b7fc7511b4a5012909c7119ef3b1e13b0af9f663715a2',
+  'site-terms': '5769c476b7e537f5547b9cb01c18e886e48634f417cec79540b3108f703a678b',
+  'privacy-policy': '84e7dd4e116ebb5dc965b7abce909667c295b4db1a4dcc9672cc0cbcd549f98d',
+  'provider-terms': '70b4bf7b5aaf77b1b8072f9b05c83290c8c18f8ef35a6227f51cf9f8615eb735',
+  'academy-enrollment-terms': 'c310032735fd6e33329af2edb49fa638995f1985ddb54fadbb681fdc91814c79',
+  'academy-guardian-consent': '1180601159d5850bafe2faa981078aa8334fff48bf504fe66dd165d5aa7f422c',
+  'academy-child-safety-consent': '4875f18cbb747ce9c5efeee4124120fec7d0aa049116e75ed931e968a5cca05b',
 };
 
 const entry = (slug: TermsSlug, title: string, summary: string): TermsDocumentEntry => ({

@@ -422,7 +422,7 @@ export async function createGuestRegistration(
   if (profile.erasedAt !== null)
     throw new AcademyRegistrationError(
       'NOT_ALLOWED',
-      'We cannot register with this email address. Please contact hello@gamostudio.org.',
+      'We cannot register with this email address. Please send us a message through the contact form.',
       403,
     );
 
@@ -601,7 +601,7 @@ export async function cancelAcademyRegistration(
   if (typeof input.startsAt === 'number' && input.startsAt <= input.now)
     throw new AcademyRegistrationError(
       'NOT_ALLOWED',
-      'The first lesson has already started, so this registration can no longer be cancelled online. Please contact hello@gamostudio.org.',
+      'The first lesson has already started, so this registration can no longer be cancelled online. Please send us a message through the contact form.',
       409,
     );
   if (!(CANCELLABLE_STATUSES as readonly string[]).includes(current.status))
@@ -697,7 +697,7 @@ export function renderRegistrationReceipt(input: {
     `View, update or cancel the registration: ${input.manageUrl}`,
     'This link is personal: please do not forward it.',
     '',
-    'Questions? Write to hello@gamostudio.org.',
+    'Questions? Reply to this email.',
     'Gamo Academy · Gamo Studios',
   ];
   const text = lines.join('\n');
@@ -805,7 +805,7 @@ export async function sendRegistrationRecovery(
     'Here is the link to your Gamo Academy registrations.',
     `Open it within 30 minutes: ${url}`,
     'If you did not ask for this, you can ignore this email.',
-    'Gamo Academy · Gamo Studios · hello@gamostudio.org',
+    'Gamo Academy · Gamo Studios',
   ].join('\n');
   const html = `<!doctype html><html><body style="font-family:Inter,Arial,sans-serif;color:#18181B;padding:24px">
 <p>Here is the link to your Gamo Academy registrations. It expires in 30 minutes.</p>

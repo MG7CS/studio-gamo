@@ -17,8 +17,10 @@ interface Props {
   version: string;
   effectiveDate?: string | null;
   indexHref?: string;
+  /** Where "contact form" leads (the contact page of the site that shows the document). */
+  contactHref?: string;
 }
-const { content, version, effectiveDate, indexHref = '/legal' } = Astro.props;
+const { content, version, effectiveDate, indexHref = '/legal', contactHref = '/contact' } = Astro.props;
 ---
 
 <article class="mx-auto max-w-[900px]" data-legal-document={content.slug}>
@@ -39,12 +41,13 @@ const { content, version, effectiveDate, indexHref = '/legal' } = Astro.props;
     ))}
   </div>
   <p class="mt-12 border-t border-sand pt-7 text-sm leading-relaxed text-muted">
-    Questions about this document? Email
+    Questions about this document? Send us a message through the
     <a
-      href="mailto:hello@gamostudio.org"
+      href={contactHref}
       class="inline-flex min-h-11 items-center font-semibold text-terracotta underline underline-offset-4 hover:text-terracotta-deep"
     >
-      hello@gamostudio.org
+      contact form
     </a>
+    .
   </p>
 </article>

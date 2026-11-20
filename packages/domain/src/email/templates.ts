@@ -36,8 +36,6 @@ export interface RenderedEmail {
   replyTo?: string;
 }
 
-export const GAMO_CONTACT_EMAIL = 'hello@gamostudio.org';
-
 // ---- Payload types ---------------------------------------------------------------------------------
 
 export interface FormReceivedPayload {
@@ -47,7 +45,6 @@ export interface FormReceivedPayload {
   program: string;
   /** Used for the greeting only (first word); never echoed elsewhere. */
   submitterName?: string;
-  contactEmail?: string;
 }
 
 export interface FormStaffNoticePayload {
@@ -66,7 +63,6 @@ export interface ApplicationDecisionPayload {
   reference?: string;
   /** Approved: an optional welcome line. Declined: an optional short staff note (the only "reason" ever shown). */
   staffNote?: string;
-  contactEmail?: string;
 }
 export type ApplicationApprovedPayload = ApplicationDecisionPayload;
 export type ApplicationDeclinedPayload = ApplicationDecisionPayload;
@@ -130,7 +126,6 @@ export interface InvoiceSentPayload {
   hostedUrl?: string;
   /** Manual payment instructions text (`INVOICE_PAYMENT_INSTRUCTIONS`), used when there is no hosted URL. */
   manualInstructions?: string;
-  contactEmail?: string;
 }
 
 export interface InvoicePaidReceiptPayload {
@@ -141,7 +136,6 @@ export interface InvoicePaidReceiptPayload {
   totalCents: number;
   method?: string;
   reference?: string;
-  contactEmail?: string;
 }
 
 // ---- Helpers ---------------------------------------------------------------------------------------
@@ -316,10 +310,9 @@ function compose(subject: string, heading: string, blocks: Block[], signature: s
   };
 }
 
-function signatureFor(program: string | undefined, contact?: string): string {
-  const mail = optionalText(contact, 200) ?? GAMO_CONTACT_EMAIL;
+function signatureFor(program: string | undefined): string {
   const label = programLabel(program);
-  return `Questions? Write to ${mail}.\n${label === 'Gamo Studios' ? label : `${label} · Gamo Studios`}`;
+  return `Questions? Reply to this email.\n${label === 'Gamo Studios' ? label : `${label} · Gamo Studios`}`;
 }
 
 // ---- Forms -----------------------------------------------------------------------------------------
@@ -352,7 +345,7 @@ export function renderFormReceived(p: FormReceivedPayload): RenderedEmail {
         text: 'Quote the reference above if you write to us. For your privacy this email does not repeat what you submitted.',
       },
     ],
-    signatureFor(p.program, p.contactEmail),
+    signatureFor(p.program),
   );
 }
 
@@ -421,7 +414,7 @@ function decision(p: ApplicationDecisionPayload, approved: boolean): RenderedEma
     approved ? `${label}: your application was approved` : `${label}: an update on your application`,
     approved ? 'Application approved' : 'Application update',
     blocks,
-    signatureFor(p.program, p.contactEmail),
+    signatureFor(p.program),
   );
 }
 
@@ -612,12 +605,7 @@ export function renderInvoiceSent(p: InvoiceSentPayload): RenderedEmail {
   } else if (manual) {
     blocks.push({ t: 'p', text: 'How to pay:' }, { t: 'pre', text: manual });
   }
-  return compose(
-    `Invoice ${number} from Gamo Studios`,
-    `Invoice ${number}`,
-    blocks,
-    signatureFor('web', p.contactEmail),
-  );
+  return compose(`Invoice ${number} from Gamo Studios`, `Invoice ${number}`, blocks, signatureFor('web'));
 }
 
 export function renderInvoicePaidReceipt(p: InvoicePaidReceiptPayload): RenderedEmail {
@@ -640,6 +628,6 @@ export function renderInvoicePaidReceipt(p: InvoicePaidReceiptPayload): Rendered
       { t: 'kv', rows },
       { t: 'small', text: 'Keep this email as your receipt.' },
     ],
-    signatureFor('web', p.contactEmail),
+    signatureFor('web'),
   );
 }

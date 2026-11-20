@@ -75,5 +75,5 @@ export const generalFaq = [
   { q: 'What kind of organization is Gamo Studios?', a: 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.' },
   { q: 'Do churches need a partnership to participate?', a: 'Partnership is never a requirement for ordinary program participation. Contributions and partnerships never influence musician vetting or rankings.' },
   { q: 'Where do programs operate?', a: 'Academy, Worship and Production begin in the Phoenix metropolitan area, Arizona.' },
-  { q: 'How do I get in touch with the team?', a: 'Email us at hello@gamostudio.org. Our team reads every message and replies by email.' },
+  { q: 'How do I get in touch with the team?', a: 'Send us a message through the contact form. Our team reads every message and replies by email.' },
 ];

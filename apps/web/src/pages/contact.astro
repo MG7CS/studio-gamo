@@ -1,7 +1,6 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import EmailUsBlock from '../components/organization/EmailUsBlock.astro';
 import FormPanel from '../components/forms/FormPanel.astro';
 import { loadFormPage } from '../lib/form-page';
 
@@ -18,7 +17,7 @@ const TOPICS: [RegExp, string][] = [
 const interest = Astro.url.searchParams.get('interest') ?? '';
 const topic = TOPICS.find(([pattern]) => pattern.test(interest))?.[1];
 
-// If the form is not published yet the page keeps its email card and shows no form.
+// If the form is not published yet the page shows no form.
 const page = await loadFormPage(Astro, 'contact', {
   fallbackWhenMissing: true,
   anchor: 'send-a-message',
@@ -38,7 +37,6 @@ if ('response' in page) return page.response;
     <p slot="intro" class="text-small">
       Programs begin in the Phoenix metropolitan area, Arizona.
     </p>
-    <EmailUsBlock slot="media" />
   </PageHero>
   <FormPanel page={page} />
 </SiteLayout>

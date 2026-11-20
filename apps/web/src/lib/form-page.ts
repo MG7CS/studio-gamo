@@ -60,8 +60,7 @@ export interface LoadFormPageOptions {
   anchor?: string;
 }
 
-const UNAVAILABLE =
-  'This form is temporarily unavailable. Please try again in a few minutes, or write to hello@gamostudio.org.';
+const UNAVAILABLE = 'This form is temporarily unavailable. Please try again in a few minutes.';
 
 function infoOf(form: {
   slug: string;

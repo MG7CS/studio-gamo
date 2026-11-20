@@ -107,7 +107,6 @@ const decision = z.object({
   recipientName: optText,
   reference: optText,
   staffNote: z.string().trim().max(600).optional(),
-  contactEmail: optText,
 });
 const staffOffer = z.object({
   musicianName: text,
@@ -123,7 +122,6 @@ const SCHEMAS: { [K in EmailKind]: z.ZodType<EmailPayloads[K], z.ZodTypeDef, unk
     formTitle: text,
     program: text,
     submitterName: optText,
-    contactEmail: optText,
   }),
   form_staff_notice: z.object({
     reference: text,
@@ -178,7 +176,6 @@ const SCHEMAS: { [K in EmailKind]: z.ZodType<EmailPayloads[K], z.ZodTypeDef, unk
     totalCents: cents,
     hostedUrl: url.optional(),
     manualInstructions: z.string().trim().max(1500).optional(),
-    contactEmail: optText,
   }),
   invoice_paid_receipt: z.object({
     billToName: text,
@@ -187,7 +184,6 @@ const SCHEMAS: { [K in EmailKind]: z.ZodType<EmailPayloads[K], z.ZodTypeDef, unk
     totalCents: cents,
     method: optText,
     reference: optText,
-    contactEmail: optText,
   }),
 };
 

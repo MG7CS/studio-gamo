@@ -21,13 +21,20 @@ const { reference, subject, problem } = Astro.props;
 </p>
 {problem === 'uploads' && (
   <p class="text-body text-fg" role="status">
-    We saved your answers, but a file did not finish saving. Please email hello@gamostudio.org and quote your
-    reference so we can ask for it again.
+    We saved your answers, but a file did not finish saving. Please send us a message through the
+    <a href="/contact" class="font-semibold text-action-strong underline underline-offset-4">
+      contact form
+    </a>
+    and quote your reference so we can ask for it again.
   </p>
 )}
 {problem === 'request' && (
   <p class="text-body text-fg" role="status">
     We saved your answers, but could not add them to our schedule yet. Our team has been notified; you can
-    also email hello@gamostudio.org with your reference.
+    also send us a message through the
+    <a href="/contact" class="font-semibold text-action-strong underline underline-offset-4">
+      contact form
+    </a>
+    with your reference.
   </p>
 )}

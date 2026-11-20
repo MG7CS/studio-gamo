@@ -7,6 +7,7 @@
 import type { AcademyRegistration } from '@gamo/domain';
 import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
 import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import RegistrationDetails from './RegistrationDetails.astro';
 
 interface Props {
@@ -56,9 +57,9 @@ const phoneId = `phone-${r.id}`;
       <p class="font-semibold">Manage billing</p>
       <p class="mt-1 text-fg-muted">
         Billing management is not available yet: there is no recurring billing for lessons. Questions about a
-        payment? Write to{' '}
-        <a href="mailto:hello@gamostudio.org" class="font-semibold text-action-strong underline">
-          hello@gamostudio.org
+        payment? Send us a message through the{' '}
+        <a href={siteUrl('web', '/contact')} class="font-semibold text-action-strong underline">
+          contact form
         </a>
         .
       </p>

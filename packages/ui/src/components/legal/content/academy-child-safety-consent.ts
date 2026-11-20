@@ -34,7 +34,7 @@ export const academyChildSafetyConsent: LegalDocumentContent = {
       id: 'concerns',
       heading: 'Raising a concern',
       paragraphs: [
-        'If you are worried about a student’s safety, tell the teacher or host and write to hello@gamostudio.org straight away. In an emergency, call your local emergency number first. We take every concern seriously and respond promptly.',
+        'If you are worried about a student’s safety, tell the teacher or host and send a message through the contact form straight away. In an emergency, call your local emergency number first. We take every concern seriously and respond promptly.',
       ],
     },
   ],
