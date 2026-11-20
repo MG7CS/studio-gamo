@@ -78,13 +78,20 @@ Anti-goals
   `--frame-radius`). The card replaces the form-view branches of `FormPageView` (apply/request pages) and
   `FormPanel` (contact, partner interest); the "thank you", closed and unavailable views keep their content in the
   same clean card.
-- **Photos:** a typed map in `apps/web/src/lib/form-photos.ts` keyed by form slug then section id, with a per-form
-  default. Follow the owner's photo policy: the new free-licence photos (`instrument*`, `musician*`, `tech*`) for
+- **Photos:** a typed map in `packages/ui` (`formPhotosFor(kind)`) keyed by form kind then section id, with a
+  per-form default. Follow the owner's photo policy: the new free-licence photos (`instrument*`, `musician*`, `tech*`) for
   screens about an instrument, kind of musician or technical job; the original photos for church, general and
   closing screens. The photo changes with the section (the script sets `data-wizard-current-section`).
 - **Controls:** Back/Next/Send are small-radius rectangles (`--radius-button`); no pills, no eyebrow labels.
 
-### Academy student registration — to build (plan Task 6)
+### Admin preview — to build (plan Task 6)
+The admin form preview (`apps/admin/src/pages/forms/[id]/preview.astro`) renders the draft with the same wizard card
+as the public pages, so staff see what visitors will see and it never goes stale again. For that, the wizard card
+(`WizardCard`) and the photo map (`formPhotosFor(kind)`, keyed by form kind then section id, a form's default photo
+for sections staff add later) live in `packages/ui` (promoted from the web app because admin is the second user).
+The preview still posts nowhere and saves nothing.
+
+### Academy student registration — to build (plan Task 7)
 Keep `apps/academy/src/pages/register/[lesson].astro` and its guard, receipt email, Reserve/Pay choice and Stripe
 logic untouched; the form components emit the same markup contract (screens: student; parent or guardian; contact;
 consents; choice). It stays on the Academy host because it is tied to a lesson and a payment. Its header and footer
