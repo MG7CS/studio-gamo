@@ -34,9 +34,11 @@
  *   summary has entries: Turnstile, consent). Focus then stays on the summary (`forms-client.ts`).
  * - Error summary links to a field on another screen open that screen and focus the field.
  * - Uploads: Next never waits for the chunked uploader; the existing submit guard still blocks sending
- *   while a file is going up.
+ *   while a file is going up, and the wizard then opens the screen holding the upload and scrolls to the
+ *   guard's wait message.
  */
 import {
+  historyPushedAfter,
   nextVisibleScreen,
   openingScreen,
   parseStepHash,
@@ -230,7 +232,8 @@ function markUrl(w: Wizard, index: number): string {
 function writeHistory(w: Wizard, mode: 'push' | 'replace'): void {
   if (!w.history || w.current === null) return;
   const base = (window.history.state as Record<string, unknown> | null) ?? {};
-  const state = { ...base, [HISTORY_KEY]: { index: w.current, pushed: mode === 'push' } };
+  const pushed = historyPushedAfter(mode, readMark(base)?.pushed);
+  const state = { ...base, [HISTORY_KEY]: { index: w.current, pushed } };
   try {
     if (mode === 'push') window.history.pushState(state, '', markUrl(w, w.current));
     else window.history.replaceState(state, '', markUrl(w, w.current));
@@ -336,6 +339,31 @@ function bindInvalidJump(w: Wizard): void {
   );
 }
 
+/**
+ * Send while a file is still going up: the upload guard (`dynamic-form-client.ts`, a capture-phase submit
+ * listener registered earlier) cancels the submit and shows its wait message, which sits in the file
+ * question's screen. Open that screen so the message is visible. Registered in the same phase and after the
+ * guard, so it sees the guard's `preventDefault`.
+ */
+function bindUploadWait(w: Wizard): void {
+  w.form.addEventListener(
+    'submit',
+    (event) => {
+      if (!event.defaultPrevented) return;
+      const uploading = w.form.querySelector('[data-upload-item][data-state="uploading"]');
+      if (!uploading) return;
+      const index = screenIndexOf(w, uploading);
+      if (index !== null && index !== w.current) moveTo(w, index, 'replace');
+      const wait = w.form.querySelector<HTMLElement>('[data-upload-wait]:not([hidden])');
+      if (!wait) return;
+      if (!wait.hasAttribute('tabindex')) wait.tabIndex = -1;
+      wait.focus({ preventScroll: true });
+      wait.scrollIntoView({ block: 'center' });
+    },
+    { capture: true },
+  );
+}
+
 function bindSummaryLinks(w: Wizard): void {
   const summary = w.form.querySelector<HTMLElement>('[data-error-summary]');
   summary?.addEventListener('click', (event) => {
@@ -412,6 +440,7 @@ function initWizard(form: HTMLFormElement): void {
   back.addEventListener('click', () => goBack(w));
   bindEnter(w);
   bindInvalidJump(w);
+  bindUploadWait(w);
   bindSummaryLinks(w);
   bindRecompute(w);
   if (w.history) bindHistory(w);

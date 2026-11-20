@@ -191,3 +191,11 @@ export function parseStepHash(hash: string): number | null {
   const match = /^#step-([1-9]\d*)$/.exec(hash);
   return match ? Number(match[1]) - 1 : null;
 }
+
+/**
+ * Whether the history entry a screen change leaves behind counts as one Next pushed: a push does; a replace
+ * overwrites an existing entry, so it keeps that entry's state (in-page Back may still pop it).
+ */
+export function historyPushedAfter(mode: 'push' | 'replace', previouslyPushed: boolean | undefined): boolean {
+  return mode === 'push' || previouslyPushed === true;
+}

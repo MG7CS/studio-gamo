@@ -6,6 +6,7 @@ import {
   firstScreenWithError,
   isLightQuestion,
   nextVisibleScreen,
+  historyPushedAfter,
   openingScreen,
   parseStepHash,
   resolveScreen,
@@ -396,4 +397,12 @@ test('resolveScreen keeps a visible target, else steps back, else forward', () =
     resolveScreen(screens, 0, () => true),
     null,
   );
+});
+
+test('historyPushedAfter: push is pushed; replace keeps the entry state it overwrites', () => {
+  assert.equal(historyPushedAfter('push', false), true);
+  assert.equal(historyPushedAfter('push', true), true);
+  assert.equal(historyPushedAfter('replace', true), true);
+  assert.equal(historyPushedAfter('replace', false), false);
+  assert.equal(historyPushedAfter('replace', undefined), false);
 });
