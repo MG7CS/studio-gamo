@@ -4,7 +4,7 @@
 
 The only signed-in surface, for staff. Access is Cloudflare Access plus the admin password; the site is never indexed.
 
-- Home (counts), Submissions (inbox, detail, export, file viewer), Forms (builder, publish, versions; the first visit publishes the six default forms), Roster, Requests (match and send offers), Invoices, Registrations, Security, Legal.
+- Home (counts), Submissions (inbox, detail, export, file viewer), Forms (builder, publish, versions; the first visit to an empty list publishes the ten default forms; the **Add the new default forms** button publishes any that are missing), Roster, Requests (match and send offers), Invoices, Registrations, Security, Legal.
 - Every route checks the staff session first, then the same origin on writes (`src/lib/admin-page.ts`).
 - Local sign-in and the first staff account: `docs/RUNBOOK.md` section 8.
 

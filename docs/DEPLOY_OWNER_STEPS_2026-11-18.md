@@ -90,6 +90,6 @@ make verify-config
 make deploy-all          # web, worship, academy, production, admin
 ```
 
-**Publish the forms:** sign in to admin and open **Forms** once; the first visit publishes the six default forms. Until you do, the four form pages answer 404 and nobody can apply or request. Then send one test application and one test request from each public form (use your own address), check the staff notice arrives at `INQUIRY_INBOX_EMAIL`, approve and offer from admin, and open the offer link from the email.
+**Publish the forms:** sign in to admin and open **Forms** once; the first visit to an empty list publishes the ten default forms (on a database that already has forms, click **Add the new default forms**; the button shows only when some are missing). Until you do, the form pages answer 404 and nobody can apply or request. Then send one test application and one test request from each public form (use your own address), check the staff notice arrives at `INQUIRY_INBOX_EMAIL`, approve and offer from admin, and open the offer link from the email.
 
 After: RUNBOOK §7 (each host answers, old account URLs redirect, `pnpm exec wrangler tail --env production` shows no `fatal`/`error`), admin is stopped by Access when signed out, and Workers → `gamo-web` → Settings → Triggers shows the `0 6 * * *` cron. Rollback: RUNBOOK §2 (code only; the database is restored from the §3 backup).

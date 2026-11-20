@@ -232,3 +232,7 @@ URLs and legacy JSON envelopes remain. Intentional validation/security behavior 
 Existing UI screens have no REST fetch consumers. Service integration tests and the new HTTP contract suite validate local behavior. Real clients and production availability have not been verified. No production rollout was performed. This is a pre-production correction, not a promise of a working identity or ticketing system.
 
 Future entries must identify affected consumers, migration/deprecation plan, exact comparison Base SHA, verification evidence and owner authorization for policy changes. Bump contract info.version for changes to existing operations/schemas.
+
+## 4.1.0 addendum — `instructor_application` form kind (2026-11-20)
+
+Additive only, no version bump. `FormKind` gained the value `instructor_application` (used by the default `academy-teach` form); the request and response enums that carry a form kind are widened. Only the internal admin consumes these operations, and it already renders kinds from the enum, so no consumer change is needed. Existing values and routes are unchanged.

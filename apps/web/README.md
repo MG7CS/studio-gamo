@@ -5,7 +5,7 @@
 The organization site and the home of everything people send to us:
 
 - Marketing pages: home, mission, get started, get involved, partners, support, FAQ, legal.
-- **Public forms**, rendered from the published forms staff edit in admin (`src/lib/form-page.ts` → `FormPageView` / `FormPanel` → the shared `DynamicForm`): `/worship/apply`, `/worship/request`, `/production/apply`, `/production/request`, and the forms on `/contact` and `/partners/interest`. Until a form is published (open admin **Forms** once) its page answers 404, except `/contact` and `/partners/interest`, which show their heading without a form.
+- **Public forms**, rendered from the published forms staff edit in admin (`src/lib/form-page.ts` → `FormPageView` / `FormPanel` → the shared `DynamicForm`): `/worship/apply`, `/worship/request`, `/production/apply`, `/production/request`, `/academy/teach`, `/academy/host`, `/academy/interest`, `/get-involved/volunteer`, and the forms on `/contact` and `/partners/interest`. Until a form is published (open admin **Forms**; **Add the new default forms** publishes missing ones) its page answers 404, except `/contact` and `/partners/interest`, which show their heading without a form.
 - The emailed **offer page** `/worship/offers/[token]` (`src/lib/offer-page.ts`): opening it changes nothing; Accept or Decline posts once.
 - API routes: chunked file uploads (`/api/forms/...`), and the Resend and Stripe webhooks (`/api/webhook/...`).
 - The daily job (`src/worker.ts`): email retry, upload cleanup, offer expiry and data retention (`packages/domain/src/jobs/daily.ts`).

@@ -842,3 +842,10 @@
 - Secrets set: `FORM_UPLOAD_SECRET` (web, worship, production, random), `INQUIRY_INBOX_EMAIL` (web, worship, production, admin; the same staff inbox on all four, never shown on a page). The 21 retired Clerk secrets were deleted after the deploy.
 - Not done, by the owner's decision: `INVOICE_PAYMENT_INSTRUCTIONS` (next deploy; until then admin warns and sends no manual invoices), a public contact address (pages link to the contact form for now), and the browser specs and journeys, which need ports 4321 to 4326 while the owner's dev servers were running (unit tests, typecheck, lint, format, API check and builds all passed).
 - Still to do by the owner: open admin Forms once to publish the six default forms (the four apply and request pages answer 404 until then), dashboard-only items in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md` §4 (rate limits, Resend webhook, Access), R2 lifecycle rules (§4), and the retired bootstrap credential check (RUNBOOK §8.2).
+
+## 2026-11-20 — Four new forms and the add-forms button
+
+- Added the `instructor_application` form kind and four default forms (`academy-teach`, `academy-host`, `volunteer`, `academy-interest`) with slug-aware photos; pages `/academy/teach`, `/academy/host`, `/academy/interest` and `/get-involved/volunteer`; an admin Forms-page button "Add the new default forms" that publishes the missing defaults (see `docs/DECISIONS.md`, same date).
+- Docs updated: DECISIONS, API_COMPATIBILITY, RUNBOOK, SCREEN_INVENTORY, the web and admin READMEs and the deploy owner steps (ten default forms, not six).
+- Commands run for the docs and polish commit: `pnpm exec tsx --test packages/domain/src/forms/seeds.test.ts`, `pnpm check:quick`, `pnpm typecheck` (results in the task report). Browser verification is pending: no screenshots or end-to-end results exist yet for the new pages.
+- Owner action after deploying: open **Forms** in admin; on a fresh database this publishes the ten defaults, on a database that already has forms click **Add the new default forms**.

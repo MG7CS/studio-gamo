@@ -17,6 +17,7 @@ Updated 2026-11-16. Four public apps (web, academy, worship, production) plus th
 | /support | Ways to support the mission (no donation processing) | UI ready |
 | /contact | Heading, with the staff-editable `contact` form below it; `?interest=` pre-selects the topic (no form until it is published) | Real (D1) |
 | /worship/apply, /worship/request, /production/apply, /production/request | Staff-editable public forms (shared `DynamicForm`; Turnstile, chunked uploads, signed confirmation); 404 until the forms are published from admin | Real (D1) |
+| /academy/teach, /academy/host, /academy/interest, /get-involved/volunteer | Staff-editable public forms on the main site: apply to teach (`instructor_application`), host lessons at a church (`partner_interest`), join the Academy interest list and volunteer (`contact`); 404 until the forms are published from admin | Real (D1) |
 | /worship/offers/[token] | Emailed offer Accept/Decline page | Real (D1) |
 | /faq | Native accessible FAQ expansion | UI ready |
 | /legal, /legal/[slug] | Current status and draft policies pending review | UI ready; not final legal terms |

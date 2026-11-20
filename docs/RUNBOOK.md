@@ -180,6 +180,7 @@ For each public host:
 - Academy: paid registration answers 503 in production by design; "Reserve" works.
 - `wrangler tail` shows no `[env:<app>] fatal` or `error` lines.
 - Admin: an unauthenticated visit is stopped by Cloudflare Access.
+- Forms (owner step, 2026-11-20): after deploying, open **Forms** in admin. On a fresh database this publishes the ten defaults; on a database that already has forms, click **Add the new default forms** to publish the missing ones (the button shows only when some are missing).
 
 ## 8. First staff account
 
@@ -263,4 +264,4 @@ Nothing was done remotely by agents. When the forms/emails/invoices release is d
    - **Edge rate limiting:** add Cloudflare WAF / Workers Rate Limiting rules on the public form endpoints and webhooks (`/api/webhook/resend`, and the forms and Stripe webhook routes once Phases 2–3 ship), in addition to the in-app per-IP/per-email limits.
    - **R2 upload pipeline:** confirm the `gamo-media-<env>` buckets and set the R2 lifecycle rules for form uploads (§3b) before uploads go live; set `FORM_UPLOAD_SECRET` on web, worship and production.
    - **Staff notices, invoices and Stripe test mode:** set `INQUIRY_INBOX_EMAIL` (web, worship, production, admin), `INVOICE_PAYMENT_INSTRUCTIONS` on admin, optionally a Stripe **test** key on admin and the invoice webhook (§3); leave `GAMO_ADMIN_FEE_APPROVED` unset/`false` until the board approves a fee.
-6. **Release scope check (2026-11-18):** the public Worship and Production forms and the offer page now exist (DECISIONS 2026-11-18). After the first deploy, sign in to admin and open **Forms** once: that publishes the six default forms (until then the form pages answer 404). Known gaps are in BUILD_LOG 2026-11-18 (videos need JavaScript or a link).
+6. **Release scope check (2026-11-18):** the public Worship and Production forms and the offer page now exist (DECISIONS 2026-11-18). After the first deploy, sign in to admin and open **Forms** once: that publishes the ten default forms on a fresh database (until then the form pages answer 404). On a database that already has forms, click **Add the new default forms** to publish the missing ones; the button shows only when some are missing. Known gaps are in BUILD_LOG 2026-11-18 (videos need JavaScript or a link).
