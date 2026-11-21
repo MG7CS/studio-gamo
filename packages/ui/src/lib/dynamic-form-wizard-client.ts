@@ -11,7 +11,9 @@
  *
  * Behaviour
  * - Init: unhide the controls, mark the form `data-wizard-active`, show only the current screen (the others
- *   get `hidden`), show the final block only on the last visible screen. The submit button(s) of the final
+ *   get `hidden`), show the final block only on the last visible screen (kept
+ *   rendered but invisible with `data-wizard-away`, never `hidden`: the real Cloudflare Turnstile widget cannot
+ *   render or produce a token inside `display:none`, and the Send and chunked uploads read its token). The submit button(s) of the final
  *   block move once into the controls' action row, so on the last screen Back sits beside Send (Next is
  *   hidden there; Back is hidden on the first screen). The button is still inside the form.
  * - A screen is hidden when its section, or every question in it, carries the show-if `hidden` attribute
@@ -39,6 +41,7 @@
  */
 import {
   historyPushedAfter,
+  isFinalAway,
   nextVisibleScreen,
   openingScreen,
   parseStepHash,
@@ -193,7 +196,8 @@ function render(w: Wizard, announce: boolean): void {
     if (current && section.contains(current.el)) delete section.dataset.wizardOff;
     else section.dataset.wizardOff = '';
   }
-  if (w.final) w.final.hidden = !isLast;
+  // Away, not `hidden`: the real Turnstile widget cannot render inside `display:none` (see tokens.css).
+  if (w.final) w.final.toggleAttribute('data-wizard-away', isFinalAway(position, total));
   for (const submit of w.submits) submit.hidden = !isLast;
   w.next.hidden = isLast;
   w.back.hidden = position <= 1;

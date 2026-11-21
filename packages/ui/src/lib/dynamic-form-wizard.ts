@@ -131,6 +131,11 @@ export function visibleScreenIndexes(screens: WizardScreen[], isHidden: IsHidden
   return out;
 }
 
+/** The final block (consent, Turnstile) is out of sight on every screen but the last one. */
+export function isFinalAway(position: number, total: number): boolean {
+  return position !== total;
+}
+
 /** The status line and live announcement: "Step 3 of 8" (1-based position among visible screens). */
 export function stepStatusText(position: number, total: number): string {
   return `Step ${position} of ${total}`;

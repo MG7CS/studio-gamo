@@ -91,6 +91,26 @@ test('a post with mistakes shows the error summary, keeps every value and stores
   await context.close();
 });
 
+test('the final block (Turnstile) stays laid out but invisible until the last screen', async ({
+  browser,
+}) => {
+  const { context, page } = await visitor(browser);
+  await page.goto(REQUEST);
+  const final = page.locator('[data-wizard-final]');
+  const state = () =>
+    final.evaluate((el) => ({
+      width: (el.querySelector('.gamo-turnstile') ?? el).getBoundingClientRect().width,
+      visibility: getComputedStyle(el).visibility,
+    }));
+  await expect(page.locator('[data-wizard-next]')).toBeVisible();
+  const first = await state();
+  expect(first.width).toBeGreaterThan(0);
+  expect(first.visibility).toBe('hidden');
+  await fillRequest(page, `final-${unique()}@example.org`);
+  await expect.poll(async () => (await state()).visibility).toBe('visible');
+  await context.close();
+});
+
 test('a good post redirects to a signed confirmation with a reference; reloading does not post again', async ({
   browser,
 }) => {

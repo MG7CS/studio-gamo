@@ -30,7 +30,8 @@
  * - wizard?: boolean (default false) — renders the form as a one-screen-at-a-time wizard: the form gets
  *   `data-wizard`, every section's questions are grouped into `data-wizard-screen` wrappers
  *   (`lib/dynamic-form-wizard.ts`, `buildScreens`), the consent, Turnstile and submit block is marked
- *   `data-wizard-final`, and a hidden `WizardControls` (Back, Next, progress) follows it. The server HTML is
+ *   `data-wizard-final` (the script keeps it rendered but invisible with `data-wizard-away` on earlier screens,
+ *   never `hidden`: the real Turnstile cannot render in `display:none`), and a hidden `WizardControls` (Back, Next, progress) follows it. The server HTML is
  *   still the complete scrolling form (no-JavaScript baseline); `lib/dynamic-form-wizard-client.ts` turns it
  *   into screens. False renders exactly the ordinary form.
  * - class?: string.

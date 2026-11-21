@@ -4,6 +4,7 @@ import type { DynFormSchema, DynQuestion, DynSection } from './dynamic-form.ts';
 import {
   buildScreens,
   firstScreenWithError,
+  isFinalAway,
   isLightQuestion,
   nextVisibleScreen,
   historyPushedAfter,
@@ -444,4 +445,11 @@ test('openingScreen: question ids still decide for DynamicForm screens', () => {
     openingScreen(screens, { isHidden: () => false, invalidQuestionIds: ['b'], hasSummary: true }),
     1,
   );
+});
+
+test('isFinalAway: the final block shows only on the last screen', () => {
+  assert.equal(isFinalAway(1, 3), true);
+  assert.equal(isFinalAway(2, 3), true);
+  assert.equal(isFinalAway(3, 3), false);
+  assert.equal(isFinalAway(1, 1), false);
 });

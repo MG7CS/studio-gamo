@@ -171,6 +171,17 @@ html {
   display: none;
 }
 
+/* The wizard's final block (consent, Turnstile) is not `hidden` on earlier screens: the real Turnstile widget
+   cannot render in `display:none`. Away it keeps its full width (so a flexible widget sizes and the token
+   exists for Send and uploads) but takes no height and is out of sight, the tab order and the a11y tree. */
+[data-wizard-active] [data-wizard-final][data-wizard-away] {
+  block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 /* Deprecated: prefer text-action-strong for small accent text. Kept for existing markup.
    Small terracotta text: 4.8:1 on cream passes, but only 4.2:1 on sand, so small accent text
    uses the deep shade everywhere (6.0:1 on sand). Large brand type and button fills keep terracotta. */
