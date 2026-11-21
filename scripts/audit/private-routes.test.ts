@@ -61,6 +61,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/instruments',
     '/instruments/[slug]',
     '/instructors/[slug]',
+    '/lessons/[...slug]', // permanent redirect to /instruments for the old lesson pages
     // Dormant guest registration (no account, design §4.7): the receipt needs a signed reference and the manage
     // page a customer cookie from an emailed link; both are noindex and disallowed in robots.txt.
     '/registrations/find',

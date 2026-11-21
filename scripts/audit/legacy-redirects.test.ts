@@ -1,12 +1,23 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { legacyRedirects } from '../../apps/academy/src/lib/legacy-redirects.ts';
+import { legacyLessonDestination, legacyRedirects } from '../../apps/academy/src/lib/legacy-redirects.ts';
 
-test('the old lesson URLs permanently redirect to the instrument list', () => {
-  for (const route of ['/lessons', '/lessons/[slug]']) {
-    assert.deepEqual(legacyRedirects[route], { status: 301, destination: '/instruments' });
+test('the old lesson list URL permanently redirects to the instrument list', () => {
+  assert.deepEqual(legacyRedirects['/lessons'], { status: 301, destination: '/instruments' });
+  assert.equal(legacyLessonDestination, '/instruments');
+});
+
+test('no configured redirect uses a dynamic source (the Cloudflare adapter rewrites its destination)', () => {
+  for (const route of Object.keys(legacyRedirects)) {
+    assert.equal(/[[\]:*]/.test(route), false, `${route} is dynamic; use a page route instead`);
   }
+});
+
+test('old lesson pages are redirected by the catch-all page route to exactly the instrument list', () => {
+  const page = readFileSync('apps/academy/src/pages/lessons/[...slug].astro', 'utf8');
+  assert.match(page, /export const prerender = false;/);
+  assert.match(page, /Astro\.redirect\(legacyLessonDestination, 301\)/);
 });
 
 test('no redirect points at another redirect or keeps a page file behind it', () => {

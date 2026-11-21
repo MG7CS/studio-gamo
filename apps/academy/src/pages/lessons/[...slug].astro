@@ -1,0 +1,9 @@
+---
+// Old lesson pages (/lessons/<anything>) moved to the instrument list. A dynamic `redirects` entry cannot do this
+// on the Cloudflare adapter (see src/lib/legacy-redirects.ts), so the route answers the 301 itself.
+import { legacyLessonDestination } from '../../lib/legacy-redirects.ts';
+
+export const prerender = false;
+
+return Astro.redirect(legacyLessonDestination, 301);
+---
