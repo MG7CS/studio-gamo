@@ -50,7 +50,7 @@ test('opening the link shows the offer, is accessible, and changes nothing howev
   expect(response?.headers()['cache-control']).toContain('no-store');
   expect(response?.headers()['x-robots-tag']).toContain('noindex');
 
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your offer to serve');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your Offer to Serve');
   const details = page.locator('[data-offer-details]');
   await expect(details).toContainText('Sample Church');
   await expect(details).toContainText('Drums');
@@ -73,7 +73,7 @@ test('Accept confirms once and a later visit shows the answer on record', async 
   await page.goto(offerUrl(token));
   await page.getByRole('button', { name: 'Accept' }).click();
 
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('You are confirmed');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('You Are Confirmed');
   await expect(page.getByText('1 Example Way')).toBeVisible();
   await expectAccessible(page, 'accepted');
 
@@ -88,7 +88,8 @@ test('an unknown link is a generic 404 that discloses nothing', async ({ request
   const response = await request.get(offerUrl('A'.repeat(43)));
   expect(response.status()).toBe(404);
   const text = await response.text();
-  expect(text).toContain('This offer is not available');
+  // Headings are title-cased by a shared default.
+  expect(text).toContain('This Offer is Not Available');
   expect(text).not.toContain('Sample Church');
 });
 

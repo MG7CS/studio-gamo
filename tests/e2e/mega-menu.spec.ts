@@ -9,7 +9,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const WEB = 'http://127.0.0.1:4321/';
-const TILES = { Academy: 6, Worship: 8, Production: 7 } as const;
+const TILES = { Academy: 5, Worship: 6, Production: 7 } as const;
 
 const button = (page: Page, name: string) => page.getByRole('button', { name: `${name} menu` });
 const panel = (page: Page, name: string) =>
@@ -32,9 +32,12 @@ test.describe('desktop', () => {
       await button(page, name).click();
       await expect(button(page, name)).toHaveAttribute('aria-expanded', 'true');
       await expect(panel(page, name)).toBeVisible();
-      // Tiles are pictures with names, not links (2026-11-19); the side links still work.
+      // Academy tiles link to their instrument pages (2026-11-20); Worship and Production tiles stay pictures
+      // until their pages are reviewed. The side links work either way.
       await expect(panel(page, name).locator('ul').first().locator('li')).toHaveCount(TILES[name]);
-      await expect(panel(page, name).locator('ul').first().locator('li a')).toHaveCount(0);
+      await expect(panel(page, name).locator('ul').first().locator('li a')).toHaveCount(
+        name === 'Academy' ? TILES.Academy : 0,
+      );
       await expect(panel(page, name).getByRole('link', { name: `All of ${name}` })).toBeVisible();
 
       // The panel fades in; axe must not measure contrast against a half-transparent panel.

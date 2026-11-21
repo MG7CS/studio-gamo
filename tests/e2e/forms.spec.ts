@@ -11,7 +11,7 @@
  * `E2E_APPS=web pnpm exec playwright test tests/e2e/forms.spec.ts` (the web server publishes the
  * default forms first: scripts/e2e/seed-forms.ts).
  */
-import { test, expect, type Browser, type Page } from '@playwright/test';
+import { test, expect, type Browser, type Locator, type Page } from '@playwright/test';
 import { expectAccessible } from './helpers/a11y';
 
 const WEB = process.env.CATALOG_ORIGIN ?? 'http://127.0.0.1:4321';
@@ -32,17 +32,33 @@ async function visitor(browser: Browser, javaScriptEnabled = true) {
 
 const field = (page: Page, id: string) => page.locator(`[id="df_${id}_"]`);
 
+/** The form is a wizard: one screen at a time. Moves with Next (or Back) until `target` is on screen. */
+async function showScreenWith(page: Page, target: Locator, direction: 'next' | 'back' = 'next') {
+  const button = page.locator(direction === 'next' ? '[data-wizard-next]' : '[data-wizard-back]');
+  for (let step = 0; step < 12 && !(await target.first().isVisible()); step++) {
+    await button.click();
+  }
+  await expect(target.first()).toBeVisible();
+}
+
+/** Fills the church service request, screen by screen in the order the form asks. */
 async function fillRequest(page: Page, email: string) {
-  await field(page, 'church_name').fill('Sample Church');
-  await field(page, 'name').fill('Sample Pastor');
-  await field(page, 'email').fill(email);
-  await field(page, 'phone').fill('555-0100');
-  await field(page, 'service_date').fill('2030-04-07');
-  await field(page, 'start_time').fill('10:00');
-  await field(page, 'address').fill('1 Example Way, Phoenix, AZ');
-  await page.getByLabel('Sunday service').check();
-  await page.getByLabel('Keys').check();
-  await page.getByLabel('Drums').check();
+  const fill = async (id: string, value: string) => {
+    await showScreenWith(page, field(page, id));
+    await field(page, id).fill(value);
+  };
+  await fill('church_name', 'Sample Church');
+  await fill('name', 'Sample Pastor');
+  await fill('email', email);
+  await fill('phone', '555-0100');
+  await fill('service_date', '2030-04-07');
+  await fill('start_time', '10:00');
+  await fill('address', '1 Example Way, Phoenix, AZ');
+  for (const label of ['Sunday service', 'Keys', 'Drums']) {
+    await showScreenWith(page, page.getByLabel(label));
+    await page.getByLabel(label).check();
+  }
+  await showScreenWith(page, page.getByLabel(TERMS));
   await page.getByLabel(TERMS).check();
 }
 
@@ -52,13 +68,17 @@ test('a post with mistakes shows the error summary, keeps every value and stores
   const { context, page } = await visitor(browser);
   await page.goto(REQUEST);
   await fillRequest(page, `bad-${unique()}@example.org`);
-  await field(page, 'church_name').fill('');
+  await showScreenWith(page, field(page, 'email'), 'back');
   await field(page, 'email').fill('not-an-email');
-  // The browser's own checks would stop the post; this test is about what the server does with it.
+  await showScreenWith(page, field(page, 'church_name'), 'back');
+  await field(page, 'church_name').fill('');
+  // The browser's own checks (and the wizard's Next) would stop the post; this test is about what the
+  // server does with it, so submit the form directly from here.
   await page.evaluate(() => {
-    document.querySelector<HTMLFormElement>('form[data-dynamic-form]')!.noValidate = true;
+    const form = document.querySelector<HTMLFormElement>('form[data-dynamic-form]')!;
+    form.noValidate = true;
+    form.requestSubmit();
   });
-  await page.getByRole('button', { name: 'Send' }).click();
 
   await expect(page).toHaveURL(REQUEST);
   const summary = page.locator('[data-error-summary]');

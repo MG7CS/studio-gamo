@@ -37,7 +37,11 @@ async function collectProblems(page: Page): Promise<string[]> {
     const h1 = document.querySelectorAll('h1').length;
     if (h1 !== 1) problems.push(`expected one <h1>, found ${h1}`);
     // A component that throws while the page streams leaves a 200 response cut off mid-page.
-    if (!document.querySelector('footer')) problems.push('page is cut off: no <footer>');
+    // The form pages have no footer on purpose (the form is the whole page): their end is the form's Send button.
+    const endsWithForm = document.querySelector('form[data-dynamic-form] button[type="submit"]') !== null;
+    if (!document.querySelector('footer') && !endsWithForm) {
+      problems.push('page is cut off: no <footer> and no form with a Send button');
+    }
     for (const img of Array.from(document.images)) {
       if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) {
         problems.push(`broken image ${img.currentSrc || img.src}`);
